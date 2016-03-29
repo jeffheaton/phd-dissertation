@@ -12,6 +12,7 @@ repositories {
 dependencies {
     compile 'gov.nist.math:jama:1.0.3'
     compile 'jfree:jfreechart:1.0.12'
+	compile 'org.encog:encog-core:3.3.0'
 }
 
 task wrapper(type: Wrapper) {
@@ -20,19 +21,27 @@ task wrapper(type: Wrapper) {
 
 task fatJar(type: Jar) {
 	manifest {
-        attributes 'Implementation-Title': 'Gradle Jar File Example',  
+        attributes 'Implementation-Title': 'Jeff Heaton Dissertation Project',  
         	'Implementation-Version': version,
-        	'Main-Class': 'com.heatonresearch.dist_ann.DistributedANN'
+        	'Main-Class': 'com.jeffheaton.dissertation.JeffDissertation'
     }
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
 
-task(runExperiment, group: 'commands', description: 'Run an experiment',
+task(runNeuralXOR, group: 'commands', description: 'Run an experiment',
         dependsOn: 'classes', type: JavaExec) {
-    main = 'com.heatonresearch.featuregp.FeatureGP'
+    main = 'com.jeffheaton.dissertation.JeffDissertation'
     classpath = sourceSets.main.runtimeClasspath
+	args = ["neural-xor"]	
+}
+
+task(runSimpleGP, group: 'commands', description: 'Run an experiment',
+        dependsOn: 'classes', type: JavaExec) {
+    main = 'com.jeffheaton.dissertation.JeffDissertation'
+    classpath = sourceSets.main.runtimeClasspath
+	args = ["simple-gp"]	
 }
 
 
