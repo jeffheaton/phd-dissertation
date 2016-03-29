@@ -1,0 +1,39 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+version = '1.0'
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'gov.nist.math:jama:1.0.3'
+    compile 'jfree:jfreechart:1.0.12'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2'
+}
+
+task fatJar(type: Jar) {
+	manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',  
+        	'Implementation-Version': version,
+        	'Main-Class': 'com.heatonresearch.dist_ann.DistributedANN'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+task(runExperiment, group: 'commands', description: 'Run an experiment',
+        dependsOn: 'classes', type: JavaExec) {
+    main = 'com.heatonresearch.featuregp.FeatureGP'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+
+
