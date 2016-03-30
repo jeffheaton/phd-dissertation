@@ -7,12 +7,15 @@ targetCompatibility = 1.7
 
 repositories {
     mavenCentral()
+    maven() {
+    	url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
 }
 
 dependencies {
     compile 'gov.nist.math:jama:1.0.3'
     compile 'jfree:jfreechart:1.0.12'
-	compile 'org.encog:encog-core:3.3.0'
+	compile 'org.encog:encog-core:3.4.0-SNAPSHOT'
 }
 
 task wrapper(type: Wrapper) {
