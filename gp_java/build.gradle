@@ -12,10 +12,15 @@ repositories {
     }
 }
 
+configurations.all {
+    // Check for updates every build
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 dependencies {
-    compile 'gov.nist.math:jama:1.0.3'
-    compile 'jfree:jfreechart:1.0.12'
-	compile 'org.encog:encog-core:3.4.0-SNAPSHOT'
+    compile('gov.nist.math:jama:1.0.3')
+    compile('jfree:jfreechart:1.0.12')
+	compile('org.encog:encog-core:3.4.0-SNAPSHOT'){changing=true}
 }
 
 task wrapper(type: Wrapper) {
