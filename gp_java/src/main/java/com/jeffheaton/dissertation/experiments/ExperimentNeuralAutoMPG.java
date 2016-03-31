@@ -1,12 +1,12 @@
 package com.jeffheaton.dissertation.experiments;
 
+import com.jeffheaton.dissertation.features.AutoEngineerFeatures;
 import com.jeffheaton.dissertation.util.FeatureRanking;
 import com.jeffheaton.dissertation.util.NeuralFeatureImportanceCalc;
 import com.jeffheaton.dissertation.util.Transform;
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationLinear;
 import org.encog.engine.network.activation.ActivationReLU;
-import org.encog.engine.network.activation.ActivationSigmoid;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.XaiverRandomizer;
@@ -39,6 +39,7 @@ import org.encog.neural.networks.training.propagation.back.Backpropagation;
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.csv.ReadCSV;
+import org.encog.util.simple.EncogUtility;
 
 import java.io.File;
 import java.io.InputStream;
@@ -81,14 +82,6 @@ public class ExperimentNeuralAutoMPG {
         return istream;
     }
 
-    public void seedInput(BasicNetwork network) {
-        for(int i=0;i<network.getInputCount();i++) {
-            for(int j=0;j<network.getLayerNeuronCount(1);j++) {
-                network.setWeight(0,i,j,0.5);
-            }
-        }
-    }
-
     public void runNeural() {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
@@ -124,7 +117,7 @@ public class ExperimentNeuralAutoMPG {
             if(epoch>100000) {
                 break;
             }
-        } while(train.getError() > 2.5);
+        } while(train.getError() > 2.6);
         train.finishTraining();
 
 
@@ -176,7 +169,7 @@ public class ExperimentNeuralAutoMPG {
         genetic.addOperation(0.5, new SubtreeCrossover());
         genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
         genetic.addOperation(0.25, new SubtreeMutation(context,4));
-        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,20.0));
+        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
         genetic.getRules().addRewriteRule(new RewriteConstants());
         genetic.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
@@ -213,9 +206,22 @@ public class ExperimentNeuralAutoMPG {
         }
     }
 
+    public void runAutoFeature() {
+        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
+
+        InputStream is = loadDatasetMPG();
+        ReadCSV csv = new ReadCSV(is, true, CSVFormat.EG_FORMAT.DECIMAL_POINT);
+        MLDataSet trainingSet = loadCSV(csv, new int[]{1, 2, 3, 4, 5, 6, 7}, new int[]{0});
+        Transform.interpolate(trainingSet);
+
+        AutoEngineerFeatures auto = new AutoEngineerFeatures(trainingSet);
+        auto.run();
+    }
+
+
 
     public static void main(String[] args) {
         ExperimentNeuralAutoMPG prg = new ExperimentNeuralAutoMPG();
-        prg.runNeural();
+        prg.runAutoFeature();
     }
 }

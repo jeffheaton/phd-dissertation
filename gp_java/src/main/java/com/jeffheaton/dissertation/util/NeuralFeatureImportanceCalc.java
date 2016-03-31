@@ -14,7 +14,16 @@ public class NeuralFeatureImportanceCalc {
     private final List<FeatureRanking> features = new ArrayList<>();
     private final BasicNetwork network;
 
-    public NeuralFeatureImportanceCalc(BasicNetwork theNetwork, String[] theFeatureNames) {
+    public NeuralFeatureImportanceCalc(BasicNetwork theNetwork) {
+        this.network = theNetwork;
+
+
+        for(int i=0;i<theNetwork.getInputCount();i++) {
+            this.features.add(new FeatureRanking("f"+i));
+        }
+    }
+
+        public NeuralFeatureImportanceCalc(BasicNetwork theNetwork, String[] theFeatureNames) {
         this.network = theNetwork;
 
         if( theFeatureNames.length!=network.getInputCount()) {
