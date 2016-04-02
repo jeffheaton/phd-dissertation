@@ -213,6 +213,7 @@ public class ExperimentNeuralAutoMPG {
         ReadCSV csv = new ReadCSV(is, true, CSVFormat.EG_FORMAT.DECIMAL_POINT);
         MLDataSet trainingSet = loadCSV(csv, new int[]{1, 2, 3, 4, 5, 6, 7}, new int[]{0});
         Transform.interpolate(trainingSet);
+        Transform.zscore(trainingSet);
 
         AutoEngineerFeatures auto = new AutoEngineerFeatures(trainingSet);
         auto.run();

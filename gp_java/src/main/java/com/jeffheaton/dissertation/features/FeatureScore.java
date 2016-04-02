@@ -17,6 +17,7 @@ import org.encog.ml.data.basic.BasicMLData;
 import org.encog.ml.data.basic.BasicMLDataPair;
 import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.ml.ea.codec.GeneticCODEC;
+import org.encog.ml.ea.exception.EARuntimeError;
 import org.encog.ml.ea.genome.Genome;
 import org.encog.ml.ea.population.Population;
 import org.encog.ml.ea.species.Species;
@@ -24,6 +25,8 @@ import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
+import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
+import org.encog.neural.networks.training.pso.NeuralPSO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +55,15 @@ public class FeatureScore implements CalculateScore {
         (new XaiverRandomizer(41)).randomize(network);
     }
 
+    private void cleanVector(MLData vec) {
+        for(int i = 0; i<vec.size(); i++ ) {
+            double d = vec.getData(i);
+            if( Double.isInfinite(d) || Double.isNaN(d) ) {
+                vec.setData(i, 0);
+            }
+        }
+    }
+
     public void calculateScores() {
         List<Genome> genomes = new ArrayList<>();
         randomizeNetwork();
@@ -77,31 +89,44 @@ public class FeatureScore implements CalculateScore {
                 for(Genome genome: species.getMembers()) {
                     genomes.add(genome);
                     MLRegression phen = (MLRegression) genome;
-                    MLData output = phen.compute(pair.getInput());
-                    engineeredInput.setData(networkIdx++,output.getData(0));
+                    try {
+                        MLData output = phen.compute(pair.getInput());
+                        engineeredInput.setData(networkIdx++,output.getData(0));
+                    } catch(EARuntimeError ex) {
+                        engineeredInput.setData(networkIdx++,0);
+                    }
+
                 }
             }
+            cleanVector(engineeredPair.getInput());
 
             // add to dataset
             engineeredDataset.add(engineeredPair);
         }
 
         // Train a neural network with engineered dataset
-        final Backpropagation train = new Backpropagation(network, engineeredDataset, 1e-6, 0.9);
-        //final ResilientPropagation train = new ResilientPropagation(network, trainingSet);
+        //final Backpropagation train = new Backpropagation(network, engineeredDataset, 1e-30, 0.9);
+        //NeuralPSO train = new NeuralPSO(network,engineeredDataset);
+
+        final ResilientPropagation train = new ResilientPropagation(network, engineeredDataset);
         train.setErrorFunction(new CrossEntropyErrorFunction());
-        train.setNesterovUpdate(true);
+        //train.setNesterovUpdate(true);
 
         int epoch = 1;
+        int stalled = 0;
 
+        double bestError = Double.POSITIVE_INFINITY;
         do {
             train.iteration();
+            if( train.getError()<bestError) {
+                stalled = 0;
+                bestError = train.getError();
+            } else {
+                stalled++;
+            }
             System.out.println("Epoch #" + epoch + " Error:" + train.getError());
             epoch++;
-            if(epoch>100000) {
-                break;
-            }
-        } while(train.getError() > 2.6);
+        } while( epoch<1000 && stalled<10 && !Double.isInfinite(train.getError()) && !Double.isInfinite(train.getError()));
         train.finishTraining();
 
         // Evaluate feature importance
@@ -111,7 +136,7 @@ public class FeatureScore implements CalculateScore {
 
         for(int i=0;i<fi.getFeatures().size();i++) {
             FeatureRanking rank = fi.getFeatures().get(i);
-            genomes.get(i).setScore(rank.getImportancePercent());
+            genomes.get(i).setScore(1.0-rank.getImportancePercent());
         }
 
         this.init = true;

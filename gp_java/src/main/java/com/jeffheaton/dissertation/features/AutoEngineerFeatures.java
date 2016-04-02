@@ -68,7 +68,7 @@ public class AutoEngineerFeatures {
 
         (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
 
-        genetic.setShouldIgnoreExceptions(false);
+        genetic.setShouldIgnoreExceptions(true);
 
         try {
             for (int i = 0; i < 1000; i++) {
