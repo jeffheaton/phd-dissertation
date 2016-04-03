@@ -3,6 +3,7 @@ package com.jeffheaton.dissertation.experiments;
 import com.jeffheaton.dissertation.features.AutoEngineerFeatures;
 import com.jeffheaton.dissertation.util.FeatureRanking;
 import com.jeffheaton.dissertation.util.NeuralFeatureImportanceCalc;
+import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
 import com.jeffheaton.dissertation.util.Transform;
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationLinear;
@@ -10,6 +11,7 @@ import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.XaiverRandomizer;
+import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
@@ -31,12 +33,14 @@ import org.encog.ml.prg.species.PrgSpeciation;
 import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
+import org.encog.ml.train.strategy.end.SimpleEarlyStoppingStrategy;
 import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
+import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.csv.ReadCSV;
 import org.encog.util.simple.EncogUtility;
@@ -73,8 +77,8 @@ public class ExperimentNeuralAutoMPG {
         return result;
     }
 
-    public InputStream loadDatasetMPG() {
-        final InputStream istream = this.getClass().getResourceAsStream("/auto-mpg.csv");
+    public static InputStream loadDatasetMPG() {
+        final InputStream istream = ExperimentNeuralAutoMPG.class.getResourceAsStream("/auto-mpg.csv");
         if (istream == null) {
             System.out.println("Cannot access data set, make sure the resources are available.");
             System.exit(1);
@@ -87,9 +91,14 @@ public class ExperimentNeuralAutoMPG {
 
         InputStream is = loadDatasetMPG();
         ReadCSV csv = new ReadCSV(is,true,CSVFormat.EG_FORMAT.DECIMAL_POINT);
-        MLDataSet trainingSet = loadCSV(csv,new int[] {1,2,3,4,5,6,7}, new int[] {0});
-        Transform.interpolate(trainingSet);
-        Transform.zscore(trainingSet);
+        MLDataSet dataset = loadCSV(csv,new int[] {1,2,3,4,5,6,7}, new int[] {0});
+        Transform.interpolate(dataset);
+        Transform.zscore(dataset);
+
+        // split
+        MLDataSet[] split = Transform.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
+        MLDataSet trainingSet = split[0];
+        MLDataSet validationSet = split[1];
 
         // create a neural network, without using a factory
         BasicNetwork network = new BasicNetwork();
@@ -103,21 +112,21 @@ public class ExperimentNeuralAutoMPG {
         //seedInput(network);
 
         // train the neural network
-        final Backpropagation train = new Backpropagation(network, trainingSet, 1e-6, 0.9);
+        final Backpropagation train = new Backpropagation(network, trainingSet, 1e-5, 0.9);
         //final ResilientPropagation train = new ResilientPropagation(network, trainingSet);
         train.setErrorFunction(new CrossEntropyErrorFunction());
         train.setNesterovUpdate(true);
+        SimpleEarlyStoppingStrategy earlyStop = new SimpleEarlyStoppingStrategy(validationSet,10);
+        train.addStrategy(earlyStop);
 
         int epoch = 1;
 
         do {
             train.iteration();
-            System.out.println("Epoch #" + epoch + " Error:" + train.getError());
+            System.out.println("Epoch #" + epoch + " Train Error:" + Format.formatDouble(train.getError(),6)
+                    + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(),6));
             epoch++;
-            if(epoch>100000) {
-                break;
-            }
-        } while(train.getError() > 2.6);
+        } while(!train.isTrainingDone());
         train.finishTraining();
 
 
@@ -144,8 +153,13 @@ public class ExperimentNeuralAutoMPG {
 
         InputStream is = loadDatasetMPG();
         ReadCSV csv = new ReadCSV(is,true,CSVFormat.EG_FORMAT.DECIMAL_POINT);
-        MLDataSet trainingSet = loadCSV(csv,new int[] {1,2,3,4,5,6,7}, new int[] {0});
-        Transform.interpolate(trainingSet);
+        MLDataSet dataset = loadCSV(csv,new int[] {1,2,3,4,5,6,7}, new int[] {0});
+        Transform.interpolate(dataset);
+
+        // split
+        MLDataSet[] split = Transform.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
+        MLDataSet trainingSet = split[0];
+        MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
         context.defineVariable("c");
@@ -174,6 +188,9 @@ public class ExperimentNeuralAutoMPG {
         genetic.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
 
+        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet,10);
+        genetic.addStrategy(earlyStop);
+
         (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
 
         genetic.setShouldIgnoreExceptions(false);
@@ -182,13 +199,14 @@ public class ExperimentNeuralAutoMPG {
 
         try {
 
-            for (int i = 0; i < 100000; i++) {
+            do {
                 genetic.iteration();
                 best = (EncogProgram) genetic.getBestGenome();
                 System.out.println(genetic.getIteration() + ", Error: "
-                        + best.getScore() + ",Best Genome Size:" +best.size()
+                        + Format.formatDouble(best.getScore(),6) + ",Validation Score: " + earlyStop.getValidationError()
+                        + ",Best Genome Size:" +best.size()
                         + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
-            }
+            } while(!genetic.isTrainingDone());
 
             //EncogUtility.evaluate(best, trainingData);
 
@@ -223,6 +241,6 @@ public class ExperimentNeuralAutoMPG {
 
     public static void main(String[] args) {
         ExperimentNeuralAutoMPG prg = new ExperimentNeuralAutoMPG();
-        prg.runAutoFeature();
+        prg.runGP();
     }
 }

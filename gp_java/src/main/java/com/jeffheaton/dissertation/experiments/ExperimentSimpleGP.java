@@ -72,13 +72,13 @@ public class ExperimentSimpleGP {
 
         try {
 
-            for (int i = 0; i < 1000; i++) {
+            do {
                 genetic.iteration();
                 best = (EncogProgram) genetic.getBestGenome();
                 System.out.println(genetic.getIteration() + ", Error: "
                         + best.getScore() + ",Best Genome Size:" +best.size()
                         + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
-            }
+            } while(!genetic.isTrainingDone());
 
             //EncogUtility.evaluate(best, trainingData);
 

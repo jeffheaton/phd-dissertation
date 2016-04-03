@@ -105,12 +105,12 @@ public class FeatureScore implements CalculateScore {
         }
 
         // Train a neural network with engineered dataset
-        //final Backpropagation train = new Backpropagation(network, engineeredDataset, 1e-30, 0.9);
+        final Backpropagation train = new Backpropagation(network, engineeredDataset, 1e-9, 0.9);
         //NeuralPSO train = new NeuralPSO(network,engineeredDataset);
 
-        final ResilientPropagation train = new ResilientPropagation(network, engineeredDataset);
+        //final ResilientPropagation train = new ResilientPropagation(network, engineeredDataset);
         train.setErrorFunction(new CrossEntropyErrorFunction());
-        //train.setNesterovUpdate(true);
+        train.setNesterovUpdate(true);
 
         int epoch = 1;
         int stalled = 0;
@@ -136,7 +136,7 @@ public class FeatureScore implements CalculateScore {
 
         for(int i=0;i<fi.getFeatures().size();i++) {
             FeatureRanking rank = fi.getFeatures().get(i);
-            genomes.get(i).setScore(1.0-rank.getImportancePercent());
+            genomes.get(i).setScore(rank.getImportancePercent());
         }
 
         this.init = true;
@@ -145,6 +145,10 @@ public class FeatureScore implements CalculateScore {
     @Override
     public double calculateScore(MLMethod method) {
         if(this.init) {
+            Genome genome = (Genome)method;
+            if( Double.isInfinite(genome.getScore()) || Double.isNaN(genome.getScore()) ) {
+                return 0;
+            }
             return ((Genome) method).getScore();
         } else {
             throw new EncogError("Must calculate scores first.");
@@ -153,7 +157,7 @@ public class FeatureScore implements CalculateScore {
 
     @Override
     public boolean shouldMinimize() {
-        return true;
+        return false;
     }
 
     @Override

@@ -1,12 +1,36 @@
 package com.jeffheaton.dissertation.util;
 
+import org.encog.EncogError;
+import org.encog.mathutil.randomize.generate.GenerateRandom;
 import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
+import org.encog.ml.data.basic.BasicMLDataSet;
 
 /**
  * Created by Jeff on 3/31/2016.
  */
 public class Transform {
+
+    public static MLDataSet[] splitTrainValidate(MLDataSet trainingSet, GenerateRandom rnd, double trainingPercent) {
+        if( trainingPercent<0 || trainingPercent>1) {
+            throw new EncogError("Training percent must be between 0 and 1.");
+        }
+
+        MLDataSet[] result = new MLDataSet[2];
+        result[0] = new BasicMLDataSet();
+        result[1] = new BasicMLDataSet();
+
+        // initial split
+        for(MLDataPair pair: trainingSet ) {
+            if( rnd.nextDouble()<trainingPercent ) {
+                result[0].add(pair);
+            } else {
+                result[1].add(pair);
+            }
+        }
+
+        return result;
+    }
 
     public static void interpolate(MLDataSet data) {
         double[] sumInput = new double[data.getInputSize()];
