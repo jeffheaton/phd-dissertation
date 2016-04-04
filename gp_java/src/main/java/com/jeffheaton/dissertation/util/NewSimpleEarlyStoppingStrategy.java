@@ -24,8 +24,6 @@ package com.jeffheaton.dissertation.util;
  * http://www.heatonresearch.com/copyright
  */
 
-import org.encog.ml.MLError;
-import org.encog.ml.MLMethod;
 import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.train.MLTrain;
@@ -61,25 +59,41 @@ public class NewSimpleEarlyStoppingStrategy implements EndTrainingStrategy {
      */
     private double lastValidationError;
 
-    private MLRegression calc;
+    /**
+     * The model that is being trained.
+     */
+    private MLRegression model;
 
+    /**
+     * The frequency to check the validation set.
+     */
     private int checkFrequency;
 
+    /**
+     * How many iterations since the validation set was last checked.
+     */
     private int lastCheck;
 
-    private double lastError;
+    /**
+     * The number of iterations that the validation is allowed to remain stagnant/degrading for.
+     */
+    private int allowedStagnantIterations;
 
+    private int stagnantIterations;
 
+    private double minimumImprovement;
 
     public NewSimpleEarlyStoppingStrategy(MLDataSet theValidationSet) {
-        this(theValidationSet, 5);
+        this(theValidationSet, 5, 50, 0.01);
     }
 
 
     public NewSimpleEarlyStoppingStrategy(MLDataSet theValidationSet,
-                                       int theCheckFrequency) {
+        int theCheckFrequency, int theAllowedStagnantIterations, double theMinimumImprovement) {
         this.validationSet = theValidationSet;
         this.checkFrequency = theCheckFrequency;
+        this.allowedStagnantIterations = theAllowedStagnantIterations;
+        this.minimumImprovement = theMinimumImprovement;
     }
 
     /**
@@ -88,7 +102,7 @@ public class NewSimpleEarlyStoppingStrategy implements EndTrainingStrategy {
     @Override
     public void init(MLTrain theTrain) {
         this.train = theTrain;
-        this.calc = (MLRegression) train.getMethod();
+        this.model = (MLRegression) train.getMethod();
         this.stop = false;
         this.lastCheck = 0;
         this.lastValidationError = Double.POSITIVE_INFINITY;
@@ -111,16 +125,20 @@ public class NewSimpleEarlyStoppingStrategy implements EndTrainingStrategy {
         this.trainingError = this.train.getError();
 
         if( this.lastCheck>this.checkFrequency || Double.isInfinite(this.lastValidationError) ) {
-            this.lastCheck = 0;
+            double currentValidationError = EncogUtility.calculateRegressionError(this.model, this.validationSet);
 
-            double currentValidationError = EncogUtility.calculateRegressionError(this.calc, this.validationSet);
-
-            if( currentValidationError>=this.lastValidationError ) {
-                stop = true;
+            if( (this.lastValidationError-currentValidationError)<this.minimumImprovement ) {
+                // error did not drop by required amount
+                this.stagnantIterations+=this.lastCheck;
+                if(this.stagnantIterations>this.allowedStagnantIterations) {
+                    stop = true;
+                }
+            } else {
+                this.stagnantIterations=0;
             }
 
             this.lastValidationError = currentValidationError;
-
+            this.lastCheck = 0;
         }
     }
 
@@ -145,5 +163,21 @@ public class NewSimpleEarlyStoppingStrategy implements EndTrainingStrategy {
      */
     public double getValidationError() {
         return this.lastValidationError;
+    }
+
+    public int getStagnantIterations() {
+        return stagnantIterations;
+    }
+
+    public void setStagnantIterations(int stagnantIterations) {
+        this.stagnantIterations = stagnantIterations;
+    }
+
+    public int getAllowedStagnantIterations() {
+        return allowedStagnantIterations;
+    }
+
+    public void setAllowedStagnantIterations(int allowedStagnantIterations) {
+        this.allowedStagnantIterations = allowedStagnantIterations;
     }
 }

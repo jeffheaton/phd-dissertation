@@ -1,6 +1,6 @@
 package com.jeffheaton.dissertation.experiments;
 
-import com.jeffheaton.dissertation.features.AutoEngineerFeatures;
+import com.jeffheaton.dissertation.data.AutoMPG;
 import com.jeffheaton.dissertation.util.FeatureRanking;
 import com.jeffheaton.dissertation.util.NeuralFeatureImportanceCalc;
 import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
@@ -33,66 +33,25 @@ import org.encog.ml.prg.species.PrgSpeciation;
 import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
-import org.encog.ml.train.strategy.end.SimpleEarlyStoppingStrategy;
 import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
-import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.csv.ReadCSV;
-import org.encog.util.simple.EncogUtility;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.Random;
 
 
 public class ExperimentNeuralAutoMPG {
 
-    public static MLDataSet loadCSV(ReadCSV csv, int[] input, int[] ideal) {
-        MLDataSet result = new BasicMLDataSet();
-        while(csv.next()) {
-            MLData inputItem = new BasicMLData(input.length);
-            MLData idealItem = new BasicMLData(ideal.length);
-            MLDataPair pair = new BasicMLDataPair(inputItem,idealItem);
-
-            // Read input
-            int idx = 0;
-            for(int i:input) {
-                inputItem.setData(idx++,csv.getDouble(i));
-            }
-
-            // Read ideal
-            idx = 0;
-            for(int i:ideal) {
-                idealItem.setData(idx++,csv.getDouble(i));
-            }
-
-            result.add(pair);
-
-        }
-        return result;
-    }
-
-    public static InputStream loadDatasetMPG() {
-        final InputStream istream = ExperimentNeuralAutoMPG.class.getResourceAsStream("/auto-mpg.csv");
-        if (istream == null) {
-            System.out.println("Cannot access data set, make sure the resources are available.");
-            System.exit(1);
-        }
-        return istream;
-    }
-
     public void runNeural() {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
-        InputStream is = loadDatasetMPG();
-        ReadCSV csv = new ReadCSV(is,true,CSVFormat.EG_FORMAT.DECIMAL_POINT);
-        MLDataSet dataset = loadCSV(csv,new int[] {1,2,3,4,5,6,7}, new int[] {0});
-        Transform.interpolate(dataset);
+        MLDataSet dataset = AutoMPG.getInstance().loadData();
         Transform.zscore(dataset);
 
         // split
@@ -116,7 +75,7 @@ public class ExperimentNeuralAutoMPG {
         //final ResilientPropagation train = new ResilientPropagation(network, trainingSet);
         train.setErrorFunction(new CrossEntropyErrorFunction());
         train.setNesterovUpdate(true);
-        SimpleEarlyStoppingStrategy earlyStop = new SimpleEarlyStoppingStrategy(validationSet,10);
+        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet);
         train.addStrategy(earlyStop);
 
         int epoch = 1;
@@ -124,7 +83,9 @@ public class ExperimentNeuralAutoMPG {
         do {
             train.iteration();
             System.out.println("Epoch #" + epoch + " Train Error:" + Format.formatDouble(train.getError(),6)
-                    + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(),6));
+                    + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(),6) +
+                     ", Stagnant: " + earlyStop.getStagnantIterations());
+
             epoch++;
         } while(!train.isTrainingDone());
         train.finishTraining();
@@ -151,10 +112,7 @@ public class ExperimentNeuralAutoMPG {
     public void runGP() {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
-        InputStream is = loadDatasetMPG();
-        ReadCSV csv = new ReadCSV(is,true,CSVFormat.EG_FORMAT.DECIMAL_POINT);
-        MLDataSet dataset = loadCSV(csv,new int[] {1,2,3,4,5,6,7}, new int[] {0});
-        Transform.interpolate(dataset);
+        MLDataSet dataset = AutoMPG.getInstance().loadData();
 
         // split
         MLDataSet[] split = Transform.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
@@ -188,7 +146,7 @@ public class ExperimentNeuralAutoMPG {
         genetic.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
 
-        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet,10);
+        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet);
         genetic.addStrategy(earlyStop);
 
         (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
@@ -223,21 +181,6 @@ public class ExperimentNeuralAutoMPG {
             Encog.getInstance().shutdown();
         }
     }
-
-    public void runAutoFeature() {
-        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
-
-        InputStream is = loadDatasetMPG();
-        ReadCSV csv = new ReadCSV(is, true, CSVFormat.EG_FORMAT.DECIMAL_POINT);
-        MLDataSet trainingSet = loadCSV(csv, new int[]{1, 2, 3, 4, 5, 6, 7}, new int[]{0});
-        Transform.interpolate(trainingSet);
-        Transform.zscore(trainingSet);
-
-        AutoEngineerFeatures auto = new AutoEngineerFeatures(trainingSet);
-        auto.run();
-    }
-
-
 
     public static void main(String[] args) {
         ExperimentNeuralAutoMPG prg = new ExperimentNeuralAutoMPG();

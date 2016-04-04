@@ -2,6 +2,7 @@ package com.jeffheaton.dissertation.features;
 
 import com.jeffheaton.dissertation.util.FeatureRanking;
 import com.jeffheaton.dissertation.util.NeuralFeatureImportanceCalc;
+import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
 import org.encog.EncogError;
 import org.encog.engine.network.activation.ActivationLinear;
 import org.encog.engine.network.activation.ActivationReLU;
@@ -27,6 +28,7 @@ import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
 import org.encog.neural.networks.training.pso.NeuralPSO;
+import org.encog.util.Format;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,18 +38,25 @@ import java.util.List;
  */
 public class FeatureScore implements CalculateScore {
 
-    private final MLDataSet dataset;
     private final Population population;
     private final BasicNetwork network;
+    private MLDataSet trainingData;
+    private MLDataSet validationData;
     private boolean init;
+    private int maxEpoch = 1000;
+    private int maxStagnant = 10;
+    private int hiddenCount = 500;
+    private double learningRate = 1e-9;
+    private double momentum = 0.9;
 
-    public FeatureScore(MLDataSet theDataset, Population thePopulation) {
-        this.dataset = theDataset;
+    public FeatureScore(MLDataSet theTrainingData, MLDataSet theValidationData, Population thePopulation) {
+        this.trainingData = theTrainingData;
+        this.validationData = theValidationData;
         this.population = thePopulation;
         this.network = new BasicNetwork();
         network.addLayer(new BasicLayer(null,true,this.population.getPopulationSize()));
-        network.addLayer(new BasicLayer(new ActivationReLU(),true,500));
-        network.addLayer(new BasicLayer(new ActivationLinear(),false,this.dataset.getIdealSize()));
+        network.addLayer(new BasicLayer(new ActivationReLU(),true,this.hiddenCount));
+        network.addLayer(new BasicLayer(new ActivationLinear(),false,this.trainingData.getIdealSize()));
         network.getStructure().finalizeStructure();
     }
 
@@ -64,15 +73,10 @@ public class FeatureScore implements CalculateScore {
         }
     }
 
-    public void calculateScores() {
-        List<Genome> genomes = new ArrayList<>();
-        randomizeNetwork();
-
-        // Create a new training set, with the new engineered features
+    private MLDataSet encodeDataset(List<Genome> genomes, MLDataSet dataset) {
         MLDataSet engineeredDataset = new BasicMLDataSet();
 
-
-        for(MLDataPair pair: this.dataset) {
+        for(MLDataPair pair: dataset) {
             int networkIdx = 0;
 
             MLData engineeredInput = new BasicMLData(this.network.getInputCount());
@@ -85,27 +89,35 @@ public class FeatureScore implements CalculateScore {
             }
 
             // Create input
-            for(Species species: this.population.getSpecies()) {
-                for(Genome genome: species.getMembers()) {
-                    genomes.add(genome);
-                    MLRegression phen = (MLRegression) genome;
-                    try {
-                        MLData output = phen.compute(pair.getInput());
-                        engineeredInput.setData(networkIdx++,output.getData(0));
-                    } catch(EARuntimeError ex) {
-                        engineeredInput.setData(networkIdx++,0);
-                    }
-
+            for(Genome genome: genomes) {
+                MLRegression phen = (MLRegression) genome;
+                try {
+                    MLData output = phen.compute(pair.getInput());
+                    engineeredInput.setData(networkIdx++,output.getData(0));
+                } catch(EARuntimeError ex) {
+                    engineeredInput.setData(networkIdx++,0);
                 }
+
             }
+
             cleanVector(engineeredPair.getInput());
 
             // add to dataset
             engineeredDataset.add(engineeredPair);
         }
+        return engineeredDataset;
+    }
+
+    public void calculateScores() {
+        List<Genome> genomes = this.population.flatten();
+        randomizeNetwork();
+
+        // Create a new training set, with the new engineered features
+        MLDataSet engineeredTrainingSet = encodeDataset(genomes, this.trainingData);
+        MLDataSet engineeredValidationSet = encodeDataset(genomes, this.trainingData);
 
         // Train a neural network with engineered dataset
-        final Backpropagation train = new Backpropagation(network, engineeredDataset, 1e-9, 0.9);
+        final Backpropagation train = new Backpropagation(network, engineeredTrainingSet, this.learningRate, this.momentum);
         //NeuralPSO train = new NeuralPSO(network,engineeredDataset);
 
         //final ResilientPropagation train = new ResilientPropagation(network, engineeredDataset);
@@ -113,20 +125,18 @@ public class FeatureScore implements CalculateScore {
         train.setNesterovUpdate(true);
 
         int epoch = 1;
-        int stalled = 0;
+
+        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(engineeredValidationSet);
+        train.addStrategy(earlyStop);
 
         double bestError = Double.POSITIVE_INFINITY;
         do {
             train.iteration();
-            if( train.getError()<bestError) {
-                stalled = 0;
-                bestError = train.getError();
-            } else {
-                stalled++;
-            }
-            System.out.println("Epoch #" + epoch + " Error:" + train.getError());
+            System.out.println("Epoch #" + epoch + " Train Error:" + Format.formatDouble(train.getError(),6)
+                    + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(),6) +
+                    ", Stagnant: " + earlyStop.getStagnantIterations());
             epoch++;
-        } while( epoch<1000 && stalled<10 && !Double.isInfinite(train.getError()) && !Double.isInfinite(train.getError()));
+        } while( !train.isTrainingDone() && !Double.isInfinite(train.getError()) && !Double.isInfinite(train.getError()));
         train.finishTraining();
 
         // Evaluate feature importance
@@ -134,7 +144,8 @@ public class FeatureScore implements CalculateScore {
         NeuralFeatureImportanceCalc fi = new NeuralFeatureImportanceCalc(network);
         fi.calculateFeatureImportance();
 
-        for(int i=0;i<fi.getFeatures().size();i++) {
+        int count = Math.min(fi.getFeatures().size(),genomes.size());// might not be needed
+        for(int i=0;i<count;i++) {
             FeatureRanking rank = fi.getFeatures().get(i);
             genomes.get(i).setScore(rank.getImportancePercent());
         }
