@@ -109,81 +109,8 @@ public class ExperimentNeuralAutoMPG {
 
     }
 
-    public void runGP() {
-        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
-
-        MLDataSet dataset = AutoMPG.getInstance().loadData();
-
-        // split
-        MLDataSet[] split = Transform.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
-        MLDataSet trainingSet = split[0];
-        MLDataSet validationSet = split[1];
-
-        EncogProgramContext context = new EncogProgramContext();
-        context.defineVariable("c");
-        context.defineVariable("d");
-        context.defineVariable("h");
-        context.defineVariable("w");
-        context.defineVariable("a");
-        context.defineVariable("y");
-        context.defineVariable("o");
-
-        StandardExtensions.createNumericOperators(context);
-
-        PrgPopulation pop = new PrgPopulation(context,1000);
-
-        MultiObjectiveFitness score = new MultiObjectiveFitness();
-        score.addObjective(1.0, new TrainingSetScore(trainingSet));
-
-        TrainEA genetic = new TrainEA(pop, score);
-        //genetic.setValidationMode(true);
-        genetic.setCODEC(new PrgCODEC());
-        genetic.addOperation(0.5, new SubtreeCrossover());
-        genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
-        genetic.addOperation(0.25, new SubtreeMutation(context,4));
-        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
-        genetic.getRules().addRewriteRule(new RewriteConstants());
-        genetic.getRules().addRewriteRule(new RewriteAlgebraic());
-        genetic.setSpeciation(new PrgSpeciation());
-
-        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet);
-        genetic.addStrategy(earlyStop);
-
-        (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
-
-        genetic.setShouldIgnoreExceptions(false);
-
-        EncogProgram best = null;
-
-        try {
-
-            do {
-                genetic.iteration();
-                best = (EncogProgram) genetic.getBestGenome();
-                System.out.println(genetic.getIteration() + ", Error: "
-                        + Format.formatDouble(best.getScore(),6) + ",Validation Score: " + earlyStop.getValidationError()
-                        + ",Best Genome Size:" +best.size()
-                        + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
-            } while(!genetic.isTrainingDone());
-
-            //EncogUtility.evaluate(best, trainingData);
-
-            System.out.println("Final score:" + best.getScore()
-                    + ", effective score:" + best.getAdjustedScore());
-            System.out.println(best.dumpAsCommonExpression());
-            //pop.dumpMembers(Integer.MAX_VALUE);
-            //pop.dumpMembers(10);
-
-        } catch (Throwable t) {
-            t.printStackTrace();
-        } finally {
-            genetic.finishTraining();
-            Encog.getInstance().shutdown();
-        }
-    }
-
     public static void main(String[] args) {
         ExperimentNeuralAutoMPG prg = new ExperimentNeuralAutoMPG();
-        prg.runGP();
+        prg.runNeural();
     }
 }
