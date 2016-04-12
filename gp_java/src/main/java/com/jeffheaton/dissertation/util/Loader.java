@@ -22,7 +22,14 @@ public class Loader {
             // Read input
             int idx = 0;
             for(int i:input) {
-                inputItem.setData(idx++,csv.getDouble(i));
+                String str = csv.get(i);
+                double d = 0;
+                if( str.equalsIgnoreCase("NA")) {
+                    d = Double.NaN;
+                } else {
+                    d = Double.parseDouble(str);
+                }
+                inputItem.setData(idx++,d);
             }
 
             // Read ideal

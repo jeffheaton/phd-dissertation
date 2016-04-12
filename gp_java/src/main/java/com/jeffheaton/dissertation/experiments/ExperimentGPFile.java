@@ -38,7 +38,7 @@ import java.util.Random;
 public class ExperimentGPFile {
     public static void main(String[] args) {
         ExperimentGPFile file = new ExperimentGPFile();
-        file.process("/Users/jeff/dropbox/school/phd/dissertation/data/auto-mpg.csv");
+        file.process("C:\\Users\\jheaton\\projects\\dissertation\\gp_java\\src\\main\\resources\\auto-mpg.csv");
     }
 
     private void process(String filename) {
@@ -46,6 +46,7 @@ public class ExperimentGPFile {
 
         QuickEncodeDataset quick = new QuickEncodeDataset();
         MLDataSet dataset = quick.process(new File(filename),0, true, CSVFormat.EG_FORMAT);
+        Transform.interpolate(dataset);
         //quick.dumpFieldInfo();
 
         // split
@@ -54,13 +55,11 @@ public class ExperimentGPFile {
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
-        context.defineVariable("c");
-        context.defineVariable("d");
-        context.defineVariable("h");
-        context.defineVariable("w");
-        context.defineVariable("a");
-        context.defineVariable("y");
-        context.defineVariable("o");
+        for(int i=0;i<quick.getName().length;i++) {
+            if( i!=quick.getTargetColumn() && quick.getNumeric()[i] ) {
+                context.defineVariable(quick.getName()[i]);
+            }
+        }
 
         //StandardExtensions.createNumericOperators(context);
 
@@ -87,7 +86,7 @@ public class ExperimentGPFile {
         genetic.addOperation(0.5, new SubtreeCrossover());
         genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
         genetic.addOperation(0.25, new SubtreeMutation(context,4));
-        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
+        //genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
         genetic.getRules().addRewriteRule(new RewriteConstants());
         genetic.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());

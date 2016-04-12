@@ -25,7 +25,7 @@ public class QuickEncodeDataset {
     private int targetColumn;
 
     private boolean isNA(String str) {
-        if(str.equalsIgnoreCase("NA")|| str.equals("?")) {
+        if(str.trim().equalsIgnoreCase("NA")|| str.trim().equals("?")) {
             return true;
         } else {
             return false;
@@ -146,5 +146,89 @@ public class QuickEncodeDataset {
         processPass1();
         processPass2();
         return processPass3();
+    }
+
+    private boolean skip(int n) {
+        return !this.numeric[n] || n==0 || n==1;
+    }
+
+    public double[] getMin() {
+        return min;
+    }
+
+    public double[] getMax() {
+        return max;
+    }
+
+    public double[] getMean() {
+        return mean;
+    }
+
+    public double[] getSdev() {
+        return sdev;
+    }
+
+    public boolean[] getNumeric() {
+        return numeric;
+    }
+
+    public String[] getName() {
+        return name;
+    }
+
+    public int[] getRowCount() {
+        return rowCount;
+    }
+
+    public void analyze(File theFile, int targetColumn, boolean theHeaders, CSVFormat theFormat) {
+        this.file = theFile;
+        this.headers = theHeaders;
+        this.format = theFormat;
+        processPass1();
+        processPass2();
+
+        int idx = 0;
+        for(int w=0;w<this.numeric.length;w++) {
+            if( skip(w) )
+                continue;
+
+            for(int x=0;x<this.numeric.length;x++) {
+
+                if( w==x  || skip(x) )
+                    continue;
+
+                for(int y=0;y<this.numeric.length;y++) {
+
+                    if( y==w || y==x  || skip(y) )
+                        continue;
+
+                    for(int z=0;z<this.numeric.length;z++) {
+                        if( z==y || z==w || z==x || skip(z) )
+                            continue;
+
+                        StringBuilder b = new StringBuilder();
+                        b.append("(");
+                        b.append(this.name[w]);
+                        b.append("-");
+                        b.append(this.name[x]);
+                        b.append(")/");
+                        b.append("(");
+                        b.append(this.name[y]);
+                        b.append("-");
+                        b.append(this.name[z]);
+                        b.append(")/");
+
+                        System.out.println(idx + ":" + b.toString());
+                        idx++;
+
+
+                    }
+                }
+            }
+        }
+    }
+
+    public int getTargetColumn() {
+        return targetColumn;
     }
 }
