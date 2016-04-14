@@ -1,10 +1,6 @@
 package com.jeffheaton.dissertation.experiments;
 
-import com.jeffheaton.dissertation.data.AutoMPG;
-import com.jeffheaton.dissertation.util.FeatureRanking;
-import com.jeffheaton.dissertation.util.NeuralFeatureImportanceCalc;
-import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
-import com.jeffheaton.dissertation.util.Transform;
+import com.jeffheaton.dissertation.util.*;
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationLinear;
 import org.encog.engine.network.activation.ActivationReLU;
@@ -12,46 +8,24 @@ import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
-import org.encog.ml.data.MLData;
-import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
-import org.encog.ml.data.basic.BasicMLData;
-import org.encog.ml.data.basic.BasicMLDataPair;
-import org.encog.ml.data.basic.BasicMLDataSet;
-import org.encog.ml.ea.score.adjust.ComplexityAdjustedScore;
-import org.encog.ml.ea.train.basic.TrainEA;
-import org.encog.ml.fitness.MultiObjectiveFitness;
-import org.encog.ml.prg.EncogProgram;
-import org.encog.ml.prg.EncogProgramContext;
-import org.encog.ml.prg.PrgCODEC;
-import org.encog.ml.prg.extension.StandardExtensions;
-import org.encog.ml.prg.generator.RampedHalfAndHalf;
-import org.encog.ml.prg.opp.ConstMutation;
-import org.encog.ml.prg.opp.SubtreeCrossover;
-import org.encog.ml.prg.opp.SubtreeMutation;
-import org.encog.ml.prg.species.PrgSpeciation;
-import org.encog.ml.prg.train.PrgPopulation;
-import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
-import org.encog.ml.prg.train.rewrite.RewriteConstants;
 import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
-import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
-import org.encog.util.csv.ReadCSV;
-
-import java.io.InputStream;
-import java.util.Random;
 
 
-public class ExperimentNeuralAutoMPG {
+public class ExperimentNeuralFile {
 
     public void runNeural() {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
-        MLDataSet dataset = AutoMPG.getInstance().loadData();
+        ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
+        QuickEncodeDataset quick = new QuickEncodeDataset();
+        MLDataSet dataset = quick.process(source,0, true, CSVFormat.EG_FORMAT);
+        Transform.interpolate(dataset);
         Transform.zscore(dataset);
 
         // split
@@ -110,7 +84,7 @@ public class ExperimentNeuralAutoMPG {
     }
 
     public static void main(String[] args) {
-        ExperimentNeuralAutoMPG prg = new ExperimentNeuralAutoMPG();
+        ExperimentNeuralFile prg = new ExperimentNeuralFile();
         prg.runNeural();
     }
 }

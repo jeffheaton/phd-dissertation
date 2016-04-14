@@ -5,6 +5,7 @@ import org.encog.util.csv.CSVFormat;
 import org.encog.util.csv.ReadCSV;
 
 import java.io.File;
+import java.io.InputStream;
 
 /**
  * Created by jeff on 4/11/16.
@@ -19,10 +20,10 @@ public class QuickEncodeDataset {
     private String[] name;
     private int[] rowCount;
 
-    private File file;
     private boolean headers;
     private CSVFormat format;
     private int targetColumn;
+    private ObtainInputStream streamSource;
 
     private boolean isNA(String str) {
         if(str.trim().equalsIgnoreCase("NA")|| str.trim().equals("?")) {
@@ -34,7 +35,8 @@ public class QuickEncodeDataset {
 
 
     private void processPass1() {
-        ReadCSV csv = new ReadCSV(file,headers,format);
+        InputStream stream = this.streamSource.obtain();
+        ReadCSV csv = new ReadCSV(stream,headers,format);
         int count = 0;
 
         while(csv.next()) {
@@ -85,7 +87,8 @@ public class QuickEncodeDataset {
     }
 
     private void processPass2() {
-        ReadCSV csv = new ReadCSV(file,headers,format);
+        InputStream stream = this.streamSource.obtain();
+        ReadCSV csv = new ReadCSV(stream,headers,format);
 
         while(csv.next()) {
             for(int i=0;i<this.numeric.length;i++) {
@@ -122,7 +125,9 @@ public class QuickEncodeDataset {
         }
         int[] targetFeatures = new int[1];
 
-        ReadCSV csv = new ReadCSV(file,headers,format);
+        InputStream stream = this.streamSource.obtain();
+        ReadCSV csv = new ReadCSV(stream,headers,format);
+
         MLDataSet result = Loader.loadCSV(csv,inputFeatures,targetFeatures);
         csv.close();
         return result;
@@ -139,8 +144,8 @@ public class QuickEncodeDataset {
     }
 
 
-    public MLDataSet process(File theFile, int targetColumn, boolean theHeaders, CSVFormat theFormat) {
-        this.file = theFile;
+    public MLDataSet process(ObtainInputStream theStreamSource, int targetColumn, boolean theHeaders, CSVFormat theFormat) {
+        this.streamSource = theStreamSource;
         this.headers = theHeaders;
         this.format = theFormat;
         processPass1();
@@ -178,54 +183,6 @@ public class QuickEncodeDataset {
 
     public int[] getRowCount() {
         return rowCount;
-    }
-
-    public void analyze(File theFile, int targetColumn, boolean theHeaders, CSVFormat theFormat) {
-        this.file = theFile;
-        this.headers = theHeaders;
-        this.format = theFormat;
-        processPass1();
-        processPass2();
-
-        int idx = 0;
-        for(int w=0;w<this.numeric.length;w++) {
-            if( skip(w) )
-                continue;
-
-            for(int x=0;x<this.numeric.length;x++) {
-
-                if( w==x  || skip(x) )
-                    continue;
-
-                for(int y=0;y<this.numeric.length;y++) {
-
-                    if( y==w || y==x  || skip(y) )
-                        continue;
-
-                    for(int z=0;z<this.numeric.length;z++) {
-                        if( z==y || z==w || z==x || skip(z) )
-                            continue;
-
-                        StringBuilder b = new StringBuilder();
-                        b.append("(");
-                        b.append(this.name[w]);
-                        b.append("-");
-                        b.append(this.name[x]);
-                        b.append(")/");
-                        b.append("(");
-                        b.append(this.name[y]);
-                        b.append("-");
-                        b.append(this.name[z]);
-                        b.append(")/");
-
-                        System.out.println(idx + ":" + b.toString());
-                        idx++;
-
-
-                    }
-                }
-            }
-        }
     }
 
     public int getTargetColumn() {

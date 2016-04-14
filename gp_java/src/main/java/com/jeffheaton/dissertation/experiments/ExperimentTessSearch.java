@@ -22,7 +22,7 @@ public class ExperimentTessSearch {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
         QuickEncodeDataset quick = new QuickEncodeDataset();
-        quick.analyze(new File(filename), 0, true, CSVFormat.EG_FORMAT);
+        //quick.analyze(new File(filename), 0, true, CSVFormat.EG_FORMAT);
         //quick.dumpFieldInfo();
     }
 }

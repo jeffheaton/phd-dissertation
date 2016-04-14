@@ -24,7 +24,7 @@ public class Loader {
             for(int i:input) {
                 String str = csv.get(i);
                 double d = 0;
-                if( str.equalsIgnoreCase("NA")) {
+                if( str.equalsIgnoreCase("NA") || str.equals("?")) {
                     d = Double.NaN;
                 } else {
                     d = Double.parseDouble(str);

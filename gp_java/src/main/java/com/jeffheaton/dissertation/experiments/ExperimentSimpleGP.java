@@ -21,6 +21,7 @@ import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
 import org.encog.neural.networks.training.TrainingSetScore;
+import org.encog.parse.expression.latex.RenderLatexExpression;
 import org.encog.util.data.GenerationUtil;
 
 public class ExperimentSimpleGP {

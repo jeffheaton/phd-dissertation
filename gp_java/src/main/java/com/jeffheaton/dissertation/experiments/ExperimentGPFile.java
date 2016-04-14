@@ -1,9 +1,6 @@
 package com.jeffheaton.dissertation.experiments;
 
-import com.jeffheaton.dissertation.data.AutoMPG;
-import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
-import com.jeffheaton.dissertation.util.QuickEncodeDataset;
-import com.jeffheaton.dissertation.util.Transform;
+import com.jeffheaton.dissertation.util.*;
 import org.encog.Encog;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
@@ -26,10 +23,11 @@ import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
 import org.encog.neural.networks.training.TrainingSetScore;
+import org.encog.parse.expression.latex.RenderLatexExpression;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
 
-import java.io.File;
+import java.io.InputStream;
 import java.util.Random;
 
 /**
@@ -37,15 +35,17 @@ import java.util.Random;
  */
 public class ExperimentGPFile {
     public static void main(String[] args) {
+        InputStream is;
         ExperimentGPFile file = new ExperimentGPFile();
-        file.process("C:\\Users\\jheaton\\projects\\dissertation\\gp_java\\src\\main\\resources\\auto-mpg.csv");
+        file.process();
     }
 
-    private void process(String filename) {
+    private void process() {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
+        ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
         QuickEncodeDataset quick = new QuickEncodeDataset();
-        MLDataSet dataset = quick.process(new File(filename),0, true, CSVFormat.EG_FORMAT);
+        MLDataSet dataset = quick.process(source,0, true, CSVFormat.EG_FORMAT);
         Transform.interpolate(dataset);
         //quick.dumpFieldInfo();
 
@@ -70,7 +70,7 @@ public class ExperimentGPFile {
         factory.addExtension(StandardExtensions.EXTENSION_ADD);
         factory.addExtension(StandardExtensions.EXTENSION_SUB);
         factory.addExtension(StandardExtensions.EXTENSION_MUL);
-        factory.addExtension(StandardExtensions.EXTENSION_PDIV);
+        factory.addExtension(StandardExtensions.EXTENSION_DIV);
         factory.addExtension(StandardExtensions.EXTENSION_POWER);
 
 
@@ -86,7 +86,7 @@ public class ExperimentGPFile {
         genetic.addOperation(0.5, new SubtreeCrossover());
         genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
         genetic.addOperation(0.25, new SubtreeMutation(context,4));
-        //genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
+        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
         genetic.getRules().addRewriteRule(new RewriteConstants());
         genetic.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
@@ -116,8 +116,14 @@ public class ExperimentGPFile {
             System.out.println("Final score:" + best.getScore()
                     + ", effective score:" + best.getAdjustedScore());
             System.out.println(best.dumpAsCommonExpression());
+            System.out.println();
             //pop.dumpMembers(Integer.MAX_VALUE);
             //pop.dumpMembers(10);
+
+            RenderLatexExpression latex = new RenderLatexExpression();
+            EncogProgram bestProgram = (EncogProgram) genetic.getBestGenome();
+            String str = latex.render(bestProgram);
+            System.out.println("Latex: " + str);
 
         } catch (Throwable t) {
             t.printStackTrace();

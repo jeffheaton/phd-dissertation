@@ -52,6 +52,13 @@ task(runSimpleGP, group: 'commands', description: 'Run an experiment',
 	args = ["simple-gp"]	
 }
 
+task(runGP, group: 'commands', description: 'Run an experiment',
+        dependsOn: 'classes', type: JavaExec) {
+    main = 'com.jeffheaton.dissertation.JeffDissertation'
+    classpath = sourceSets.main.runtimeClasspath
+	args = ["file-gp"]	
+}
+
 task(runFeatureSearch, group: 'commands', description: 'Run an experiment',
         dependsOn: 'classes', type: JavaExec) {
     main = 'com.jeffheaton.dissertation.JeffDissertation'
