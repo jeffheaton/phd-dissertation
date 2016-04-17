@@ -1,8 +1,9 @@
-package com.jeffheaton.dissertation.features;
+package com.jeffheaton.dissertation.features.ex1_gp_feature_rank;
 
 import com.jeffheaton.dissertation.util.FeatureRanking;
 import com.jeffheaton.dissertation.util.NeuralFeatureImportanceCalc;
 import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
+import org.encog.Encog;
 import org.encog.EncogError;
 import org.encog.engine.network.activation.ActivationLinear;
 import org.encog.engine.network.activation.ActivationReLU;
@@ -22,6 +23,9 @@ import org.encog.ml.ea.exception.EARuntimeError;
 import org.encog.ml.ea.genome.Genome;
 import org.encog.ml.ea.population.Population;
 import org.encog.ml.ea.species.Species;
+import org.encog.ml.train.MLTrain;
+import org.encog.ml.train.strategy.end.EndIterationsStrategy;
+import org.encog.ml.train.strategy.end.SimpleEarlyStoppingStrategy;
 import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
@@ -43,17 +47,17 @@ public class FeatureScore implements CalculateScore {
     private MLDataSet trainingData;
     private MLDataSet validationData;
     private boolean init;
-    private int maxEpoch = 1000;
-    private int maxStagnant = 10;
-    private int hiddenCount = 500;
-    private double learningRate = 1e-9;
+    private int hiddenCount;
     private double momentum = 0.9;
+    private int maxIterations;
 
-    public FeatureScore(MLDataSet theTrainingData, MLDataSet theValidationData, Population thePopulation) {
+    public FeatureScore(MLDataSet theTrainingData, MLDataSet theValidationData, Population thePopulation, int theHiddenCount, int theMaxIterations) {
         this.trainingData = theTrainingData;
         this.validationData = theValidationData;
         this.population = thePopulation;
         this.network = new BasicNetwork();
+        this.hiddenCount = theHiddenCount;
+        this.maxIterations = theMaxIterations;
         network.addLayer(new BasicLayer(null,true,this.population.getPopulationSize()));
         network.addLayer(new BasicLayer(new ActivationReLU(),true,this.hiddenCount));
         network.addLayer(new BasicLayer(new ActivationLinear(),false,this.trainingData.getIdealSize()));
@@ -108,36 +112,67 @@ public class FeatureScore implements CalculateScore {
         return engineeredDataset;
     }
 
+    private void reportNeuralTrain(MLTrain train, NewSimpleEarlyStoppingStrategy earlyStop) {
+        System.out.println("Epoch #" + train.getIteration() + " Train Error:" + Format.formatDouble(train.getError(), 6)
+                + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
+                ", Stagnant: " + earlyStop.getStagnantIterations());
+    }
+
     public void calculateScores() {
         List<Genome> genomes = this.population.flatten();
-        randomizeNetwork();
+
 
         // Create a new training set, with the new engineered features
         MLDataSet engineeredTrainingSet = encodeDataset(genomes, this.trainingData);
         MLDataSet engineeredValidationSet = encodeDataset(genomes, this.trainingData);
 
-        // Train a neural network with engineered dataset
-        final Backpropagation train = new Backpropagation(network, engineeredTrainingSet, this.learningRate, this.momentum);
-        //NeuralPSO train = new NeuralPSO(network,engineeredDataset);
 
-        //final ResilientPropagation train = new ResilientPropagation(network, engineeredDataset);
-        train.setErrorFunction(new CrossEntropyErrorFunction());
-        train.setNesterovUpdate(true);
 
-        int epoch = 1;
+        boolean done = false;
+        double learningRate = 0.1;
+        boolean first = true;
 
-        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(engineeredValidationSet);
-        train.addStrategy(earlyStop);
+        while(!done) {
+            randomizeNetwork();
 
-        double bestError = Double.POSITIVE_INFINITY;
-        do {
-            train.iteration();
-            System.out.println("Epoch #" + epoch + " Train Error:" + Format.formatDouble(train.getError(),6)
-                    + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(),6) +
-                    ", Stagnant: " + earlyStop.getStagnantIterations());
-            epoch++;
-        } while( !train.isTrainingDone() && !Double.isInfinite(train.getError()) && !Double.isInfinite(train.getError()));
-        train.finishTraining();
+            // Train a neural network with engineered dataset
+            final Backpropagation train = new Backpropagation(network, engineeredTrainingSet, learningRate, this.momentum);
+
+            //final ResilientPropagation train = new ResilientPropagation(network, engineeredDataset);
+            train.setErrorFunction(new CrossEntropyErrorFunction());
+            train.setNesterovUpdate(true);
+
+            NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(engineeredValidationSet);
+            train.addStrategy(earlyStop);
+            if( maxIterations>0 ) {
+                train.addStrategy(new EndIterationsStrategy(maxIterations));
+            }
+
+            do {
+                train.iteration();
+                if( (train.getIteration()%500) == 0) {
+                    if( first ) {
+                        System.out.println("Using learning rate: " + learningRate);
+                        first = false;
+                    }
+                    reportNeuralTrain(train,earlyStop);
+                }
+            }
+            while (!train.isTrainingDone() && !Double.isInfinite(train.getError()) && !Double.isNaN(train.getError()) );
+            train.finishTraining();
+
+            if( !Double.isInfinite(train.getError()) && !Double.isNaN(train.getError())) {
+                done = true;
+                reportNeuralTrain(train,earlyStop);
+            } else {
+                if( learningRate<= Encog.DEFAULT_DOUBLE_EQUAL ) {
+                    System.out.println("Learning rate too low!");
+                    done = true;
+                } else {
+                    learningRate /= 10;
+                }
+            }
+        }
 
         // Evaluate feature importance
 
