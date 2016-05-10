@@ -1,4 +1,4 @@
-package com.jeffheaton.dissertation.experiments;
+package com.jeffheaton.dissertation.experiments.misc;
 
 import java.util.Random;
 

@@ -1,4 +1,4 @@
-package com.jeffheaton.dissertation.experiments;
+package com.jeffheaton.dissertation.experiments.misc;
 
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationSigmoid;

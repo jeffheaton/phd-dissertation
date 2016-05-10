@@ -1,9 +1,10 @@
 package com.jeffheaton.dissertation;
 
-import com.jeffheaton.dissertation.experiments.ExperimentAutoFeature;
-import com.jeffheaton.dissertation.experiments.ExperimentGPFile;
-import com.jeffheaton.dissertation.experiments.ExperimentNeuralXOR;
-import com.jeffheaton.dissertation.experiments.ExperimentSimpleGP;
+import com.jeffheaton.dissertation.experiments.ex1.PerformExperiment1;
+import com.jeffheaton.dissertation.experiments.misc.ExperimentAutoFeature;
+import com.jeffheaton.dissertation.experiments.misc.ExperimentGPFile;
+import com.jeffheaton.dissertation.experiments.misc.ExperimentNeuralXOR;
+import com.jeffheaton.dissertation.experiments.misc.ExperimentSimpleGP;
 
 public class JeffDissertation {
     public static void main(String[] args) {
@@ -15,6 +16,8 @@ public class JeffDissertation {
             (new ExperimentAutoFeature()).main(null);
         } else if( args[0].equalsIgnoreCase("file-gp")) {
             (new ExperimentGPFile()).main(null);
+        } else if( args[0].equalsIgnoreCase("experiment-1")) {
+            (new PerformExperiment1()).main(null);
         }
     }
 }

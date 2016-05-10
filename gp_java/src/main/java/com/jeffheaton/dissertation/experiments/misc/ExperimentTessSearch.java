@@ -1,12 +1,8 @@
-package com.jeffheaton.dissertation.experiments;
+package com.jeffheaton.dissertation.experiments.misc;
 
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
-import org.encog.ml.data.MLDataSet;
-import org.encog.util.csv.CSVFormat;
-
-import java.io.File;
 
 /**
  * Created by jheaton on 4/12/2016.

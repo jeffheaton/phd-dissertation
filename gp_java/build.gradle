@@ -67,5 +67,12 @@ task(runFeatureSearch, group: 'commands', description: 'Run an experiment',
 	args = ["feature-search"]	
 }
 
+task(runExperiment1, group: 'commands', description: 'Run an experiment',
+        dependsOn: 'classes', type: JavaExec) {
+    main = 'com.jeffheaton.dissertation.JeffDissertation'
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["experiment-1"]
+}
+
 
 

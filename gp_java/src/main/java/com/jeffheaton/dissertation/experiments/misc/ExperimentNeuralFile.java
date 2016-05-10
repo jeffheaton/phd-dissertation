@@ -1,4 +1,4 @@
-package com.jeffheaton.dissertation.experiments;
+package com.jeffheaton.dissertation.experiments.misc;
 
 import com.jeffheaton.dissertation.util.*;
 import org.encog.Encog;
