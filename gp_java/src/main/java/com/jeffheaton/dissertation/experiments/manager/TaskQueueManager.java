@@ -8,4 +8,6 @@ public interface TaskQueueManager {
     void remoteTask(String key);
     void removeAll();
     ExperimentTask requestTask();
+
+    void addTaskCycles(String exp1, String s, String neural, int i);
 }

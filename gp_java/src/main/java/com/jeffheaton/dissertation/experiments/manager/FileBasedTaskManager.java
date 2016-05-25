@@ -1,12 +1,19 @@
 package com.jeffheaton.dissertation.experiments.manager;
 
+import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
 import org.encog.EncogError;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static java.nio.file.StandardOpenOption.*;
 
@@ -29,8 +36,43 @@ public class FileBasedTaskManager implements TaskQueueManager {
         this.pathWorkload = new File(theFolder, FILE_WORKLOAD).toPath();
     }
 
+    private List<ExperimentTask> loadTasks() {
+
+        List<ExperimentTask> result = new ArrayList<>();
+
+        if( this.pathWorkload.toFile().exists() ) {
+            try (CSVReader reader = new CSVReader(new FileReader(this.pathWorkload.toFile()));) {
+                reader.readNext();
+                String[] line;
+                while ((line = reader.readNext()) != null) {
+                    result.add(new ExperimentTask(line[0], line[1], line[2], Integer.parseInt(line[3])));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return result;
+    }
+
+    private void saveTasks(List<ExperimentTask> tasks) {
+
+        try (CSVWriter writer = new CSVWriter(new FileWriter(this.pathWorkload.toFile()));) {
+            writer.writeNext(new String[] {"name","dataset","algorithm","cycle"});
+            for(ExperimentTask task : tasks) {
+                writer.writeNext(new String[] {task.getName(),task.getDataset(),task.getAlgorithm(),""+task.getCycle()});
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public String addTask(String name, String dataset, String algorithm, int cycle) {
+        List<ExperimentTask> current = loadTasks();
+        current.add(new ExperimentTask(name,dataset,algorithm,cycle));
+        saveTasks(current);
         return null;
     }
 
@@ -47,6 +89,13 @@ public class FileBasedTaskManager implements TaskQueueManager {
     @Override
     public ExperimentTask requestTask() {
         return null;
+    }
+
+    @Override
+    public void addTaskCycles(String name, String dataset, String algorithm, int cycles) {
+        for(int i=0;i<cycles;i++) {
+            addTask(name,dataset,algorithm,i+1);
+        }
     }
 
     public int getMaxWaitLock() {
