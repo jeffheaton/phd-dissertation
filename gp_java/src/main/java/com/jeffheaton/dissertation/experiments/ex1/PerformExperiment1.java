@@ -4,6 +4,7 @@ import com.jeffheaton.dissertation.experiments.ExperimentResult;
 import com.jeffheaton.dissertation.experiments.data.SyntheticDatasets;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
+import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
 import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
 import com.jeffheaton.dissertation.util.Transform;
 import org.encog.Encog;
@@ -29,71 +30,6 @@ import java.io.File;
  */
 public class PerformExperiment1 {
 
-    public static void verboseStatus(int cycle, StochasticGradientDescent train, NewSimpleEarlyStoppingStrategy earlyStop) {
-        System.out.println("Cycle #"+(cycle+1)+",Epoch #" + train.getIteration() + " Train Error:"
-                + Format.formatDouble(train.getError(), 6)
-                + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
-                ", Stagnant: " + earlyStop.getStagnantIterations());
-    }
-
-    public static void runCycle(int cycle, MLDataSet dataset, ExperimentResult result) {
-        Stopwatch sw = new Stopwatch();
-        sw.start();
-        // split
-        GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
-        MLDataSet[] split = Transform.splitTrainValidate(dataset,rnd,0.75);
-        MLDataSet trainingSet = split[0];
-        MLDataSet validationSet = split[1];
-
-        // create a neural network, without using a factory
-        BasicNetwork network = new BasicNetwork();
-        network.addLayer(new BasicLayer(null,true,trainingSet.getInputSize()));
-        network.addLayer(new BasicLayer(new ActivationReLU(),true,400));
-        network.addLayer(new BasicLayer(new ActivationReLU(),true,200));
-        network.addLayer(new BasicLayer(new ActivationReLU(),true,100));
-        network.addLayer(new BasicLayer(new ActivationReLU(),true,50));
-        network.addLayer(new BasicLayer(new ActivationReLU(),true,25));
-        network.addLayer(new BasicLayer(new ActivationLinear(),false,trainingSet.getIdealSize()));
-        network.getStructure().finalizeStructure();
-        (new XaiverRandomizer()).randomize(network);
-
-
-        // train the neural network
-        final StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet, 100, 1e-6, 0.9);
-        train.setErrorFunction(new CrossEntropyErrorFunction());
-
-        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet);
-        train.addStrategy(earlyStop);
-
-        long lastUpdate = System.currentTimeMillis();
-
-        do {
-            train.iteration();
-
-            long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate)/1000;
-
-            if( train.getIteration()==1 || train.isTrainingDone() || sinceLastUpdate>60 ) {
-                verboseStatus(cycle, train, earlyStop);
-                lastUpdate = System.currentTimeMillis();
-            }
-        } while(!train.isTrainingDone());
-        train.finishTraining();
-
-        sw.stop();
-        System.out.println(earlyStop.getValidationError());
-
-        result.addResult(earlyStop.getValidationError(),sw.getElapsedMilliseconds());
-    }
-
-    public static void runExperiment(MLDataSet dataset) {
-        ExperimentResult result = new ExperimentResult("neural");
-        for(int i=0;i<5;i++) {
-            runCycle(i ,dataset, result);
-        }
-        System.out.println(result.toString());
-
-    }
-
     public static void main(String[] args) {
         Stopwatch sw = new Stopwatch();
         sw.start();
@@ -104,11 +40,18 @@ public class PerformExperiment1 {
 
         //runExperiment(dataset);
 
-        TaskQueueManager manager = new FileBasedTaskManager(new File("/Users/jeff/temp/runjob"));
+        TaskQueueManager manager = new FileBasedTaskManager(new File("/Users/jeff/temp/runjob"),"mac");
+        manager.removeAll();
         manager.addTaskCycles("exp1","autompg.csv","neural",5);
 
         sw.stop();
         System.out.println("Total runtime: " + Format.formatTimeSpan((int)(sw.getElapsedMilliseconds()/1000)));
+
+        ThreadedRunner runner = new ThreadedRunner(manager);
+        runner.startup();
+        manager.blockUntilDone(60);
+        System.out.println("Final Done");
+        runner.shutdown();
 
         Encog.getInstance().shutdown();
 
