@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by jeff on 5/16/16.
@@ -45,6 +44,9 @@ public class FileBasedTaskManager implements TaskQueueManager {
                 String[] line;
                 while ((line = reader.readNext()) != null) {
                     ExperimentTask task = new ExperimentTask(line[0], line[2], line[3], Integer.parseInt(line[4]));
+                    task.setResult(Double.parseDouble(line[5]));
+                    task.setIterations(Integer.parseInt(line[6]));
+                    task.setElapsed(line[7]);
                     task.setStatus(line[1]);
                     result.add(task);
                 }
@@ -59,9 +61,10 @@ public class FileBasedTaskManager implements TaskQueueManager {
     private void saveTasks(List<ExperimentTask> tasks) {
 
         try (CSVWriter writer = new CSVWriter(new FileWriter(this.pathWorkload.toFile()));) {
-            writer.writeNext(new String[] {"name","status","dataset","algorithm","cycle"});
+            writer.writeNext(new String[] {"name","status","dataset","algorithm","cycle","result","iterations","elapsed"});
             for(ExperimentTask task : tasks) {
-                writer.writeNext(new String[] {task.getName(),task.getStatus(),task.getDataset(),task.getAlgorithm(),""+task.getCycle()});
+                writer.writeNext(new String[] {task.getName(),task.getStatus(),task.getDataset(),task.getAlgorithm(),
+                        ""+task.getCycle(),""+task.getResult(),""+task.getIterations(),task.getElapsed()});
             }
 
         } catch (IOException e) {
@@ -148,14 +151,15 @@ public class FileBasedTaskManager implements TaskQueueManager {
             obtainLock(maxWaitSeconds);
 
             List<ExperimentTask> currentTasks = loadTasks();
-            for (ExperimentTask currentTask : currentTasks) {
-                if( currentTask.getKey().equals(task.getKey()) ) {
-                    currentTask.reportDone(this.computerName);
-                    saveTasks(currentTasks);
-                    return;
+            Object[] currentTasksArray = currentTasks.toArray();
+            for(int i=0;i<currentTasksArray.length;i++) {
+                if( ((ExperimentTask)currentTasksArray[i]).getKey().equals(task.getKey()) ) {
+                    task.reportDone(this.computerName);
+                    currentTasks.set(i,task);
+                    break;
                 }
             }
-
+            saveTasks(currentTasks);
         } finally {
             releaseLock();
         }
@@ -180,6 +184,25 @@ public class FileBasedTaskManager implements TaskQueueManager {
             } catch (InterruptedException ex) {
                 throw new EncogError(ex);
             }
+        }
+    }
+
+    @Override
+    public void reportError(ExperimentTask task, Exception ex, int maxWaitSeconds) {
+        try {
+            obtainLock(maxWaitSeconds);
+
+            List<ExperimentTask> currentTasks = loadTasks();
+            for (ExperimentTask currentTask : currentTasks) {
+                if( currentTask.getKey().equals(task.getKey()) ) {
+                    currentTask.reportError(this.computerName, ex);
+                    saveTasks(currentTasks);
+                    return;
+                }
+            }
+
+        } finally {
+            releaseLock();
         }
     }
 

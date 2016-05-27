@@ -42,19 +42,19 @@ public class PerformExperiment1 {
 
         TaskQueueManager manager = new FileBasedTaskManager(new File("/Users/jeff/temp/runjob"),"mac");
         manager.removeAll();
-        manager.addTaskCycles("exp1","autompg.csv","neural",5);
-
-        sw.stop();
-        System.out.println("Total runtime: " + Format.formatTimeSpan((int)(sw.getElapsedMilliseconds()/1000)));
+        manager.addTaskCycles("exp1","autompg","neural",5);
 
         ThreadedRunner runner = new ThreadedRunner(manager);
+        System.out.println("Starting runner");
         runner.startup();
+        System.out.println("Blocking until done");
         manager.blockUntilDone(60);
         System.out.println("Final Done");
         runner.shutdown();
 
         Encog.getInstance().shutdown();
-
+        sw.stop();
+        System.out.println("Total runtime: " + Format.formatTimeSpan((int)(sw.getElapsedMilliseconds()/1000)));
 
     }
 }

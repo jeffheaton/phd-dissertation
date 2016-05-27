@@ -5,6 +5,8 @@ import com.jeffheaton.dissertation.util.*;
 import org.encog.EncogError;
 import org.encog.engine.network.activation.ActivationLinear;
 import org.encog.engine.network.activation.ActivationReLU;
+import org.encog.mathutil.error.ErrorCalculation;
+import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.mathutil.randomize.generate.GenerateRandom;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
@@ -27,6 +29,9 @@ public class ExperimentTask implements Runnable {
     private final String dataset;
     private final int cycle;
     private String status = "queued";
+    private int iterations;
+    private double result;
+    private String elapsed;
 
     public ExperimentTask(String theName, String theDataset, String theAlgorithm, int theCycle) {
         this.name = theName;
@@ -72,6 +77,7 @@ public class ExperimentTask implements Runnable {
 
     public void runNeural(MLDataSet dataset) {
             Stopwatch sw = new Stopwatch();
+            ErrorCalculation.setMode(ErrorCalculationMode.RMS);
             sw.start();
             // split
             GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
@@ -82,10 +88,10 @@ public class ExperimentTask implements Runnable {
             // create a neural network, without using a factory
             BasicNetwork network = new BasicNetwork();
             network.addLayer(new BasicLayer(null,true,trainingSet.getInputSize()));
-            network.addLayer(new BasicLayer(new ActivationReLU(),true,400));
-            network.addLayer(new BasicLayer(new ActivationReLU(),true,200));
             network.addLayer(new BasicLayer(new ActivationReLU(),true,100));
-            network.addLayer(new BasicLayer(new ActivationReLU(),true,50));
+            //network.addLayer(new BasicLayer(new ActivationReLU(),true,200));
+            //network.addLayer(new BasicLayer(new ActivationReLU(),true,100));
+            //network.addLayer(new BasicLayer(new ActivationReLU(),true,50));
             network.addLayer(new BasicLayer(new ActivationReLU(),true,25));
             network.addLayer(new BasicLayer(new ActivationLinear(),false,trainingSet.getIdealSize()));
             network.getStructure().finalizeStructure();
@@ -95,6 +101,7 @@ public class ExperimentTask implements Runnable {
             // train the neural network
             final StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet, 100, 1e-6, 0.9);
             train.setErrorFunction(new CrossEntropyErrorFunction());
+            train.setThreadCount(1);
 
             NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet);
             train.addStrategy(earlyStop);
@@ -115,19 +122,21 @@ public class ExperimentTask implements Runnable {
 
             sw.stop();
             System.out.println(earlyStop.getValidationError());
-
-            //result.addResult(earlyStop.getValidationError(),sw.getElapsedMilliseconds());
+            this.elapsed = Format.formatTimeSpan((int)(sw.getElapsedMilliseconds()/1000));
+            this.result = earlyStop.getValidationError();
+            this.iterations = train.getIteration();
         }
 
 
     public void run() {
         MLDataSet dataset = null;
 
-        if( this.dataset.equals("mpg")) {
+        if( this.dataset.equals("autompg")) {
             ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
             QuickEncodeDataset quick = new QuickEncodeDataset();
             dataset = quick.process(source,0, true, CSVFormat.EG_FORMAT);
             Transform.interpolate(dataset);
+            Transform.zscore(dataset);
         } else {
             throw new EncogError("Unknown dataset: " + this.dataset);
         }
@@ -166,11 +175,39 @@ public class ExperimentTask implements Runnable {
         this.status = "running-" + owner;
     }
 
-    public void reportDone(String owner) {
-        this.status = "done-" + owner;
+    public void reportDone(String theOwner) {
+        this.status = "done-" + theOwner;
     }
 
     public boolean isComplete() {
-        return this.status.startsWith("done");
+        return this.status.startsWith("done") || this.status.startsWith("error");
+    }
+
+    public void reportError(String owner, Exception ex) {
+        this.status = "error-" + owner;
+    }
+
+    public int getIterations() {
+        return iterations;
+    }
+
+    public void setIterations(int iterations) {
+        this.iterations = iterations;
+    }
+
+    public double getResult() {
+        return result;
+    }
+
+    public void setResult(double result) {
+        this.result = result;
+    }
+
+    public String getElapsed() {
+        return elapsed;
+    }
+
+    public void setElapsed(String elapsed) {
+        this.elapsed = elapsed;
     }
 }

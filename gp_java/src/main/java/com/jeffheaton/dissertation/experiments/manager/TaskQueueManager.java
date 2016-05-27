@@ -11,4 +11,5 @@ public interface TaskQueueManager {
     void addTaskCycles(String exp1, String s, String neural, int i);
     void reportDone(ExperimentTask task,int maxWaitSeconds);
     void blockUntilDone(int maxWaitSeconds);
+    void reportError(ExperimentTask task, Exception ex, int maxWaitSeconds);
 }

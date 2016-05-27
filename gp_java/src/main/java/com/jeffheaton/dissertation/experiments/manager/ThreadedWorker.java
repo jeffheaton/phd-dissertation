@@ -18,12 +18,17 @@ public class ThreadedWorker implements Runnable {
     @Override
     public void run() {
         this.requestShutdown = false;
-        while(!this.requestShutdown) {
+        while (!this.requestShutdown) {
             ExperimentTask task = this.runner.getManager().requestTask(runner.getMaxWait());
-            if( task!= null ) {
-                System.out.println("Running: " + task);
-                task.run();
-                this.runner.getManager().reportDone(task, runner.getMaxWait());
+            if (task != null) {
+                try {
+                    //System.out.println("Running: " + task);
+                    task.run();
+                    this.runner.getManager().reportDone(task, runner.getMaxWait());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    this.runner.getManager().reportError(task, ex, runner.getMaxWait());
+                }
             } else {
                 try {
                     Thread.sleep(5000);
