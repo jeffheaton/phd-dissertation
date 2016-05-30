@@ -5,6 +5,7 @@ import com.jeffheaton.dissertation.experiments.data.SyntheticDatasets;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
+import com.jeffheaton.dissertation.experiments.report.GenerateComparisonReport;
 import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
 import com.jeffheaton.dissertation.util.Transform;
 import org.encog.Encog;
@@ -41,16 +42,18 @@ public class PerformExperiment1 {
         //runExperiment(dataset);
 
         TaskQueueManager manager = new FileBasedTaskManager(new File("/Users/jeff/temp/runjob"),"mac");
-        manager.removeAll();
-        manager.addTaskCycles("exp1","autompg","neural",5);
 
-        ThreadedRunner runner = new ThreadedRunner(manager);
-        System.out.println("Starting runner");
+        /*manager.removeAll();
+        manager.addTaskCycles("exp1","autompg","neural",5);
+        manager.addTaskCycles("exp1","autompg","gp",5);*/
+
+        GenerateComparisonReport report = new GenerateComparisonReport(manager);
+        report.report(new File("/Users/jeff/temp/runjob/report.csv"), 60);
+
+/*       ThreadedRunner runner = new ThreadedRunner(manager);
         runner.startup();
-        System.out.println("Blocking until done");
         manager.blockUntilDone(60);
-        System.out.println("Final Done");
-        runner.shutdown();
+        runner.shutdown();*/
 
         Encog.getInstance().shutdown();
         sw.stop();

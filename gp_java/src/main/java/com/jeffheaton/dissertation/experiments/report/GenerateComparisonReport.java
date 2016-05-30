@@ -1,0 +1,224 @@
+package com.jeffheaton.dissertation.experiments.report;
+
+import au.com.bytecode.opencsv.CSVWriter;
+import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
+import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
+import org.encog.EncogError;
+import org.encog.util.Format;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by jeff on 5/28/16.
+ */
+public class GenerateComparisonReport {
+    private TaskQueueManager manager;
+    private Map<String, ReportItem> reportItems = new HashMap<>();
+
+    class ReportCycle {
+        private final double result;
+        private final int iterations;
+        private final int seconds;
+
+        public ReportCycle(double result, int iterations, int seconds) {
+            this.result = result;
+            this.iterations = iterations;
+            this.seconds = seconds;
+        }
+
+        public double getResult() {
+            return result;
+        }
+
+        public int getIterations() {
+            return iterations;
+        }
+
+        public int getSeconds() {
+            return seconds;
+        }
+
+        @Override
+        public String toString() {
+            return "ReportCycle{" +
+                    "result=" + result +
+                    ", iterations=" + iterations +
+                    ", seconds=" + seconds +
+                    '}';
+        }
+    }
+
+    class ReportItem {
+        private final String experiment;
+        private final String algorithm;
+        private final String dataset;
+        private List<ReportCycle> cycles = new ArrayList<>();
+        private double minResult;
+        private double maxResult;
+        private double meanResult;
+        private double sdevResult;
+        private int meanElapsed;
+
+        public ReportItem(String theExperiment, String theAlgorithm, String theDataset) {
+            this.experiment = theExperiment;
+            this.algorithm = theAlgorithm;
+            this.dataset = theDataset;
+        }
+
+        public ReportItem(ExperimentTask task) {
+            this(task.getName(), task.getDataset(), task.getAlgorithm());
+        }
+
+        public void reportCycle(double result, int iterations, int seconds) {
+            this.cycles.add(new ReportCycle(result, iterations, seconds));
+        }
+
+        public String getExperiment() {
+            return experiment;
+        }
+
+        public String getDataset() {
+            return dataset;
+        }
+
+        public String getAlgorithm() {
+            return algorithm;
+        }
+
+        public List<ReportCycle> getCycles() {
+            return cycles;
+        }
+
+
+        @Override
+        public String toString() {
+            return "ReportItem{" +
+                    "experiment='" + experiment + '\'' +
+                    ", dataset='" + dataset + '\'' +
+                    ", algorithm='" + algorithm + '\'' +
+                    ", cycles=" + cycles +
+                    '}';
+        }
+
+        public double getMinResult() {
+            return minResult;
+        }
+
+        public double getMaxResult() {
+            return maxResult;
+        }
+
+        public void collectStats() {
+            boolean first = true;
+            double sum = 0;
+            int secondSum = 0;
+            int count = 0;
+
+            // mean, min, max
+            for(ReportCycle cycle: this.cycles) {
+                count++;
+                if( first ) {
+                    this.minResult = cycle.getResult();
+                    this.maxResult = cycle.getResult();
+                    first = false;
+                } else {
+                    this.minResult = Math.min(this.minResult,cycle.getResult());
+                    this.maxResult = Math.min(this.maxResult,cycle.getResult());
+                }
+                sum+=cycle.getResult();
+                secondSum+=cycle.getSeconds();
+            }
+
+            this.meanResult = sum/count;
+            this.meanElapsed = secondSum/count;
+
+            // sdev
+            sum = 0;
+            for(ReportCycle cycle: this.cycles) {
+                double d = (cycle.getResult()-this.meanResult);
+                sum += d*d;
+            }
+            this.sdevResult = Math.sqrt(sum);
+        }
+
+        public double getMeanResult() {
+            return meanResult;
+        }
+
+        public double getSDevResult() {
+            return sdevResult;
+        }
+
+        private int getMeanElapsed() {
+            return this.meanElapsed;
+        }
+    }
+
+    class CycleResult {
+        private double result;
+    }
+
+    public GenerateComparisonReport(TaskQueueManager theManager) {
+        this.manager = theManager;
+    }
+
+    private String generateKey(ExperimentTask task) {
+        StringBuilder result = new StringBuilder();
+        result.append(task.getName());
+        result.append(':');
+        result.append(task.getAlgorithm());
+        result.append(':');
+        result.append(task.getDataset());
+        return result.toString();
+    }
+
+    private String generateKey(ReportItem item) {
+        StringBuilder result = new StringBuilder();
+        result.append(item.getExperiment());
+        result.append(':');
+        result.append(item.getAlgorithm());
+        result.append(':');
+        result.append(item.getDataset());
+        return result.toString();
+    }
+
+    private void reportCycle(ExperimentTask task) {
+        String key = generateKey(task);
+        ReportItem item;
+        if (this.reportItems.containsKey(key)) {
+            item = this.reportItems.get(key);
+        } else {
+            item = new ReportItem(task);
+            this.reportItems.put(key, item);
+        }
+        item.reportCycle(task.getResult(), task.getIterations(), task.getElapsed());
+
+    }
+
+    public void report(File file, int max) {
+        List<ExperimentTask> queue = this.manager.getQueue(max);
+        for (ExperimentTask task : queue) {
+            reportCycle(task);
+        }
+
+        try (CSVWriter writer = new CSVWriter(new FileWriter(file))) {
+            writer.writeNext(new String[]{"experiment", "algorithm", "dataset", "min", "max", "mean", "elapsed"});
+            for (String key2 : this.reportItems.keySet()) {
+                ReportItem item = this.reportItems.get(key2);
+                item.collectStats();
+                writer.writeNext(new String[]{item.getExperiment(), item.getAlgorithm(), item.getDataset(),
+                        Format.formatDouble(item.getMinResult(),4), Format.formatDouble(item.getMaxResult(),4),
+                        Format.formatDouble(item.getMeanResult(),4),Format.formatDouble(item.getSDevResult(),4),
+                        Format.formatTimeSpan(item.getMeanElapsed())});
+            }
+        } catch (IOException ex) {
+            throw new EncogError(ex);
+        }
+    }
+}

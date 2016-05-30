@@ -1,5 +1,7 @@
 package com.jeffheaton.dissertation.experiments.manager;
 
+import java.util.List;
+
 /**
  * Created by jeff on 5/16/16.
  */
@@ -12,4 +14,5 @@ public interface TaskQueueManager {
     void reportDone(ExperimentTask task,int maxWaitSeconds);
     void blockUntilDone(int maxWaitSeconds);
     void reportError(ExperimentTask task, Exception ex, int maxWaitSeconds);
+    List<ExperimentTask> getQueue(int maxWaitSeconds);
 }
