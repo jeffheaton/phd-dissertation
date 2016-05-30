@@ -239,10 +239,15 @@ public class ExperimentTask implements Runnable {
             dataset = quick.process(source,0, true, CSVFormat.EG_FORMAT);
             Transform.interpolate(dataset);
             Transform.zscore(dataset);
+        } else if( this.dataset.equals("iris")) {
+            ObtainInputStream source = new ObtainResourceInputStream("/iris.csv");
+            quick = new QuickEncodeDataset();
+            dataset = quick.process(source,0, true, CSVFormat.EG_FORMAT);
+            Transform.interpolate(dataset);
+            Transform.zscore(dataset);
         } else {
             throw new EncogError("Unknown dataset: " + this.dataset);
         }
-
 
         if( this.algorithm.equalsIgnoreCase("neural")) {
             runNeural(dataset);

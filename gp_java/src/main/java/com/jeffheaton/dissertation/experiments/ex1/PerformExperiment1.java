@@ -43,21 +43,23 @@ public class PerformExperiment1 {
 
         TaskQueueManager manager = new FileBasedTaskManager(new File("/Users/jeff/temp/runjob"),"mac");
 
-        /*manager.removeAll();
+        manager.removeAll();
         manager.addTaskCycles("exp1","autompg","neural",5);
-        manager.addTaskCycles("exp1","autompg","gp",5);*/
+        manager.addTaskCycles("exp1","autompg","gp",5);
+        manager.addTaskCycles("exp1","iris","neural",5);
+        manager.addTaskCycles("exp1","iris","gp",5);
+
+        ThreadedRunner runner = new ThreadedRunner(manager);
+        runner.startup();
+        manager.blockUntilDone(60);
+        runner.shutdown();
 
         GenerateComparisonReport report = new GenerateComparisonReport(manager);
         report.report(new File("/Users/jeff/temp/runjob/report.csv"), 60);
 
-/*       ThreadedRunner runner = new ThreadedRunner(manager);
-        runner.startup();
-        manager.blockUntilDone(60);
-        runner.shutdown();*/
-
         Encog.getInstance().shutdown();
         sw.stop();
         System.out.println("Total runtime: " + Format.formatTimeSpan((int)(sw.getElapsedMilliseconds()/1000)));
-
+        ErrorCalculation.setMode(ErrorCalculationMode.LOGLOSS);
     }
 }
