@@ -14,8 +14,9 @@ GENERATED_FEATURES = [
     ('2-poly', lambda a, b: (5 * (a ** 2) * (b ** 2)) + (4 * a * b) + 2)
 ]
 
-NUM_PARAMS = 6
+NUM_PARAMS = 7
 SAMPLE_COUNT = 1000  # 10000
+MAX_BAD_SCORE = 10
 max_args = 0
 best_args = {}
 
@@ -23,23 +24,15 @@ best_args = {}
 def random_range(range):
     return (np.random.ranf(len(range)) * range * 2) - range
 
-
-def score_expression(score, count, value):
-    if value < -5 or value > 5:
-        score += 1
-    count += 1
-    return (score, count)
-
-
 def sample_score(f, x):
-    score = 0
-    count = 0
+    sample = []
     for i in range(SAMPLE_COUNT):
         pvec = random_range(x)
-        score, count = score_expression(score, count, f(*pvec))
+        sample.append(f(*pvec))
 
-    result = float(score) / float(count)
-    return result
+    mu = abs(np.mean(sample))
+    sigma = np.std(sample)
+    return mu+abs(15-sigma)
 
 
 def permutations_score(f, x):
@@ -47,7 +40,7 @@ def permutations_score(f, x):
     pool = [i for i in range(NUM_PARAMS)]
 
     all_perm = itertools.permutations(pool, arg_count)
-    result = 1
+    result = MAX_BAD_SCORE
     for perm in all_perm:
         x2 = [x[idx] for idx in perm]
         s = sample_score(f[1], x2)
@@ -90,9 +83,9 @@ def main():
         c = f[1].__code__.co_argcount
         max_args = max(c, max_args)
 
-    x0 = np.random.ranf(NUM_PARAMS) * 10
+    x0 = (np.random.ranf(NUM_PARAMS) * 10)
     res = sp.optimize.minimize(objective_function, x0, method='nelder-mead',
-                               options={'xtol': 1e-1, 'disp': True, 'maxiter': 10})
+                               options={'xtol': 1e-1, 'disp': True})
     print(res)
     print(res.x)
 
