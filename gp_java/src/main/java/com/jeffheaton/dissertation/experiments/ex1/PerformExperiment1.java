@@ -44,10 +44,9 @@ public class PerformExperiment1 {
         TaskQueueManager manager = new FileBasedTaskManager(new File("/Users/jeff/temp/runjob"),"mac");
 
         manager.removeAll();
-        manager.addTaskCycles("exp1","autompg","neural",5);
-        manager.addTaskCycles("exp1","autompg","gp",5);
-        manager.addTaskCycles("exp1","iris","neural",5);
-        manager.addTaskCycles("exp1","iris","gp",5);
+        manager.addTaskCycles("exp1","autompg","neural-r:mpg",5);
+        manager.addTaskCycles("exp1","autompg","gp:mpg",5);
+        manager.addTaskCycles("exp1","iris","neural-c:species",5);
 
         ThreadedRunner runner = new ThreadedRunner(manager);
         runner.startup();

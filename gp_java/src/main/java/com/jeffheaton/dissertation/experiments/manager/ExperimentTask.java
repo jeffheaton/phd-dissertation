@@ -249,12 +249,13 @@ public class ExperimentTask implements Runnable {
             throw new EncogError("Unknown dataset: " + this.dataset);
         }
 
-        if( this.algorithm.equalsIgnoreCase("neural")) {
+
+        if( this.algorithm.toLowerCase().startsWith("neural")) {
             runNeural(dataset);
-        } else if( this.algorithm.equalsIgnoreCase("gp")) {
+        } else if( this.algorithm.toLowerCase().startsWith("gp")) {
             runGP(quick, dataset);
         } else {
-            throw new EncogError("Unknown algorithm: " + this.dataset);
+            throw new EncogError("Unknown algorithm: " + this.algorithm);
         }
 
     }
