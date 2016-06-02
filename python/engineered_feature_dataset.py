@@ -14,47 +14,38 @@ GENERATED_FEATURES = [
     ('2-poly', lambda a, b: (5 * (a ** 2) * (b ** 2)) + (4 * a * b) + 2)
 ]
 
-NUM_PARAMS = 7
-SAMPLE_COUNT = 1000  # 10000
-MAX_BAD_SCORE = 10
-max_args = 0
-best_args = {}
+#OUTPUT_FILE = "/Users/jeff/temp/dataset.csv"
+OUTPUT_FILE = "c:\\temp\\dataset.csv"
+SAMPLE_COUNT = 10000
+TARGET_RANGE = 200
 
+x_count = 0
+y_count = 0
 
 def random_range(range):
     return (np.random.ranf(len(range)) * range * 2) - range
 
-def sample_score(f, x):
+def sample_score(f,ranges):
     sample = []
     for i in range(SAMPLE_COUNT):
-        pvec = random_range(x)
-        sample.append(f(*pvec))
+        x2 = random_range(ranges)
+        sample.append( f(*x2) )
 
-    mu = abs(np.mean(sample))
-    sigma = np.std(sample)
-    return mu+abs(15-sigma)
-
-
-def permutations_score(f, x):
-    arg_count = f[1].__code__.co_argcount
-    pool = [i for i in range(NUM_PARAMS)]
-
-    all_perm = itertools.permutations(pool, arg_count)
-    result = MAX_BAD_SCORE
-    for perm in all_perm:
-        x2 = [x[idx] for idx in perm]
-        s = sample_score(f[1], x2)
-        if s < result:
-            result = s
-            best_args[f[0]] = perm
-
-    return result
+    min = np.min(sample)
+    max = np.max(sample)
+    return abs(TARGET_RANGE - (max-min))
 
 
 def objective_function(x):
     sum = 0
+
+    idx = 0
     for f in GENERATED_FEATURES:
-        sum += permutations_score(f, x)
+        c = f[1].__code__.co_argcount
+        slice = x[idx:idx+c]
+        sum += sample_score(f[1], slice)
+        idx+=c
+
     result = sum / len(GENERATED_FEATURES)
     print("{}:{}".format(result, x))
     return result
@@ -78,24 +69,18 @@ def generate(filename, x):
 
 
 def main():
-    global max_args
+    x_count = 0
     for f in GENERATED_FEATURES:
         c = f[1].__code__.co_argcount
-        max_args = max(c, max_args)
+        x_count += c
 
-    x0 = (np.random.ranf(NUM_PARAMS) * 10)
+    x0 = (np.random.ranf(x_count) * 10)
     res = sp.optimize.minimize(objective_function, x0, method='nelder-mead',
-                               options={'xtol': 1e-1, 'disp': True})
+                               options={'xtol': 1e-8, 'disp': True})
     print(res)
     print(res.x)
 
-    objective_function(res.x)
-
-    for key in best_args:
-        args = best_args[key]
-        print("{} ::: {}".format(key, args))
-
-    generate("/Users/jeff/temp/dataset.csv", res.x)
+    #generate(OUTPUT_FILE, res.x)
 
 
 # Allow windows to multi-thread (unneeded on advanced OS's)
