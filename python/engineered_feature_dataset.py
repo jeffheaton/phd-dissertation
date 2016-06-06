@@ -1,89 +1,103 @@
-import numpy as np
-import scipy as sp
-import scipy.optimize
-import itertools
-import codecs
-import csv
+import inspect
 
-# foo.__code__.co_argcount
+import numpy as np
+import pandas as pd
+import math
+
+NUM_ROWS = 50000
+SEED = 42
+OUTLIER_THRESH = 2.5
+
+NAME = 'name'
+FN = 'fn'
 
 GENERATED_FEATURES = [
-    ('ratio_diff', lambda a, b, c, d: (a - b) / (c - d)),
-    ('diff', lambda a, b: (a - b)),
-    ('ratio', lambda a, b: (a / b)),
-    ('2-poly', lambda a, b: (5 * (a ** 2) * (b ** 2)) + (4 * a * b) + 2)
+    {NAME: 'ratio_diff', FN: lambda a, b, c, d: (a - b) / (c - d)},
+    {NAME: 'diff', FN: lambda a, b: (a - b)},
+    {NAME: 'ratio', FN: lambda a, b: (a / b)},
+    {NAME: 'ratio_poly2', FN: lambda a, b: 1.0 / ((5 * (a ** 2) * (b ** 2)) + (4 * a * b) + 2)},
+    {NAME: 'coef_ratio', FN: lambda a, b: (a / b)},
+    {NAME: 'poly2', FN: lambda a, b: (5 * (a ** 2) * (b ** 2)) + (4 * a * b) + 2},
+    {NAME: 'ratio_poly', FN: lambda x: 1 / (5 * x + 8 * x ** 2)},
+    {NAME: 'poly', FN: lambda x: 1 + 5 * x + 8 * x ** 2},
+    {NAME: 'sqrt', FN: lambda x: np.sqrt(x)},
+    {NAME: 'log', FN: lambda x: np.log(x)},
+    {NAME: 'pow', FN: lambda x: x ** 2}
 ]
 
-#OUTPUT_FILE = "/Users/jeff/temp/dataset.csv"
-OUTPUT_FILE = "c:\\temp\\dataset.csv"
-SAMPLE_COUNT = 10000
-TARGET_RANGE = 200
 
-x_count = 0
-y_count = 0
+def generate_dataset(rows):
+    df = pd.DataFrame(index=range(1, rows + 1))
 
-def random_range(range):
-    return (np.random.ranf(len(range)) * range * 2) - range
+    predictor_columns = []
+    y_columns = []
 
-def sample_score(f,ranges):
-    sample = []
-    for i in range(SAMPLE_COUNT):
-        x2 = random_range(ranges)
-        sample.append( f(*x2) )
-
-    min = np.min(sample)
-    max = np.max(sample)
-    return abs(TARGET_RANGE - (max-min))
-
-
-def objective_function(x):
-    sum = 0
-
-    idx = 0
     for f in GENERATED_FEATURES:
-        c = f[1].__code__.co_argcount
-        slice = x[idx:idx+c]
-        sum += sample_score(f[1], slice)
-        idx+=c
+        arg_count = len(inspect.signature(f[FN]).parameters)
+        for arg_idx in range(arg_count):
+            col_name = "{}_x{}".format(f[NAME], arg_idx)
+            predictor_columns.append(col_name)
+            df[col_name] = (2 * np.random.random(rows)) - 1
+        y_columns.append("{}-y0".format(f[NAME]))
 
-    result = sum / len(GENERATED_FEATURES)
-    print("{}:{}".format(result, x))
-    return result
+    idx = 1
+    generated_columns = []
+
+    for f in GENERATED_FEATURES:
+        col_name = "{}-y0".format(f[NAME])
+        generated_columns.append(col_name)
+        arg_count = len(inspect.signature(f[FN]).parameters)
+        a = [df.iloc[:, idx + x] for x in range(arg_count)]
+        df[col_name] = f[FN](*a)
+    return df, predictor_columns, generated_columns
 
 
-def generate(filename, x):
-    with codecs.open(filename, "w", "utf-8") as fp:
-        writer = csv.writer(fp)
-        header = ["x{}".format(x) for x in range(NUM_PARAMS)]
-        header += [x[0] for x in GENERATED_FEATURES]
-        writer.writerow(header)
+def generate_report(df, generated_columns):
+    report = pd.DataFrame(index=range(len(generated_columns)))
+    y = df.loc[:, generated_columns]
+    report['name'] = generated_columns
+    report['max'] = np.amax(y, axis=0).tolist()
+    report['min'] = np.amin(y, axis=0).tolist()
+    report['range'] = report['max'] - report['min']
+    report['mean'] = np.mean(y, axis=0).tolist()
+    report['std'] = np.std(y, axis=0).tolist()
+    return report
 
-        for i in range(SAMPLE_COUNT):
-            pvec = random_range(x).tolist()
-            row = pvec[:]
-            for f in GENERATED_FEATURES:
-                args = best_args[f[0]]
-                x2 = [pvec[idx] for idx in args]
-                row += [f[1](*x2)]
-            writer.writerow(row)
+
+def generate_predictor_report(df, predictor_columns):
+    report = pd.DataFrame(index=range(len(predictor_columns)))
+    y = df.loc[:, predictor_columns]
+    report['name'] = predictor_columns
+    report['max'] = np.amax(y, axis=0).tolist()
+    report['min'] = np.amin(y, axis=0).tolist()
+    return report
+
+
+def remove_outliers(df, target_columns, sdev):
+    for col in target_columns:
+        df = df[np.abs(df[col] - df[col].mean()) <= (sdev * df[col].std())]
+    return df
 
 
 def main():
-    x_count = 0
-    for f in GENERATED_FEATURES:
-        c = f[1].__code__.co_argcount
-        x_count += c
+    np.random.seed(SEED)
 
-    x0 = (np.random.ranf(x_count) * 10)
-    res = sp.optimize.minimize(objective_function, x0, method='nelder-mead',
-                               options={'xtol': 1e-8, 'disp': True})
-    print(res)
-    print(res.x)
+    df, predictor_columns, generated_columns = generate_dataset(int(NUM_ROWS * 4))
 
-    #generate(OUTPUT_FILE, res.x)
+    len1 = len(df)
+    df = remove_outliers(df, generated_columns, OUTLIER_THRESH)
+    len2 = len(df)
+
+    print("Removed {}({}%) outliers.".format(len1 - len2, 100.0 * ((len1 - len2) / len1)))
+
+    df = df.head(NUM_ROWS)
+    df = df.reset_index(drop=True)
+    df.index = np.arange(1, len(df) + 1)
+    df.to_csv("/Users/jeff/temp/feature_eng.csv", index_label='id')
+
+    report = generate_report(df, generated_columns)
+
+    print(report)
 
 
-# Allow windows to multi-thread (unneeded on advanced OS's)
-# See: https://docs.python.org/2/library/multiprocessing.html
-if __name__ == '__main__':
-    main()
+main()
