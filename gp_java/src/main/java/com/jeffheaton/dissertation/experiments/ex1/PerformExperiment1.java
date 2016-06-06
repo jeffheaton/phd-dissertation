@@ -2,6 +2,7 @@ package com.jeffheaton.dissertation.experiments.ex1;
 
 import com.jeffheaton.dissertation.experiments.ExperimentResult;
 import com.jeffheaton.dissertation.experiments.data.SyntheticDatasets;
+import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
@@ -41,7 +42,7 @@ public class PerformExperiment1 {
 
         //runExperiment(dataset);
 
-        TaskQueueManager manager = new FileBasedTaskManager(new File("/Users/jeff/temp/runjob"),"mac");
+        TaskQueueManager manager = new FileBasedTaskManager();
 
         manager.removeAll();
         manager.addTaskCycles("exp1","autompg","neural-r:mpg",5);
@@ -54,7 +55,8 @@ public class PerformExperiment1 {
         runner.shutdown();
 
         GenerateComparisonReport report = new GenerateComparisonReport(manager);
-        report.report(new File("/Users/jeff/temp/runjob/report.csv"), 60);
+        File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report.csv");
+        report.report(reportFile, 60);
 
         Encog.getInstance().shutdown();
         sw.stop();
