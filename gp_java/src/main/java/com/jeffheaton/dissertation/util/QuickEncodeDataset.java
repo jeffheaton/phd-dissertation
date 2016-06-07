@@ -22,8 +22,11 @@ public class QuickEncodeDataset {
 
     private boolean headers;
     private CSVFormat format;
-    private int targetColumn;
     private ObtainInputStream streamSource;
+    private String targetColumn;
+    private int targetIndex;
+    private int[] xColumns;
+    private int[] yColumns;
 
     private boolean isNA(String str) {
         if(str.trim().equalsIgnoreCase("NA")|| str.trim().equals("?")) {
@@ -32,7 +35,6 @@ public class QuickEncodeDataset {
             return false;
         }
     }
-
 
     private void processPass1() {
         InputStream stream = this.streamSource.obtain();
@@ -110,25 +112,30 @@ public class QuickEncodeDataset {
     }
 
     private MLDataSet processPass3() {
-        int inputFeatureCount = 0;
-        for(int i=0;i<this.numeric.length;i++) {
-            if(this.numeric[i]) {
-                inputFeatureCount++;
-            }
-        }
-        int[] inputFeatures = new int[inputFeatureCount-1];
-        int idx = 0;
-        for(int i=0;i<this.numeric.length;i++) {
-            if(this.numeric[i] && i!=this.targetColumn) {
-                inputFeatures[idx++] = i;
-            }
-        }
-        int[] targetFeatures = new int[1];
-
         InputStream stream = this.streamSource.obtain();
         ReadCSV csv = new ReadCSV(stream,headers,format);
 
-        MLDataSet result = Loader.loadCSV(csv,inputFeatures,targetFeatures);
+        int inputFeatureCount = 0;
+        for(int i=0;i<this.numeric.length;i++) {
+            if(this.numeric[i] && !csv.getColumnNames().get(i).equalsIgnoreCase(this.targetColumn)) {
+                inputFeatureCount++;
+            }
+        }
+
+        this.xColumns = new int[inputFeatureCount];
+        this.yColumns = new int[1];
+
+        int idx = 0;
+        for(int i=0;i<csv.getColumnNames().size();i++) {
+            if(csv.getColumnNames().get(i).equalsIgnoreCase(this.targetColumn)) {
+                this.yColumns[0] = i;
+                this.targetIndex = i;
+            } else if(this.numeric[i]) {
+                this.xColumns[idx++] = i;
+            }
+        }
+
+        MLDataSet result = Loader.loadCSV(csv,this.xColumns,this.yColumns);
         csv.close();
         return result;
     }
@@ -144,10 +151,11 @@ public class QuickEncodeDataset {
     }
 
 
-    public MLDataSet process(ObtainInputStream theStreamSource, int targetColumn, boolean theHeaders, CSVFormat theFormat) {
+    public MLDataSet process(ObtainInputStream theStreamSource, String theTargetColumn, boolean theHeaders, CSVFormat theFormat) {
         this.streamSource = theStreamSource;
         this.headers = theHeaders;
         this.format = theFormat;
+        this.targetColumn = theTargetColumn;
         processPass1();
         processPass2();
         return processPass3();
@@ -185,7 +193,7 @@ public class QuickEncodeDataset {
         return rowCount;
     }
 
-    public int getTargetColumn() {
-        return targetColumn;
+    public int getTargetIndex() {
+        return targetIndex;
     }
 }

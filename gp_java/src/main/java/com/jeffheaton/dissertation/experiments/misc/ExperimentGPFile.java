@@ -45,7 +45,7 @@ public class ExperimentGPFile {
 
         ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
         QuickEncodeDataset quick = new QuickEncodeDataset();
-        MLDataSet dataset = quick.process(source,0, true, CSVFormat.EG_FORMAT);
+        MLDataSet dataset = quick.process(source,"mpg", true, CSVFormat.EG_FORMAT);
         Transform.interpolate(dataset);
         //quick.dumpFieldInfo();
 
@@ -56,7 +56,7 @@ public class ExperimentGPFile {
 
         EncogProgramContext context = new EncogProgramContext();
         for(int i=0;i<quick.getName().length;i++) {
-            if( i!=quick.getTargetColumn() && quick.getNumeric()[i] ) {
+            if( i!=quick.getTargetIndex() && quick.getNumeric()[i] ) {
                 context.defineVariable(quick.getName()[i]);
             }
         }

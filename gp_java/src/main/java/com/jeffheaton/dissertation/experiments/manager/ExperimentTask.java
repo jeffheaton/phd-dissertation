@@ -5,6 +5,7 @@ import com.jeffheaton.dissertation.util.*;
 import org.encog.EncogError;
 import org.encog.engine.network.activation.ActivationLinear;
 import org.encog.engine.network.activation.ActivationReLU;
+import org.encog.engine.network.activation.ActivationSoftMax;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.XaiverRandomizer;
@@ -46,16 +47,18 @@ public class ExperimentTask implements Runnable {
 
     private final String name;
     private final String algorithm;
-    private final String dataset;
+    private final String datasetFilename;
     private final int cycle;
     private String status = "queued";
     private int iterations;
     private double result;
     private int elapsed;
+    private QuickEncodeDataset quick;
+    private MLDataSet dataset;
 
     public ExperimentTask(String theName, String theDataset, String theAlgorithm, int theCycle) {
         this.name = theName;
-        this.dataset = theDataset;
+        this.datasetFilename = theDataset;
         this.algorithm = theAlgorithm;
         this.cycle = theCycle;
     }
@@ -68,8 +71,8 @@ public class ExperimentTask implements Runnable {
         return algorithm;
     }
 
-    public String getDataset() {
-        return dataset;
+    public String getDatasetFilename() {
+        return this.datasetFilename;
     }
 
     public int getCycle() {
@@ -82,32 +85,32 @@ public class ExperimentTask implements Runnable {
         result.append("|");
         result.append(this.algorithm);
         result.append("|");
-        result.append(this.dataset);
+        result.append(this.datasetFilename);
         result.append("|");
         result.append(this.cycle);
         return result.toString();
     }
 
     private void verboseStatus(int cycle, StochasticGradientDescent train, NewSimpleEarlyStoppingStrategy earlyStop) {
-        System.out.println("Cycle #"+(cycle+1)+",Epoch #" + train.getIteration() + " Train Error:"
+        System.out.println("Cycle #" + (cycle + 1) + ",Epoch #" + train.getIteration() + " Train Error:"
                 + Format.formatDouble(train.getError(), 6)
                 + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
                 ", Stagnant: " + earlyStop.getStagnantIterations());
     }
 
-    public void runGP(QuickEncodeDataset quick, MLDataSet dataset) {
+    public void runGP(MLDataSet dataset, boolean regression) {
         Stopwatch sw = new Stopwatch();
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         sw.start();
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
-        org.encog.ml.data.MLDataSet[] split = Transform.splitTrainValidate(dataset,rnd,0.75);
+        org.encog.ml.data.MLDataSet[] split = Transform.splitTrainValidate(dataset, rnd, 0.75);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
-        for(int i=0;i<quick.getName().length;i++) {
-            if( i!=quick.getTargetColumn() && quick.getNumeric()[i] ) {
+        for (int i = 0; i < quick.getName().length; i++) {
+            if (i != quick.getTargetIndex() && quick.getNumeric()[i]) {
                 context.defineVariable(quick.getName()[i]);
             }
         }
@@ -125,8 +128,7 @@ public class ExperimentTask implements Runnable {
         factory.addExtension(StandardExtensions.EXTENSION_POWER);
 
 
-
-        PrgPopulation pop = new PrgPopulation(context,1000);
+        PrgPopulation pop = new PrgPopulation(context, 1000);
 
         MultiObjectiveFitness score = new MultiObjectiveFitness();
         score.addObjective(1.0, new TrainingSetScore(trainingSet));
@@ -135,9 +137,9 @@ public class ExperimentTask implements Runnable {
         //genetic.setValidationMode(true);
         genetic.setCODEC(new PrgCODEC());
         genetic.addOperation(0.5, new SubtreeCrossover());
-        genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
-        genetic.addOperation(0.25, new SubtreeMutation(context,4));
-        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
+        genetic.addOperation(0.25, new ConstMutation(context, 0.5, 1.0));
+        genetic.addOperation(0.25, new SubtreeMutation(context, 4));
+        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10, 20, 10, 50.0));
         genetic.getRules().addRewriteRule(new RewriteConstants());
         genetic.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
@@ -146,114 +148,109 @@ public class ExperimentTask implements Runnable {
         NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet, 5, 500, 0.01);
         genetic.addStrategy(earlyStop);
 
-        (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
+        (new RampedHalfAndHalf(context, 1, 6)).generate(new Random(), pop);
 
         genetic.setShouldIgnoreExceptions(false);
 
         EncogProgram best = null;
 
 
-            do {
-                genetic.iteration();
-                best = (EncogProgram) genetic.getBestGenome();
-                System.out.println(genetic.getIteration() + ", Error: "
-                        + Format.formatDouble(best.getScore(),6) + ",Validation Score: " + earlyStop.getValidationError()
-                        + ",Best Genome Size:" +best.size()
-                        + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
-            } while(!genetic.isTrainingDone());
+        do {
+            genetic.iteration();
+            best = (EncogProgram) genetic.getBestGenome();
+            System.out.println(genetic.getIteration() + ", Error: "
+                    + Format.formatDouble(best.getScore(), 6) + ",Validation Score: " + earlyStop.getValidationError()
+                    + ",Best Genome Size:" + best.size()
+                    + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
+        } while (!genetic.isTrainingDone());
 
-            //EncogUtility.evaluate(best, trainingData);
+        //EncogUtility.evaluate(best, trainingData);
 
-            System.out.println("Final score:" + best.getScore()
-                    + ", effective score:" + best.getAdjustedScore());
-            System.out.println(best.dumpAsCommonExpression());
-            System.out.println();
-            //pop.dumpMembers(Integer.MAX_VALUE);
-            //pop.dumpMembers(10);
+        System.out.println("Final score:" + best.getScore()
+                + ", effective score:" + best.getAdjustedScore());
+        System.out.println(best.dumpAsCommonExpression());
+        System.out.println();
+        //pop.dumpMembers(Integer.MAX_VALUE);
+        //pop.dumpMembers(10);
 
-        this.elapsed = (int)(sw.getElapsedMilliseconds()/1000);
+        this.elapsed = (int) (sw.getElapsedMilliseconds() / 1000);
         this.result = earlyStop.getValidationError();
         this.iterations = genetic.getIteration();
     }
 
-    public void runNeural(MLDataSet dataset) {
-            Stopwatch sw = new Stopwatch();
-            ErrorCalculation.setMode(ErrorCalculationMode.RMS);
-            sw.start();
-            // split
-            GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
-            org.encog.ml.data.MLDataSet[] split = Transform.splitTrainValidate(dataset,rnd,0.75);
-            MLDataSet trainingSet = split[0];
-            MLDataSet validationSet = split[1];
+    public void runNeural(MLDataSet dataset, boolean regression) {
+        Stopwatch sw = new Stopwatch();
+        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
+        sw.start();
+        // split
+        GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
+        org.encog.ml.data.MLDataSet[] split = Transform.splitTrainValidate(dataset, rnd, 0.75);
+        MLDataSet trainingSet = split[0];
+        MLDataSet validationSet = split[1];
 
-            // create a neural network, without using a factory
-            BasicNetwork network = new BasicNetwork();
-            network.addLayer(new BasicLayer(null,true,trainingSet.getInputSize()));
-            network.addLayer(new BasicLayer(new ActivationReLU(),true,100));
-            //network.addLayer(new BasicLayer(new ActivationReLU(),true,200));
-            //network.addLayer(new BasicLayer(new ActivationReLU(),true,100));
-            //network.addLayer(new BasicLayer(new ActivationReLU(),true,50));
-            network.addLayer(new BasicLayer(new ActivationReLU(),true,25));
-            network.addLayer(new BasicLayer(new ActivationLinear(),false,trainingSet.getIdealSize()));
-            network.getStructure().finalizeStructure();
-            (new XaiverRandomizer()).randomize(network);
+        // create a neural network, without using a factory
+        BasicNetwork network = new BasicNetwork();
+        network.addLayer(new BasicLayer(null, true, trainingSet.getInputSize()));
+        network.addLayer(new BasicLayer(new ActivationReLU(), true, 100));
+        //network.addLayer(new BasicLayer(new ActivationReLU(),true,200));
+        //network.addLayer(new BasicLayer(new ActivationReLU(),true,100));
+        //network.addLayer(new BasicLayer(new ActivationReLU(),true,50));
+        network.addLayer(new BasicLayer(new ActivationReLU(), true, 25));
 
-
-            // train the neural network
-            final StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet, 100, 1e-6, 0.9);
-            train.setErrorFunction(new CrossEntropyErrorFunction());
-            train.setThreadCount(1);
-
-            NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet);
-            train.addStrategy(earlyStop);
-
-            long lastUpdate = System.currentTimeMillis();
-
-            do {
-                train.iteration();
-
-                long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate)/1000;
-
-                if( train.getIteration()==1 || train.isTrainingDone() || sinceLastUpdate>60 ) {
-                    verboseStatus(cycle, train, earlyStop);
-                    lastUpdate = System.currentTimeMillis();
-                }
-            } while(!train.isTrainingDone());
-            train.finishTraining();
-
-            sw.stop();
-            System.out.println(earlyStop.getValidationError());
-            this.elapsed = (int)(sw.getElapsedMilliseconds()/1000);
-            this.result = earlyStop.getValidationError();
-            this.iterations = train.getIteration();
+        if (regression) {
+            network.addLayer(new BasicLayer(new ActivationLinear(), false, trainingSet.getIdealSize()));
+        } else {
+            network.addLayer(new BasicLayer(new ActivationSoftMax(), false, trainingSet.getIdealSize()));
         }
+        network.getStructure().finalizeStructure();
+        (new XaiverRandomizer()).randomize(network);
 
+
+        // train the neural network
+        final StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet, 100, 1e-6, 0.9);
+        train.setErrorFunction(new CrossEntropyErrorFunction());
+        train.setThreadCount(1);
+
+        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet);
+        train.addStrategy(earlyStop);
+
+        long lastUpdate = System.currentTimeMillis();
+
+        do {
+            train.iteration();
+
+            long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
+
+            if (train.getIteration() == 1 || train.isTrainingDone() || sinceLastUpdate > 60) {
+                verboseStatus(cycle, train, earlyStop);
+                lastUpdate = System.currentTimeMillis();
+            }
+        } while (!train.isTrainingDone());
+        train.finishTraining();
+
+        sw.stop();
+        System.out.println(earlyStop.getValidationError());
+        this.elapsed = (int) (sw.getElapsedMilliseconds() / 1000);
+        this.result = earlyStop.getValidationError();
+        this.iterations = train.getIteration();
+    }
+
+    private void loadDataset(boolean regression, String target) {
+        ObtainInputStream source = new ObtainFallbackStream(this.datasetFilename);
+        this.quick = new QuickEncodeDataset();
+        this.dataset = quick.process(source, target, true, CSVFormat.EG_FORMAT);
+        Transform.interpolate(dataset);
+        Transform.zscore(dataset);
+    }
 
     public void run() {
-        MLDataSet dataset = null;
-        QuickEncodeDataset quick;
+        ParseModelType model = new ParseModelType(this.algorithm);
+        loadDataset(model.isRegression(),model.getTarget());
 
-        if( this.dataset.equals("autompg")) {
-            ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
-            quick = new QuickEncodeDataset();
-            dataset = quick.process(source,0, true, CSVFormat.EG_FORMAT);
-            Transform.interpolate(dataset);
-            Transform.zscore(dataset);
-        } else if( this.dataset.equals("iris")) {
-            ObtainInputStream source = new ObtainResourceInputStream("/iris.csv");
-            quick = new QuickEncodeDataset();
-            dataset = quick.process(source,0, true, CSVFormat.EG_FORMAT);
-            Transform.interpolate(dataset);
-            Transform.zscore(dataset);
-        } else {
-            throw new EncogError("Unknown dataset: " + this.dataset);
-        }
-
-
-        if( this.algorithm.toLowerCase().startsWith("neural")) {
-            runNeural(dataset);
-        } else if( this.algorithm.toLowerCase().startsWith("gp")) {
-            runGP(quick, dataset);
+        if (model.isNeuralNetwork()) {
+            runNeural(dataset, model.isRegression());
+        } else if (model.isGeneticProgram()) {
+            runGP( dataset, model.isRegression());
         } else {
             throw new EncogError("Unknown algorithm: " + this.algorithm);
         }

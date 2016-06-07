@@ -1,4 +1,4 @@
-package com.jeffheaton.dissertation.experiments.ex1;
+package com.jeffheaton.dissertation.experiments.ex2;
 
 import com.jeffheaton.dissertation.experiments.ExperimentResult;
 import com.jeffheaton.dissertation.experiments.data.SyntheticDatasets;
@@ -28,9 +28,9 @@ import org.encog.util.Stopwatch;
 import java.io.File;
 
 /**
- * Created by jeff on 5/10/16.
+ * Created by jeff on 6/7/16.
  */
-public class PerformExperiment1 {
+public class PerformExperiment2 {
 
     public static void main(String[] args) {
         Stopwatch sw = new Stopwatch();
@@ -45,7 +45,9 @@ public class PerformExperiment1 {
         TaskQueueManager manager = new FileBasedTaskManager();
 
         manager.removeAll();
-        manager.addTaskCycles("exp1","feature_eng.csv","neural-r:log-y0\n",5);
+        manager.addTaskCycles("exp1","feature_eng.csv","neural-r:ratio_poly-y0\n",5);
+        //manager.addTaskCycles("exp1","auto-mpg.csv","gp-r:mpg",5);
+        //manager.addTaskCycles("exp1","iris.csv","neural-c:species",5);
 
         ThreadedRunner runner = new ThreadedRunner(manager);
         runner.startup();

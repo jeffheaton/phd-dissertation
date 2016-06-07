@@ -1,5 +1,7 @@
 package com.jeffheaton.dissertation.util;
 
+import org.encog.EncogError;
+
 import java.io.FileInputStream;
 import java.io.InputStream;
 
@@ -17,10 +19,9 @@ public class ObtainResourceInputStream implements ObtainInputStream {
 
     @Override
     public InputStream obtain() {
-        final InputStream istream = this.getClass().getResourceAsStream(resourceName);
+        final InputStream istream = this.getClass().getResourceAsStream("/"+resourceName);
         if (istream == null) {
-            System.out.println("Cannot access data set, make sure the resources are available.");
-            System.exit(1);
+            throw new EncogError("Cannot access data set, make sure the resources are available.");
         }
         return istream;
     }

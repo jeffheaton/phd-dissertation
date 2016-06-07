@@ -72,7 +72,7 @@ public class GenerateComparisonReport {
         }
 
         public ReportItem(ExperimentTask task) {
-            this(task.getName(), task.getDataset(), task.getAlgorithm());
+            this(task.getName(), task.getDatasetFilename(), task.getAlgorithm());
         }
 
         public void reportCycle(double result, int iterations, int seconds) {
@@ -174,7 +174,7 @@ public class GenerateComparisonReport {
         result.append(':');
         result.append(task.getAlgorithm());
         result.append(':');
-        result.append(task.getDataset());
+        result.append(task.getDatasetFilename());
         return result.toString();
     }
 

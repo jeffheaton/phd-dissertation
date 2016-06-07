@@ -63,7 +63,7 @@ public class FileBasedTaskManager implements TaskQueueManager {
         try (CSVWriter writer = new CSVWriter(new FileWriter(this.pathWorkload.toFile()));) {
             writer.writeNext(new String[] {"name","status","dataset","algorithm","cycle","result","iterations","elapsed"});
             for(ExperimentTask task : tasks) {
-                writer.writeNext(new String[] {task.getName(),task.getStatus(),task.getDataset(),task.getAlgorithm(),
+                writer.writeNext(new String[] {task.getName(),task.getStatus(),task.getDatasetFilename(),task.getAlgorithm(),
                         ""+task.getCycle(),""+task.getResult(),""+task.getIterations(),""+task.getElapsed()});
             }
 
