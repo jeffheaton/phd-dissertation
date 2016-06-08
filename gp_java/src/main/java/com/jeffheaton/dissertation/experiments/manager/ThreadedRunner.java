@@ -13,6 +13,7 @@ public class ThreadedRunner {
     private ExecutorService threadPool;
     private final List<ThreadedWorker> workers = new ArrayList<>();
     private int maxWait = 10;
+    private boolean verbose;
 
     public ThreadedRunner(TaskQueueManager theManager) {
         this.manager = theManager;
@@ -42,5 +43,13 @@ public class ThreadedRunner {
         }
         this.workers.clear();
         this.threadPool.shutdown();
+    }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 }

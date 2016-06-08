@@ -121,28 +121,28 @@ public class GenerateComparisonReport {
             int count = 0;
 
             // mean, min, max
-            for(ReportCycle cycle: this.cycles) {
+            for (ReportCycle cycle : this.cycles) {
                 count++;
-                if( first ) {
+                if (first) {
                     this.minResult = cycle.getResult();
                     this.maxResult = cycle.getResult();
                     first = false;
                 } else {
-                    this.minResult = Math.min(this.minResult,cycle.getResult());
-                    this.maxResult = Math.min(this.maxResult,cycle.getResult());
+                    this.minResult = Math.min(this.minResult, cycle.getResult());
+                    this.maxResult = Math.max(this.maxResult, cycle.getResult());
                 }
-                sum+=cycle.getResult();
-                secondSum+=cycle.getSeconds();
+                sum += cycle.getResult();
+                secondSum += cycle.getSeconds();
             }
 
-            this.meanResult = sum/count;
-            this.meanElapsed = secondSum/count;
+            this.meanResult = sum / count;
+            this.meanElapsed = secondSum / count;
 
             // sdev
             sum = 0;
-            for(ReportCycle cycle: this.cycles) {
-                double d = (cycle.getResult()-this.meanResult);
-                sum += d*d;
+            for (ReportCycle cycle : this.cycles) {
+                double d = (cycle.getResult() - this.meanResult);
+                sum += d * d;
             }
             this.sdevResult = Math.sqrt(sum);
         }
@@ -202,23 +202,25 @@ public class GenerateComparisonReport {
     }
 
     public void report(File file, int max) {
+        ReportHolder holder = new ReportHolder();
+
         List<ExperimentTask> queue = this.manager.getQueue(max);
         for (ExperimentTask task : queue) {
             reportCycle(task);
         }
 
-        try (CSVWriter writer = new CSVWriter(new FileWriter(file))) {
-            writer.writeNext(new String[]{"experiment", "algorithm", "dataset", "min", "max", "mean", "elapsed"});
-            for (String key2 : this.reportItems.keySet()) {
-                ReportItem item = this.reportItems.get(key2);
-                item.collectStats();
-                writer.writeNext(new String[]{item.getExperiment(), item.getAlgorithm(), item.getDataset(),
-                        Format.formatDouble(item.getMinResult(),4), Format.formatDouble(item.getMaxResult(),4),
-                        Format.formatDouble(item.getMeanResult(),4),Format.formatDouble(item.getSDevResult(),4),
-                        Format.formatTimeSpan(item.getMeanElapsed())});
-            }
-        } catch (IOException ex) {
-            throw new EncogError(ex);
+
+        holder.setHeaders(new String[]{"experiment", "algorithm", "dataset", "min", "max", "mean", "sd", "elapsed" });
+        for (String key2 : this.reportItems.keySet()) {
+            ReportItem item = this.reportItems.get(key2);
+            item.collectStats();
+            holder.addLine(new String[]{item.getExperiment(), item.getAlgorithm(), item.getDataset(),
+                    Format.formatDouble(item.getMinResult(), 4), Format.formatDouble(item.getMaxResult(), 4),
+                    Format.formatDouble(item.getMeanResult(), 4), Format.formatDouble(item.getSDevResult(), 4),
+                    Format.formatTimeSpan(item.getMeanElapsed())});
         }
+        holder.sort(new int[]{0, 1, 2});
+        holder.write(file);
+
     }
 }

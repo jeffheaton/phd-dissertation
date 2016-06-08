@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.util;
 
+import org.encog.EncogError;
 import org.encog.ml.data.MLDataSet;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.csv.ReadCSV;
@@ -27,6 +28,7 @@ public class QuickEncodeDataset {
     private int targetIndex;
     private int[] xColumns;
     private int[] yColumns;
+    private String[] predictors;
 
     private boolean isNA(String str) {
         if(str.trim().equalsIgnoreCase("NA")|| str.trim().equals("?")) {
@@ -111,28 +113,36 @@ public class QuickEncodeDataset {
         }
     }
 
+    private boolean isin(String b, String[] a) {
+        for(int i=0;i<a.length;i++) {
+            if(b.equals(a[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private MLDataSet processPass3() {
         InputStream stream = this.streamSource.obtain();
         ReadCSV csv = new ReadCSV(stream,headers,format);
 
-        int inputFeatureCount = 0;
-        for(int i=0;i<this.numeric.length;i++) {
-            if(this.numeric[i] && !csv.getColumnNames().get(i).equalsIgnoreCase(this.targetColumn)) {
-                inputFeatureCount++;
-            }
-        }
-
-        this.xColumns = new int[inputFeatureCount];
+        this.xColumns = new int[this.predictors.length];
         this.yColumns = new int[1];
 
         int idx = 0;
+        boolean foundTarget = false;
         for(int i=0;i<csv.getColumnNames().size();i++) {
             if(csv.getColumnNames().get(i).equalsIgnoreCase(this.targetColumn)) {
                 this.yColumns[0] = i;
                 this.targetIndex = i;
-            } else if(this.numeric[i]) {
+                foundTarget = true;
+            } else if( this.isin(csv.getColumnNames().get(i),this.predictors)) {
                 this.xColumns[idx++] = i;
             }
+        }
+
+        if(!foundTarget) {
+            throw new EncogError("Invalid target field: " + this.targetColumn);
         }
 
         MLDataSet result = Loader.loadCSV(csv,this.xColumns,this.yColumns);
@@ -151,11 +161,12 @@ public class QuickEncodeDataset {
     }
 
 
-    public MLDataSet process(ObtainInputStream theStreamSource, String theTargetColumn, boolean theHeaders, CSVFormat theFormat) {
+    public MLDataSet process(ObtainInputStream theStreamSource, String theTargetColumn, String thePredictorColumns, boolean theHeaders, CSVFormat theFormat) {
         this.streamSource = theStreamSource;
         this.headers = theHeaders;
         this.format = theFormat;
         this.targetColumn = theTargetColumn;
+        this.predictors = thePredictorColumns.split(",");
         processPass1();
         processPass2();
         return processPass3();

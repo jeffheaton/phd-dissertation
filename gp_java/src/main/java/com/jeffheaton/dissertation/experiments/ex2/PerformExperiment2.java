@@ -45,7 +45,7 @@ public class PerformExperiment2 {
         TaskQueueManager manager = new FileBasedTaskManager();
 
         manager.removeAll();
-        manager.addTaskCycles("exp1","feature_eng.csv","neural-r:ratio_poly-y0\n",5);
+        manager.addTaskCycles("exp1","feature_eng.csv","neural-r:ratio_poly-y0\n",null,5);
         //manager.addTaskCycles("exp1","auto-mpg.csv","gp-r:mpg",5);
         //manager.addTaskCycles("exp1","iris.csv","neural-c:species",5);
 

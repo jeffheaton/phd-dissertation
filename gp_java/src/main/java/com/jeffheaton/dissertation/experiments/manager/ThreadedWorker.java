@@ -20,6 +20,7 @@ public class ThreadedWorker implements Runnable {
         this.requestShutdown = false;
         while (!this.requestShutdown) {
             ExperimentTask task = this.runner.getManager().requestTask(runner.getMaxWait());
+            task.setOwner(this.runner);
             if (task != null) {
                 try {
                     //System.out.println("Running: " + task);

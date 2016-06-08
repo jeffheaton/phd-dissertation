@@ -38,15 +38,15 @@ public class FileBasedTaskManager implements TaskQueueManager {
 
         List<ExperimentTask> result = new ArrayList<>();
 
-        if( Files.exists(this.pathWorkload) ) {
+        if (Files.exists(this.pathWorkload)) {
             try (CSVReader reader = new CSVReader(new FileReader(this.pathWorkload.toFile()));) {
                 reader.readNext();
                 String[] line;
                 while ((line = reader.readNext()) != null) {
-                    ExperimentTask task = new ExperimentTask(line[0], line[2], line[3], Integer.parseInt(line[4]));
-                    task.setResult(Double.parseDouble(line[5]));
-                    task.setIterations(Integer.parseInt(line[6]));
-                    task.setElapsed(Integer.parseInt(line[7]));
+                    ExperimentTask task = new ExperimentTask(line[0], line[2], line[3], line[4], Integer.parseInt(line[5]));
+                    task.setResult(Double.parseDouble(line[6]));
+                    task.setIterations(Integer.parseInt(line[7]));
+                    task.setElapsed(Integer.parseInt(line[8]));
                     task.setStatus(line[1]);
                     result.add(task);
                 }
@@ -61,10 +61,10 @@ public class FileBasedTaskManager implements TaskQueueManager {
     private void saveTasks(List<ExperimentTask> tasks) {
 
         try (CSVWriter writer = new CSVWriter(new FileWriter(this.pathWorkload.toFile()));) {
-            writer.writeNext(new String[] {"name","status","dataset","algorithm","cycle","result","iterations","elapsed"});
-            for(ExperimentTask task : tasks) {
-                writer.writeNext(new String[] {task.getName(),task.getStatus(),task.getDatasetFilename(),task.getAlgorithm(),
-                        ""+task.getCycle(),""+task.getResult(),""+task.getIterations(),""+task.getElapsed()});
+            writer.writeNext(new String[]{"name", "status", "dataset", "algorithm", "predictors", "cycle", "result", "iterations", "elapsed" });
+            for (ExperimentTask task : tasks) {
+                writer.writeNext(new String[]{task.getName(), task.getStatus(), task.getDatasetFilename(), task.getAlgorithm(),
+                        task.getPredictors(),"" + task.getCycle(), "" + task.getResult(), "" + task.getIterations(), "" + task.getElapsed()});
             }
 
         } catch (IOException e) {
@@ -73,8 +73,8 @@ public class FileBasedTaskManager implements TaskQueueManager {
     }
 
     private boolean taskExists(List<ExperimentTask> tasks, ExperimentTask searchTask) {
-        for(ExperimentTask task: tasks) {
-            if(task.getKey().equals(searchTask.getKey())) {
+        for (ExperimentTask task : tasks) {
+            if (task.getKey().equals(searchTask.getKey())) {
                 return true;
             }
         }
@@ -82,10 +82,10 @@ public class FileBasedTaskManager implements TaskQueueManager {
     }
 
     @Override
-    public ExperimentTask addTask(String name, String dataset, String algorithm, int cycle) {
+    public ExperimentTask addTask(String name, String dataset, String model, String predictors, int cycle) {
         List<ExperimentTask> currentTasks = loadTasks();
-        ExperimentTask newTask = new ExperimentTask(name,dataset,algorithm,cycle);
-        if( taskExists(currentTasks,newTask)) {
+        ExperimentTask newTask = new ExperimentTask(name, dataset, model, predictors, cycle);
+        if (taskExists(currentTasks, newTask)) {
             throw new EncogError("Task " + newTask.getKey() + " was already defined.");
         }
         currentTasks.add(newTask);
@@ -97,8 +97,8 @@ public class FileBasedTaskManager implements TaskQueueManager {
     public void removeTask(String key) {
         List<ExperimentTask> currentTasks = loadTasks();
         Object[] currentTasksArray = currentTasks.toArray();
-        for(int i=0;i<currentTasksArray.length;i++) {
-            if( ((ExperimentTask)currentTasksArray[i]).getKey()==key ) {
+        for (int i = 0; i < currentTasksArray.length; i++) {
+            if (((ExperimentTask) currentTasksArray[i]).getKey() == key) {
                 currentTasks.remove(i);
                 break;
             }
@@ -109,7 +109,7 @@ public class FileBasedTaskManager implements TaskQueueManager {
     @Override
     public void removeAll() {
         try {
-            if(Files.exists(this.pathWorkload)) {
+            if (Files.exists(this.pathWorkload)) {
                 Files.delete(this.pathWorkload);
             }
         } catch (IOException ex) {
@@ -125,7 +125,7 @@ public class FileBasedTaskManager implements TaskQueueManager {
 
             List<ExperimentTask> currentTasks = loadTasks();
             for (ExperimentTask task : currentTasks) {
-                if( task.isQueued() ) {
+                if (task.isQueued()) {
                     task.claim(this.computerName);
                     saveTasks(currentTasks);
                     return task;
@@ -139,9 +139,9 @@ public class FileBasedTaskManager implements TaskQueueManager {
     }
 
     @Override
-    public void addTaskCycles(String name, String dataset, String algorithm, int cycles) {
-        for(int i=0;i<cycles;i++) {
-            addTask(name,dataset,algorithm,i+1);
+    public void addTaskCycles(String name, String dataset, String model, String predictors, int cycles) {
+        for (int i = 0; i < cycles; i++) {
+            addTask(name, dataset, model, predictors, i + 1);
         }
     }
 
@@ -152,10 +152,10 @@ public class FileBasedTaskManager implements TaskQueueManager {
 
             List<ExperimentTask> currentTasks = loadTasks();
             Object[] currentTasksArray = currentTasks.toArray();
-            for(int i=0;i<currentTasksArray.length;i++) {
-                if( ((ExperimentTask)currentTasksArray[i]).getKey().equals(task.getKey()) ) {
+            for (int i = 0; i < currentTasksArray.length; i++) {
+                if (((ExperimentTask) currentTasksArray[i]).getKey().equals(task.getKey())) {
                     task.reportDone(this.computerName);
-                    currentTasks.set(i,task);
+                    currentTasks.set(i, task);
                     break;
                 }
             }
@@ -167,17 +167,17 @@ public class FileBasedTaskManager implements TaskQueueManager {
 
     @Override
     public void blockUntilDone(int maxWaitSeconds) {
-        for(;;) {
+        for (; ; ) {
             try {
                 obtainLock(maxWaitSeconds);
                 boolean done = true;
                 List<ExperimentTask> currentTasks = loadTasks();
                 for (ExperimentTask currentTask : currentTasks) {
-                    if( !currentTask.isComplete() ) {
+                    if (!currentTask.isComplete()) {
                         done = false;
                     }
                 }
-                if( done ) {
+                if (done) {
                     return;
                 }
             } finally {
@@ -198,7 +198,7 @@ public class FileBasedTaskManager implements TaskQueueManager {
 
             List<ExperimentTask> currentTasks = loadTasks();
             for (ExperimentTask currentTask : currentTasks) {
-                if( currentTask.getKey().equals(task.getKey()) ) {
+                if (currentTask.getKey().equals(task.getKey())) {
                     currentTask.reportError(this.computerName, ex);
                     saveTasks(currentTasks);
                     return;
@@ -222,7 +222,7 @@ public class FileBasedTaskManager implements TaskQueueManager {
 
     private void obtainLock(int maxWaitSeconds) {
         int tries = 0;
-        while(tries<maxWaitSeconds) {
+        while (tries < maxWaitSeconds) {
             try {
                 Files.createFile(this.pathLock);
                 return;
@@ -242,7 +242,7 @@ public class FileBasedTaskManager implements TaskQueueManager {
 
     private void releaseLock() {
         try {
-            if(Files.exists(this.pathLock)) {
+            if (Files.exists(this.pathLock)) {
                 Files.delete(this.pathLock);
             }
         } catch (IOException ex) {

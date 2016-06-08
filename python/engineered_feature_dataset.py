@@ -35,7 +35,7 @@ def generate_dataset(rows):
     for f in GENERATED_FEATURES:
         arg_count = len(inspect.signature(f[FN]).parameters)
         for arg_idx in range(arg_count):
-            col_name = "{}_x{}".format(f[NAME], arg_idx)
+            col_name = "{}-x{}".format(f[NAME], arg_idx)
             predictor_columns.append(col_name)
             df[col_name] = (2 * np.random.random(rows)) - 1
         y_columns.append("{}-y0".format(f[NAME]))

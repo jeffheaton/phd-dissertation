@@ -1,6 +1,7 @@
 package com.jeffheaton.dissertation.experiments.ex1;
 
 import com.jeffheaton.dissertation.experiments.ExperimentResult;
+import com.jeffheaton.dissertation.experiments.data.AnalyzeEngineeredDataset;
 import com.jeffheaton.dissertation.experiments.data.SyntheticDatasets;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
@@ -32,28 +33,29 @@ import java.io.File;
  */
 public class PerformExperiment1 {
 
+
     public static void main(String[] args) {
         Stopwatch sw = new Stopwatch();
         sw.start();
 
         ErrorCalculation.setMode(ErrorCalculationMode.MSE);
-        //MLDataSet dataset = SyntheticDatasets.generateDiffRatio();
-        MLDataSet dataset = SyntheticDatasets.generatePolynomial();
-
-        //runExperiment(dataset);
-
         TaskQueueManager manager = new FileBasedTaskManager();
 
+        AnalyzeEngineeredDataset info = new AnalyzeEngineeredDataset();
+
         manager.removeAll();
-        manager.addTaskCycles("exp1","feature_eng.csv","neural-r:log-y0\n",5);
+        for(String f: info.getFeatures()) {
+            manager.addTaskCycles("exp1","feature_eng.csv","neural-r:"+f+"-y0",info.getPredictors(f),5);
+        }
 
         ThreadedRunner runner = new ThreadedRunner(manager);
+        runner.setVerbose(false);
         runner.startup();
         manager.blockUntilDone(60);
         runner.shutdown();
 
         GenerateComparisonReport report = new GenerateComparisonReport(manager);
-        File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report.csv");
+        File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report-exp1.csv");
         report.report(reportFile, 60);
 
         Encog.getInstance().shutdown();

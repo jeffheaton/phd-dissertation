@@ -45,7 +45,7 @@ public class ExperimentGPFile {
 
         ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
         QuickEncodeDataset quick = new QuickEncodeDataset();
-        MLDataSet dataset = quick.process(source,"mpg", true, CSVFormat.EG_FORMAT);
+        MLDataSet dataset = quick.process(source,"mpg", null, true, CSVFormat.EG_FORMAT);
         Transform.interpolate(dataset);
         //quick.dumpFieldInfo();
 

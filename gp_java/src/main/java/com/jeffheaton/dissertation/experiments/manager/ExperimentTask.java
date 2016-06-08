@@ -45,6 +45,9 @@ import java.util.Random;
  */
 public class ExperimentTask implements Runnable {
 
+    public static final int MINI_BATCH_SIZE = 100;
+    public static final double LEARNING_RATE = 1e-13;
+
     private final String name;
     private final String algorithm;
     private final String datasetFilename;
@@ -55,12 +58,15 @@ public class ExperimentTask implements Runnable {
     private int elapsed;
     private QuickEncodeDataset quick;
     private MLDataSet dataset;
+    private ThreadedRunner owner;
+    private String predictors;
 
-    public ExperimentTask(String theName, String theDataset, String theAlgorithm, int theCycle) {
+    public ExperimentTask(String theName, String theDataset, String theAlgorithm, String thePredictors, int theCycle) {
         this.name = theName;
         this.datasetFilename = theDataset;
         this.algorithm = theAlgorithm;
         this.cycle = theCycle;
+        this.predictors = thePredictors;
     }
 
     public String getName() {
@@ -92,10 +98,12 @@ public class ExperimentTask implements Runnable {
     }
 
     private void verboseStatus(int cycle, StochasticGradientDescent train, NewSimpleEarlyStoppingStrategy earlyStop) {
-        System.out.println("Cycle #" + (cycle + 1) + ",Epoch #" + train.getIteration() + " Train Error:"
-                + Format.formatDouble(train.getError(), 6)
-                + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
-                ", Stagnant: " + earlyStop.getStagnantIterations());
+        if( this.owner.isVerbose() ) {
+            System.out.println("Cycle #" + (cycle + 1) + ",Epoch #" + train.getIteration() + " Train Error:"
+                    + Format.formatDouble(train.getError(), 6)
+                    + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
+                    ", Stagnant: " + earlyStop.getStagnantIterations());
+        }
     }
 
     public void runGP(MLDataSet dataset, boolean regression) {
@@ -191,8 +199,8 @@ public class ExperimentTask implements Runnable {
         // create a neural network, without using a factory
         BasicNetwork network = new BasicNetwork();
         network.addLayer(new BasicLayer(null, true, trainingSet.getInputSize()));
-        network.addLayer(new BasicLayer(new ActivationReLU(), true, 100));
-        //network.addLayer(new BasicLayer(new ActivationReLU(),true,200));
+        network.addLayer(new BasicLayer(new ActivationReLU(), true, 200));
+        network.addLayer(new BasicLayer(new ActivationReLU(),true,100));
         //network.addLayer(new BasicLayer(new ActivationReLU(),true,100));
         //network.addLayer(new BasicLayer(new ActivationReLU(),true,50));
         network.addLayer(new BasicLayer(new ActivationReLU(), true, 25));
@@ -207,7 +215,7 @@ public class ExperimentTask implements Runnable {
 
 
         // train the neural network
-        final StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet, 100, 1e-6, 0.9);
+        final StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet, MINI_BATCH_SIZE, 1e-13, 0.9);
         train.setErrorFunction(new CrossEntropyErrorFunction());
         train.setThreadCount(1);
 
@@ -229,7 +237,6 @@ public class ExperimentTask implements Runnable {
         train.finishTraining();
 
         sw.stop();
-        System.out.println(earlyStop.getValidationError());
         this.elapsed = (int) (sw.getElapsedMilliseconds() / 1000);
         this.result = earlyStop.getValidationError();
         this.iterations = train.getIteration();
@@ -238,9 +245,8 @@ public class ExperimentTask implements Runnable {
     private void loadDataset(boolean regression, String target) {
         ObtainInputStream source = new ObtainFallbackStream(this.datasetFilename);
         this.quick = new QuickEncodeDataset();
-        this.dataset = quick.process(source, target, true, CSVFormat.EG_FORMAT);
+        this.dataset = quick.process(source, target, this.predictors, true, CSVFormat.EG_FORMAT);
         Transform.interpolate(dataset);
-        Transform.zscore(dataset);
     }
 
     public void run() {
@@ -254,6 +260,7 @@ public class ExperimentTask implements Runnable {
         } else {
             throw new EncogError("Unknown algorithm: " + this.algorithm);
         }
+        System.out.println("Complete: " + getKey() + " - " + this.result + " - ");
 
     }
 
@@ -316,5 +323,17 @@ public class ExperimentTask implements Runnable {
 
     public void setElapsed(int elapsed) {
         this.elapsed = elapsed;
+    }
+
+    public ThreadedRunner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(ThreadedRunner owner) {
+        this.owner = owner;
+    }
+
+    public String getPredictors() {
+        return this.predictors;
     }
 }

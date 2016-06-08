@@ -16,7 +16,7 @@ public class ParseModelType {
 
     public ParseModelType(String str) {
         try {
-            String regexp = "([A-Za-z]+)-+([A-Za-z]+):+([A-Za-z]+)";
+            String regexp = "([A-Za-z]+)-+([A-Za-z]+):+([0-9A-Za-z-_]+)";
 
             Pattern pattern = Pattern.compile(regexp);
             Matcher matcher = pattern.matcher(str);

@@ -6,11 +6,11 @@ import java.util.List;
  * Created by jeff on 5/16/16.
  */
 public interface TaskQueueManager {
-    ExperimentTask addTask(String name, String dataset, String algorithm, int cycle);
+    ExperimentTask addTask(String name, String dataset, String model, String predictors, int cycle);
     void removeTask(String key);
     void removeAll();
     ExperimentTask requestTask(int maxWaitSeconds);
-    void addTaskCycles(String exp1, String s, String neural, int i);
+    void addTaskCycles(String name, String dataset, String model, String predictors, int cycles);
     void reportDone(ExperimentTask task,int maxWaitSeconds);
     void blockUntilDone(int maxWaitSeconds);
     void reportError(ExperimentTask task, Exception ex, int maxWaitSeconds);
