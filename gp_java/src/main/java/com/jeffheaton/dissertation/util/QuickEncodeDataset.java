@@ -207,4 +207,6 @@ public class QuickEncodeDataset {
     public int getTargetIndex() {
         return targetIndex;
     }
+
+    public String[] getPredictors() { return this.predictors; }
 }

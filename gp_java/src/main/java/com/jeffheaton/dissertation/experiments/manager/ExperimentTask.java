@@ -98,7 +98,7 @@ public class ExperimentTask implements Runnable {
     }
 
     private void verboseStatus(int cycle, StochasticGradientDescent train, NewSimpleEarlyStoppingStrategy earlyStop) {
-        if( this.owner.isVerbose() ) {
+        if( this.owner==null || this.owner.isVerbose() ) {
             System.out.println("Cycle #" + (cycle + 1) + ",Epoch #" + train.getIteration() + " Train Error:"
                     + Format.formatDouble(train.getError(), 6)
                     + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
@@ -117,13 +117,9 @@ public class ExperimentTask implements Runnable {
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
-        for (int i = 0; i < quick.getName().length; i++) {
-            if (i != quick.getTargetIndex() && quick.getNumeric()[i]) {
-                context.defineVariable(quick.getName()[i]);
-            }
+        for (String field: quick.getPredictors()) {
+            context.defineVariable(field);
         }
-
-        //StandardExtensions.createNumericOperators(context);
 
         FunctionFactory factory = context.getFunctions();
         factory.addExtension(StandardExtensions.EXTENSION_VAR_SUPPORT);
@@ -229,7 +225,7 @@ public class ExperimentTask implements Runnable {
 
             long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
 
-            if (train.getIteration() == 1 || train.isTrainingDone() || sinceLastUpdate > 60) {
+            if (this.owner==null || train.getIteration() == 1 || train.isTrainingDone() || sinceLastUpdate > 60) {
                 verboseStatus(cycle, train, earlyStop);
                 lastUpdate = System.currentTimeMillis();
             }
