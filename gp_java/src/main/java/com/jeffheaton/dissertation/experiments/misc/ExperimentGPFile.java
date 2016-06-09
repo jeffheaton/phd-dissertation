@@ -41,11 +41,11 @@ public class ExperimentGPFile {
     }
 
     private void process() {
-        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
+        ErrorCalculation.setMode(ErrorCalculationMode.NRMSE_RANGE);
 
-        ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
+        ObtainInputStream source = new ObtainFallbackStream("feature_eng.csv");
         QuickEncodeDataset quick = new QuickEncodeDataset();
-        MLDataSet dataset = quick.process(source,"mpg", null, true, CSVFormat.EG_FORMAT);
+        MLDataSet dataset = quick.process(source,"diff-y0", "diff-x0,diff-x1", true, CSVFormat.EG_FORMAT);
         Transform.interpolate(dataset);
         //quick.dumpFieldInfo();
 
@@ -55,10 +55,8 @@ public class ExperimentGPFile {
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
-        for(int i=0;i<quick.getName().length;i++) {
-            if( i!=quick.getTargetIndex() && quick.getNumeric()[i] ) {
-                context.defineVariable(quick.getName()[i]);
-            }
+        for(int i=0;i<quick.getPredictors().length;i++) {
+            context.defineVariable(""+('a'+i));
         }
 
         //StandardExtensions.createNumericOperators(context);
