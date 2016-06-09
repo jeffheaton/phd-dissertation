@@ -47,6 +47,7 @@ public class ExperimentTask implements Runnable {
 
     public static final int MINI_BATCH_SIZE = 100;
     public static final double LEARNING_RATE = 1e-13;
+    public static final int POPULATION_SIZE = 100;
 
     private final String name;
     private final String algorithm;
@@ -97,12 +98,21 @@ public class ExperimentTask implements Runnable {
         return result.toString();
     }
 
-    private void verboseStatus(int cycle, StochasticGradientDescent train, NewSimpleEarlyStoppingStrategy earlyStop) {
+    private void verboseStatusNeural(int cycle, StochasticGradientDescent train, NewSimpleEarlyStoppingStrategy earlyStop) {
         if( this.owner==null || this.owner.isVerbose() ) {
             System.out.println("Cycle #" + (cycle + 1) + ",Epoch #" + train.getIteration() + " Train Error:"
                     + Format.formatDouble(train.getError(), 6)
                     + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
                     ", Stagnant: " + earlyStop.getStagnantIterations());
+        }
+    }
+
+    public void verboseStatusGeneticProgram(TrainEA genetic, EncogProgram best, NewSimpleEarlyStoppingStrategy earlyStop, PrgPopulation pop) {
+        if( this.owner==null || this.owner.isVerbose() ) {
+            System.out.println(genetic.getIteration() + ", Error: "
+                    + Format.formatDouble(best.getScore(), 6) + ",Validation Score: " + earlyStop.getValidationError()
+                    + ",Best Genome Size:" + best.size()
+                    + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
         }
     }
 
@@ -132,7 +142,7 @@ public class ExperimentTask implements Runnable {
         factory.addExtension(StandardExtensions.EXTENSION_POWER);
 
 
-        PrgPopulation pop = new PrgPopulation(context, 1000);
+        PrgPopulation pop = new PrgPopulation(context, POPULATION_SIZE);
 
         MultiObjectiveFitness score = new MultiObjectiveFitness();
         score.addObjective(1.0, new TrainingSetScore(trainingSet));
@@ -149,7 +159,7 @@ public class ExperimentTask implements Runnable {
         genetic.setSpeciation(new PrgSpeciation());
         genetic.setThreadCount(1);
 
-        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet, 5, 500, 0.01);
+        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet, 5, 50, 0.01);
         genetic.addStrategy(earlyStop);
 
         (new RampedHalfAndHalf(context, 1, 6)).generate(new Random(), pop);
@@ -157,25 +167,17 @@ public class ExperimentTask implements Runnable {
         genetic.setShouldIgnoreExceptions(false);
 
         EncogProgram best = null;
+        long lastUpdate = System.currentTimeMillis();
 
 
         do {
+            long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
             genetic.iteration();
             best = (EncogProgram) genetic.getBestGenome();
-            System.out.println(genetic.getIteration() + ", Error: "
-                    + Format.formatDouble(best.getScore(), 6) + ",Validation Score: " + earlyStop.getValidationError()
-                    + ",Best Genome Size:" + best.size()
-                    + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
+            if (this.owner==null || genetic.getIteration() == 1 || genetic.isTrainingDone() || sinceLastUpdate > 60) {
+                verboseStatusGeneticProgram(genetic, best, earlyStop, pop);
+            }
         } while (!genetic.isTrainingDone());
-
-        //EncogUtility.evaluate(best, trainingData);
-
-        System.out.println("Final score:" + best.getScore()
-                + ", effective score:" + best.getAdjustedScore());
-        System.out.println(best.dumpAsCommonExpression());
-        System.out.println();
-        //pop.dumpMembers(Integer.MAX_VALUE);
-        //pop.dumpMembers(10);
 
         this.elapsed = (int) (sw.getElapsedMilliseconds() / 1000);
         this.result = earlyStop.getValidationError();
@@ -226,7 +228,7 @@ public class ExperimentTask implements Runnable {
             long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
 
             if (this.owner==null || train.getIteration() == 1 || train.isTrainingDone() || sinceLastUpdate > 60) {
-                verboseStatus(cycle, train, earlyStop);
+                verboseStatusNeural(cycle, train, earlyStop);
                 lastUpdate = System.currentTimeMillis();
             }
         } while (!train.isTrainingDone());

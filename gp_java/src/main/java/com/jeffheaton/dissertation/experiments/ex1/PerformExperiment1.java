@@ -45,6 +45,7 @@ public class PerformExperiment1 {
 
         manager.removeAll();
         for(String f: info.getFeatures()) {
+            manager.addTaskCycles("exp1","feature_eng.csv","neural-r:"+f+"-y0",info.getPredictors(f),5);
             manager.addTaskCycles("exp1","feature_eng.csv","gp-r:"+f+"-y0",info.getPredictors(f),5);
         }
 
