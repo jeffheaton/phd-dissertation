@@ -55,7 +55,7 @@ public class ExperimentGPFile {
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
-        for(int i=0;i<quick.getPredictors().length;i++) {
+        for(int i=0;i<quick.getPredictors().size();i++) {
             context.defineVariable(""+('a'+i));
         }
 

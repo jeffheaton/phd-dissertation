@@ -127,8 +127,8 @@ public class ExperimentTask implements Runnable {
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
-        for (String field: quick.getPredictors()) {
-            context.defineVariable(field);
+        for (QuickEncodeDataset.QuickField field: quick.getPredictors()) {
+            context.defineVariable(field.getName());
         }
 
         FunctionFactory factory = context.getFunctions();

@@ -38,7 +38,7 @@ public class PerformExperiment1 {
         Stopwatch sw = new Stopwatch();
         sw.start();
 
-        ErrorCalculation.setMode(ErrorCalculationMode.MSE);
+        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         TaskQueueManager manager = new FileBasedTaskManager();
 
         AnalyzeEngineeredDataset info = new AnalyzeEngineeredDataset();

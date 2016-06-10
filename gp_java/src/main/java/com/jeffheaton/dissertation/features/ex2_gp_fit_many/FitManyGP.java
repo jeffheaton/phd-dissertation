@@ -57,11 +57,11 @@ public class FitManyGP {
         this.validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
-        for(int i=0;i<quick.getName().length;i++) {
+        /*for(int i=0;i<quick.getName().length;i++) {
             if( i!=quick.getTargetIndex() && quick.getNumeric()[i] ) {
                 context.defineVariable(quick.getName()[i]);
             }
-        }
+        }*/
     }
 
     private void defineOperators(EncogProgramContext context) {
