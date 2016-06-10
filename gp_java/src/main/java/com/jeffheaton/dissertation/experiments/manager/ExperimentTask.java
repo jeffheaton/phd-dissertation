@@ -243,8 +243,9 @@ public class ExperimentTask implements Runnable {
     private void loadDataset(boolean regression, String target) {
         ObtainInputStream source = new ObtainFallbackStream(this.datasetFilename);
         this.quick = new QuickEncodeDataset();
+        this.quick.dumpFieldInfo();
         this.dataset = quick.process(source, target, this.predictors, true, CSVFormat.EG_FORMAT);
-        Transform.interpolate(dataset);
+        //Transform.interpolate(dataset);
     }
 
     public void run() {

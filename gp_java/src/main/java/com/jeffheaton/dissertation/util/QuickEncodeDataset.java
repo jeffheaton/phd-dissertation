@@ -401,13 +401,6 @@ public class QuickEncodeDataset {
         }
         csv.close();
 
-
-        for (QuickField field : this.fields) {
-            field.finalizePass2();
-            if( field!=this.targetField && field.getEncodeType()!=QuickFieldEncode.Ignore) {
-                this.predictors.add(field);
-            }
-        }
     }
 
     public int getCount() {
@@ -425,7 +418,7 @@ public class QuickEncodeDataset {
 
     public int encodedColumnsNeededX() {
         int result = 0;
-        for(QuickField field: this.fields) {
+        for(QuickField field: this.predictors) {
             result+=field.encodeColumnsNeeded();
         }
         return result;
@@ -436,6 +429,13 @@ public class QuickEncodeDataset {
     }
 
     private MLDataSet processPass3() {
+        for (QuickField field : this.fields) {
+            field.finalizePass2();
+            if( field!=this.targetField && field.getEncodeType()!=QuickFieldEncode.Ignore) {
+                this.predictors.add(field);
+            }
+        }
+
         InputStream stream = this.streamSource.obtain();
         ReadCSV csv = new ReadCSV(stream, headers, format);
         BasicMLDataSet result = new BasicMLDataSet();
@@ -482,6 +482,8 @@ public class QuickEncodeDataset {
                 }
             }
         }
+
+
 
         return processPass3();
     }
