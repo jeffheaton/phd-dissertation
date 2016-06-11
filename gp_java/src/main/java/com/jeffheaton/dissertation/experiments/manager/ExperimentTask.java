@@ -1,6 +1,5 @@
 package com.jeffheaton.dissertation.experiments.manager;
 
-import com.jeffheaton.dissertation.experiments.ExperimentResult;
 import com.jeffheaton.dissertation.util.*;
 import org.encog.EncogError;
 import org.encog.engine.network.activation.ActivationLinear;
@@ -28,10 +27,13 @@ import org.encog.ml.prg.species.PrgSpeciation;
 import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
+import org.encog.ml.train.MLTrain;
 import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.TrainingSetScore;
+import org.encog.neural.networks.training.propagation.back.Backpropagation;
+import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
 import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
 import org.encog.parse.expression.latex.RenderLatexExpression;
 import org.encog.util.Format;
@@ -45,9 +47,11 @@ import java.util.Random;
  */
 public class ExperimentTask implements Runnable {
 
-    public static final int MINI_BATCH_SIZE = 100;
-    public static final double LEARNING_RATE = 1e-13;
+    public static final int MINI_BATCH_SIZE = 50;
+    public static final double LEARNING_RATE = 1e-12;
+    public static final double MOMENTUM = 0.9;
     public static final int POPULATION_SIZE = 100;
+    public static final int STAGNANT_NEURAL = 50;
 
     private final String name;
     private final String algorithm;
@@ -98,7 +102,7 @@ public class ExperimentTask implements Runnable {
         return result.toString();
     }
 
-    private void verboseStatusNeural(int cycle, StochasticGradientDescent train, NewSimpleEarlyStoppingStrategy earlyStop) {
+    private void verboseStatusNeural(int cycle, MLTrain train, NewSimpleEarlyStoppingStrategy earlyStop) {
         if( this.owner==null || this.owner.isVerbose() ) {
             System.out.println("Cycle #" + (cycle + 1) + ",Epoch #" + train.getIteration() + " Train Error:"
                     + Format.formatDouble(train.getError(), 6)
@@ -191,7 +195,6 @@ public class ExperimentTask implements Runnable {
 
     public void runNeural(MLDataSet dataset, boolean regression) {
         Stopwatch sw = new Stopwatch();
-        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         sw.start();
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
@@ -204,31 +207,36 @@ public class ExperimentTask implements Runnable {
         network.addLayer(new BasicLayer(null, true, trainingSet.getInputSize()));
         network.addLayer(new BasicLayer(new ActivationReLU(), true, 200));
         network.addLayer(new BasicLayer(new ActivationReLU(),true,100));
-        //network.addLayer(new BasicLayer(new ActivationReLU(),true,100));
-        //network.addLayer(new BasicLayer(new ActivationReLU(),true,50));
         network.addLayer(new BasicLayer(new ActivationReLU(), true, 25));
 
         if (regression) {
             network.addLayer(new BasicLayer(new ActivationLinear(), false, trainingSet.getIdealSize()));
+            ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         } else {
             network.addLayer(new BasicLayer(new ActivationSoftMax(), false, trainingSet.getIdealSize()));
+            ErrorCalculation.setMode(ErrorCalculationMode.HOT_LOGLOSS);
         }
         network.getStructure().finalizeStructure();
         (new XaiverRandomizer()).randomize(network);
-
+        //network.reset();
 
         // train the neural network
-        final StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet, MINI_BATCH_SIZE, 1e-13, 0.9);
+        int miniBatchSize = Math.min(dataset.size(),MINI_BATCH_SIZE);
+        double learningRate = LEARNING_RATE / miniBatchSize;
+        MiniBatchDataSet batchedDataSet = new MiniBatchDataSet(trainingSet,rnd);
+        batchedDataSet.setBatchSize(miniBatchSize);
+        Backpropagation train = new Backpropagation(network, trainingSet, learningRate, MOMENTUM);
         train.setErrorFunction(new CrossEntropyErrorFunction());
         train.setThreadCount(1);
 
-        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet);
+        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet,10,STAGNANT_NEURAL,0.01);
         train.addStrategy(earlyStop);
 
         long lastUpdate = System.currentTimeMillis();
 
         do {
             train.iteration();
+            batchedDataSet.advance();
 
             long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
 
@@ -236,6 +244,11 @@ public class ExperimentTask implements Runnable {
                 verboseStatusNeural(cycle, train, earlyStop);
                 lastUpdate = System.currentTimeMillis();
             }
+
+            if( Double.isNaN(train.getError()) || Double.isInfinite(train.getError()) ) {
+                break;
+            }
+
         } while (!train.isTrainingDone());
         train.finishTraining();
 
@@ -245,9 +258,9 @@ public class ExperimentTask implements Runnable {
         this.iterations = train.getIteration();
     }
 
-    private void loadDataset(boolean regression, String target) {
+    private void loadDataset(boolean singleFieldCatagorical, String target) {
         ObtainInputStream source = new ObtainFallbackStream(this.datasetFilename);
-        this.quick = new QuickEncodeDataset();
+        this.quick = new QuickEncodeDataset(singleFieldCatagorical,false);
         this.quick.dumpFieldInfo();
         this.dataset = quick.process(source, target, this.predictors, true, CSVFormat.EG_FORMAT);
         //Transform.interpolate(dataset);
@@ -255,11 +268,12 @@ public class ExperimentTask implements Runnable {
 
     public void run() {
         ParseModelType model = new ParseModelType(this.algorithm);
-        loadDataset(model.isRegression(),model.getTarget());
 
         if (model.isNeuralNetwork()) {
+            loadDataset(false,model.getTarget());
             runNeural(dataset, model.isRegression());
         } else if (model.isGeneticProgram()) {
+            loadDataset(true,model.getTarget());
             runGP( dataset, model.isRegression());
         } else {
             throw new EncogError("Unknown algorithm: " + this.algorithm);

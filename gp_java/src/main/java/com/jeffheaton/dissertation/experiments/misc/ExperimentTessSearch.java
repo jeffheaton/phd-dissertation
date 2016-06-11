@@ -17,7 +17,7 @@ public class ExperimentTessSearch {
     private void process(String filename) {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
-        QuickEncodeDataset quick = new QuickEncodeDataset();
+        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
         //quick.analyze(new File(filename), 0, true, CSVFormat.EG_FORMAT);
         //quick.dumpFieldInfo();
     }

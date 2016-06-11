@@ -47,7 +47,7 @@ public class FitManyGP {
 
     private void loadData() {
         ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
-        QuickEncodeDataset quick = new QuickEncodeDataset();
+        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
         MLDataSet dataset = quick.process(source,"mpg", null, true, CSVFormat.EG_FORMAT);
         Transform.interpolate(dataset);
 

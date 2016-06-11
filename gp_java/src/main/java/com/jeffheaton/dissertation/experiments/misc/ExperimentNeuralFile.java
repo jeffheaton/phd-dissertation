@@ -22,8 +22,8 @@ public class ExperimentNeuralFile {
     public void runNeural() {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
-        ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
-        QuickEncodeDataset quick = new QuickEncodeDataset();
+        ObtainInputStream source = new ObtainFallbackStream("auto-mpg.csv");
+        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
         MLDataSet dataset = quick.process(source, "mpg", null, true, CSVFormat.EG_FORMAT);
         Transform.interpolate(dataset);
         Transform.zscore(dataset);
@@ -46,7 +46,6 @@ public class ExperimentNeuralFile {
 
         // train the neural network
         final Backpropagation train = new Backpropagation(network, trainingSet, 1e-5, 0.9);
-        //final ResilientPropagation train = new ResilientPropagation(network, trainingSet);
         train.setErrorFunction(new CrossEntropyErrorFunction());
         train.setNesterovUpdate(true);
         NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet);
@@ -65,15 +64,7 @@ public class ExperimentNeuralFile {
         train.finishTraining();
 
 
-        NeuralFeatureImportanceCalc fi = new NeuralFeatureImportanceCalc(network,new String[] {
-                "cylinders",
-                "displacement",
-                "horsepower",
-                "weight",
-                "acceleration",
-                "year",
-                "origin"
-        });
+        NeuralFeatureImportanceCalc fi = new NeuralFeatureImportanceCalc(network,quick.nameOutputVectorFields());
         fi.calculateFeatureImportance();
         for (FeatureRanking ranking : fi.getFeatures()) {
             System.out.println(ranking.toString());

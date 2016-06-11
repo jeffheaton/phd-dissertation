@@ -20,6 +20,23 @@ import java.util.*;
  */
 public class QuickEncodeDataset {
 
+    public String[] nameOutputVectorFields() {
+        String[] result = new String[encodedColumnsNeededX()];
+        int idx = 0;
+        for(QuickField field: this.predictors) {
+            int needed = field.encodeColumnsNeeded();
+
+            if( needed==1 ) {
+                result[idx++] = field.getName();
+            } else {
+                for (int i = 0; i < needed; i++) {
+                    result[idx++] = field.getName() + "-" + i;
+                }
+            }
+        }
+        return result;
+    }
+
     public enum QuickFieldEncode {
         NumericCategory,
         OneHot,
@@ -161,10 +178,10 @@ public class QuickEncodeDataset {
                 // Likely an ID field
                 this.encodeType = QuickFieldEncode.Ignore;
             } else if (isLowRange()) {
-                this.encodeType = QuickFieldEncode.OneHot;
+                this.encodeType = this.owner.isSingleFieldCatagorical() ? QuickFieldEncode.NumericCategory : QuickFieldEncode.OneHot;
             } else if( !this.isNumeric() ) {
                 // Treat as catagorical
-                this.encodeType = QuickFieldEncode.OneHot;
+                this.encodeType = this.owner.isSingleFieldCatagorical() ? QuickFieldEncode.NumericCategory : QuickFieldEncode.OneHot;
             } else if( this.numeric ) {
                 this.encodeType = QuickFieldEncode.RawNumeric;
             } else {
@@ -357,6 +374,8 @@ public class QuickEncodeDataset {
     private final List<QuickField> predictors = new ArrayList<>();
     private final List<QuickField> fields = new ArrayList<>();
     private int count;
+    private boolean singleFieldCatagorical;
+    private boolean scale;
 
 
     private void processPass1(String theTargetColumn) {
@@ -496,9 +515,18 @@ public class QuickEncodeDataset {
         return this.fields;
     }
 
+    public QuickEncodeDataset(boolean singleFieldCatagorical, boolean scale) {
+        this.singleFieldCatagorical = singleFieldCatagorical;
+        this.scale = scale;
+    }
+
+    public boolean isSingleFieldCatagorical() {
+        return this.singleFieldCatagorical;
+    }
+
     public static void main(String[] args) {
         ObtainInputStream source = new ObtainFallbackStream("auto-mpg.csv");
-        QuickEncodeDataset quick = new QuickEncodeDataset();
+        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
         MLDataSet dataset = quick.process(source,"mpg", null, true, CSVFormat.EG_FORMAT);
         quick.dumpFieldInfo();
         System.out.println(quick.getCount());

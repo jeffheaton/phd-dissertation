@@ -1,6 +1,10 @@
 package com.jeffheaton.dissertation.experiments.misc;
 
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
+import org.encog.engine.network.activation.ActivationFunction;
+import org.encog.engine.network.activation.ActivationSoftMax;
+
+import java.util.Arrays;
 
 /**
  * Created by Jeff on 6/8/2016.
@@ -16,15 +20,35 @@ public class ExperimentRunSingle {
                 0);
         task.run();*/
 
-        ExperimentTask task = new ExperimentTask(
+        /*ExperimentTask task = new ExperimentTask(
                 "test",
                 "feature_eng.csv",
                 "gp-r:ratio_diff-y0",
                 "ratio_diff-x0,ratio_diff-x1,ratio_diff-x2,ratio_diff-x3",
                 0);
+        task.run();*/
+
+        /*ExperimentTask task = new ExperimentTask(
+                "test",
+                "iris.csv",
+                "neural-c:species",
+                null,
+                0);
+        task.run();*/
+
+        ExperimentTask task = new ExperimentTask(
+                "test",
+                "auto-mpg.csv",
+                "gp-r:mpg",
+                null,
+                0);
         task.run();
 
-
+        /*ActivationFunction af = new ActivationSoftMax();
+        double[] d = {1, 2, 3, 4};
+        af.activationFunction(d,0,4);
+        System.out.println(Arrays.toString(d));
+        System.out.println(af.derivativeFunction(1,1));*/
     }
 
 }

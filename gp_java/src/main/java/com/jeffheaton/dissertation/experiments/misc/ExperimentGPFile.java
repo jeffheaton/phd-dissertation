@@ -44,7 +44,7 @@ public class ExperimentGPFile {
         ErrorCalculation.setMode(ErrorCalculationMode.NRMSE_RANGE);
 
         ObtainInputStream source = new ObtainFallbackStream("feature_eng.csv");
-        QuickEncodeDataset quick = new QuickEncodeDataset();
+        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
         MLDataSet dataset = quick.process(source,"diff-y0", "diff-x0,diff-x1", true, CSVFormat.EG_FORMAT);
         Transform.interpolate(dataset);
         //quick.dumpFieldInfo();
