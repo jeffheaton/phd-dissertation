@@ -65,6 +65,7 @@ public class ExperimentTask implements Runnable {
     private MLDataSet dataset;
     private ThreadedRunner owner;
     private String predictors;
+    private String info;
 
     public ExperimentTask(String theName, String theDataset, String theAlgorithm, String thePredictors, int theCycle) {
         this.name = theName;
@@ -191,6 +192,8 @@ public class ExperimentTask implements Runnable {
         this.elapsed = (int) (sw.getElapsedMilliseconds() / 1000);
         this.result = earlyStop.getValidationError();
         this.iterations = genetic.getIteration();
+
+        setInfo(best.dumpAsCommonExpression());
     }
 
     public void runNeural(MLDataSet dataset, boolean regression) {
@@ -256,6 +259,8 @@ public class ExperimentTask implements Runnable {
         this.elapsed = (int) (sw.getElapsedMilliseconds() / 1000);
         this.result = earlyStop.getValidationError();
         this.iterations = train.getIteration();
+
+        setInfo("Neural network done.");
     }
 
     private void loadDataset(boolean singleFieldCatagorical, String target) {
@@ -353,5 +358,13 @@ public class ExperimentTask implements Runnable {
 
     public String getPredictors() {
         return this.predictors;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
     }
 }

@@ -48,6 +48,7 @@ public class FileBasedTaskManager implements TaskQueueManager {
                     task.setIterations(Integer.parseInt(line[7]));
                     task.setElapsed(Integer.parseInt(line[8]));
                     task.setStatus(line[1]);
+                    task.setInfo(line[9]);
                     result.add(task);
                 }
             } catch (IOException e) {
@@ -64,7 +65,8 @@ public class FileBasedTaskManager implements TaskQueueManager {
             writer.writeNext(new String[]{"name", "status", "dataset", "algorithm", "predictors", "cycle", "result", "iterations", "elapsed" });
             for (ExperimentTask task : tasks) {
                 writer.writeNext(new String[]{task.getName(), task.getStatus(), task.getDatasetFilename(), task.getAlgorithm(),
-                        task.getPredictors(),"" + task.getCycle(), "" + task.getResult(), "" + task.getIterations(), "" + task.getElapsed()});
+                        task.getPredictors(),"" + task.getCycle(), "" + task.getResult(), "" + task.getIterations(),
+                        "" + task.getElapsed(), task.getInfo()});
             }
 
         } catch (IOException e) {

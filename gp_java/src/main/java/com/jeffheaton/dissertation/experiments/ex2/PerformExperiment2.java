@@ -53,7 +53,7 @@ public class PerformExperiment2 {
         addDataSet(manager,true,"auto-mpg.csv","mpg");
         addDataSet(manager,false,"iris.csv","species");
         addDataSet(manager,true,"abalone.csv","sex");
-        addDataSet(manager,true,"bupa.csv","sector");
+        addDataSet(manager,true,"bupa.csv","selector");
 
         ThreadedRunner runner = new ThreadedRunner(manager);
         runner.setVerbose(false);
