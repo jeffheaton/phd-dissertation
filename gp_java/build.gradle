@@ -1,9 +1,19 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    }
+}
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 version = '1.0'
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
+mainClassName = 'com.jeffheaton.dissertation.JeffDissertation'
 
 repositories {
     mavenLocal()
@@ -22,15 +32,10 @@ task wrapper(type: Wrapper) {
     gradleVersion = '2.2'
 }
 
-task fatJar(type: Jar) {
-	manifest {
-        attributes 'Implementation-Title': 'Jeff Heaton Dissertation Project',  
-        	'Implementation-Version': version,
-        	'Main-Class': 'com.jeffheaton.dissertation.JeffDissertation'
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.jeffheaton.dissertation.JeffDissertation'
     }
-    baseName = project.name + '-all'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
 }
 
 task(runNeuralXOR, group: 'commands', description: 'Run an experiment',
@@ -67,6 +72,3 @@ task(runExperiment1, group: 'commands', description: 'Run an experiment',
     classpath = sourceSets.main.runtimeClasspath
     args = ["experiment-1"]
 }
-
-
-
