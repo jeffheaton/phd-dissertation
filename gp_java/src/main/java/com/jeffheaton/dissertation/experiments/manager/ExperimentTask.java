@@ -117,6 +117,11 @@ public class ExperimentTask implements Runnable {
     }
 
     public void runGP(MLDataSet dataset, boolean regression) {
+
+        if(!regression) {
+            throw new EncogError("Cannot currently evaluate GP classification.");
+        }
+
         Stopwatch sw = new Stopwatch();
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         sw.start();
@@ -151,9 +156,9 @@ public class ExperimentTask implements Runnable {
         //genetic.setValidationMode(true);
         genetic.setCODEC(new PrgCODEC());
         genetic.addOperation(0.5, new SubtreeCrossover());
-        genetic.addOperation(0.25, new ConstMutation(context, 0.5, 1.0));
-        genetic.addOperation(0.25, new SubtreeMutation(context, 4));
-        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10, 20, 10, 50.0));
+        genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
+        genetic.addOperation(0.25, new SubtreeMutation(context,4));
+        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
         genetic.getRules().addRewriteRule(new RewriteConstants());
         genetic.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
