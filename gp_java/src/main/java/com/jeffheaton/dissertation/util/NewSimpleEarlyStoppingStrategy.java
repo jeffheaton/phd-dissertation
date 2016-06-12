@@ -28,7 +28,10 @@ import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EndTrainingStrategy;
+import org.encog.util.obj.SerializeObject;
 import org.encog.util.simple.EncogUtility;
+
+import java.io.Serializable;
 
 /**
  * A simple early stopping strategy that halts training when the validation set no longer improves.
@@ -83,6 +86,13 @@ public class NewSimpleEarlyStoppingStrategy implements EndTrainingStrategy {
 
     private double minimumImprovement;
 
+    /**
+     * The best model so far.
+     */
+    private MLRegression bestModel;
+
+    private boolean saveBest;
+
     public NewSimpleEarlyStoppingStrategy(MLDataSet theValidationSet) {
         this(theValidationSet, 5, 50, 0.01);
     }
@@ -134,6 +144,9 @@ public class NewSimpleEarlyStoppingStrategy implements EndTrainingStrategy {
                     stop = true;
                 }
             } else {
+                if( this.saveBest ) {
+                    this.bestModel = (MLRegression) SerializeObject.serializeClone((Serializable) this.model);
+                }
                 this.stagnantIterations=0;
             }
 
@@ -179,5 +192,17 @@ public class NewSimpleEarlyStoppingStrategy implements EndTrainingStrategy {
 
     public void setAllowedStagnantIterations(int allowedStagnantIterations) {
         this.allowedStagnantIterations = allowedStagnantIterations;
+    }
+
+    public boolean isSaveBest() {
+        return saveBest;
+    }
+
+    public void setSaveBest(boolean saveBest) {
+        this.saveBest = saveBest;
+    }
+
+    public MLRegression getBestModel() {
+        return bestModel;
     }
 }

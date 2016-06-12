@@ -233,6 +233,7 @@ public class ExperimentTask implements Runnable {
         train.setThreadCount(1);
 
         NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet,10,STAGNANT_NEURAL,0.01);
+        earlyStop.setSaveBest(true);
         train.addStrategy(earlyStop);
 
         long lastUpdate = System.currentTimeMillis();
@@ -260,7 +261,7 @@ public class ExperimentTask implements Runnable {
         this.result = earlyStop.getValidationError();
         this.iterations = train.getIteration();
 
-        setInfo("Neural network done.");
+        setInfo("");
     }
 
     private void loadDataset(boolean singleFieldCatagorical, String target) {
