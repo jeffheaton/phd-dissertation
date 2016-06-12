@@ -91,7 +91,7 @@ public class ExperimentTask implements Runnable {
         } else {
             throw new EncogError("Unknown algorithm: " + this.algorithm);
         }
-        System.out.println("Complete: " + getKey() + " - " + this.result + " - ");
+        this.owner.reportComplete(this);
 
     }
 

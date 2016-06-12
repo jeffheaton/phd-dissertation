@@ -52,12 +52,12 @@ public class PerformExperiment1 {
         ThreadedRunner runner = new ThreadedRunner(manager);
         runner.setVerbose(false);
         runner.startup();
-        manager.blockUntilDone(60);
+        manager.blockUntilDone(600);
         runner.shutdown();
 
         GenerateComparisonReport report = new GenerateComparisonReport(manager);
         File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report-exp1.csv");
-        report.report(reportFile, 60);
+        report.report(reportFile, 600);
 
         Encog.getInstance().shutdown();
         sw.stop();

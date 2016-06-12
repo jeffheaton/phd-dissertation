@@ -14,11 +14,13 @@ public class ThreadedRunner {
     private final TaskQueueManager manager;
     private ExecutorService threadPool;
     private final List<ThreadedWorker> workers = new ArrayList<>();
-    private int maxWait = 10;
+    private int maxWait = 600;
     private boolean verbose;
+    private int currentCount;
 
     public ThreadedRunner(TaskQueueManager theManager) {
         this.manager = theManager;
+        this.verbose = DissertationConfig.getInstance().getVerbose();
     }
 
     public TaskQueueManager getManager() {
@@ -26,9 +28,11 @@ public class ThreadedRunner {
     }
 
     public void startup() {
-        int processors = Runtime.getRuntime().availableProcessors();
-        this.threadPool = Executors.newFixedThreadPool(processors);
-        for(int i=0;i<processors;i++) {
+        int threads = DissertationConfig.getInstance().getThreads();
+        System.out.println("Using " + threads + " threads.");
+
+        this.threadPool = Executors.newFixedThreadPool(threads);
+        for(int i=0;i<threads;i++) {
             ThreadedWorker worker = new ThreadedWorker(this);
             this.workers.add(worker);
             this.threadPool.submit(worker);
@@ -52,6 +56,16 @@ public class ThreadedRunner {
     }
 
     public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
+        if( DissertationConfig.getInstance().isVerboseForced() ) {
+            this.verbose = verbose;
+        }
+    }
+
+    public synchronized void reportComplete(ExperimentTask task) {
+        int totalCount = this.getManager().getQueue(this.maxWait).size();
+        this.currentCount++;
+        System.out.println("Complete: " + this.currentCount + "/" + totalCount + ", " + task.getKey()
+                + " - " + task.getResult() );
+
     }
 }

@@ -236,10 +236,13 @@ public class FileBasedTaskManager implements TaskQueueManager {
                     throw new EncogError(ex2);
                 }
             } catch (IOException ex) {
+                ex.printStackTrace();
                 throw new EncogError(ex);
             }
         }
-        throw new EncogError("Could not lock " + this.pathWorkload + " after " + maxWaitSeconds + ".");
+        EncogError ex = new EncogError("Could not lock " + this.pathWorkload + " after " + maxWaitSeconds + ".");
+        ex.printStackTrace();
+        throw ex;
     }
 
     private void releaseLock() {
@@ -248,6 +251,7 @@ public class FileBasedTaskManager implements TaskQueueManager {
                 Files.delete(this.pathLock);
             }
         } catch (IOException ex) {
+            ex.printStackTrace();
             throw new EncogError(ex);
         }
     }

@@ -66,4 +66,24 @@ public final class DissertationConfig {
         return new File(getProjectPath(),"data");
     }
 
+    public int getThreads() {
+        if( prop.containsKey("threads")) {
+            return Integer.parseInt(prop.getProperty("threads").trim());
+        } else {
+            return Runtime.getRuntime().availableProcessors();
+        }
+    }
+
+    public boolean isVerboseForced() {
+        return prop.containsKey("verbose");
+    }
+
+    public boolean getVerbose() {
+        if( prop.containsKey("verbose")) {
+            String str = prop.getProperty("threads").trim();
+            return "Yy1".indexOf(str.trim().charAt(0))!=-1;
+        } else {
+            return false;
+        }
+    }
 }

@@ -21,12 +21,14 @@ public class ObtainFallbackStream implements ObtainInputStream {
 
     @Override
     public InputStream obtain() {
+        File target = null;
         final InputStream istream = this.getClass().getResourceAsStream("/"+this.datasetName);
         if (istream == null) {
             try {
-                return new FileInputStream(new File(DissertationConfig.getInstance().getDataPath(),this.datasetName));
+                target = new File(DissertationConfig.getInstance().getDataPath(),this.datasetName);
+                return new FileInputStream(target);
             } catch (FileNotFoundException e) {
-                throw new EncogError("Cannot access data set, make sure the resources are available.");
+                throw new EncogError("Cannot access data set, make sure the resources are available: " + target);
             }
 
         }
