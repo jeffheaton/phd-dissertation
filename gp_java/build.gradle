@@ -59,16 +59,23 @@ task(runGP, group: 'commands', description: 'Run an experiment',
 	args = ["file-gp"]	
 }
 
-task(runFeatureSearch, group: 'commands', description: 'Run an experiment',
-        dependsOn: 'classes', type: JavaExec) {
-    main = 'com.jeffheaton.dissertation.JeffDissertation'
-    classpath = sourceSets.main.runtimeClasspath
-	args = ["feature-search"]	
-}
-
-task(runExperiment1, group: 'commands', description: 'Run an experiment',
+task(runExperiment1, group: 'commands', description: 'Run experiment 1',
         dependsOn: 'classes', type: JavaExec) {
     main = 'com.jeffheaton.dissertation.JeffDissertation'
     classpath = sourceSets.main.runtimeClasspath
     args = ["experiment-1"]
+}
+
+task(runExperiment2, group: 'commands', description: 'Run experiment 2',
+        dependsOn: 'classes', type: JavaExec) {
+    main = 'com.jeffheaton.dissertation.JeffDissertation'
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["experiment-2"]
+}
+
+task(runExperiment3, group: 'commands', description: 'Run experiment 3',
+        dependsOn: 'classes', type: JavaExec) {
+    main = 'com.jeffheaton.dissertation.JeffDissertation'
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["experiment-3"]
 }

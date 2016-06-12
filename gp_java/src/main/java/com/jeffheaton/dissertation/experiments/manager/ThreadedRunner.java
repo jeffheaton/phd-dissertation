@@ -1,5 +1,7 @@
 package com.jeffheaton.dissertation.experiments.manager;
 
+import org.encog.ml.data.MLDataSet;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
