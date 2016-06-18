@@ -32,21 +32,22 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
     public static final double MOMENTUM = 0.9;
     public static final int STAGNANT_NEURAL = 50;
 
-    private void verboseStatusNeural(int cycle, MLTrain train, NewSimpleEarlyStoppingStrategy earlyStop) {
-        if (getRunner() == null || getRunner().isVerbose()) {
-            System.out.println("Cycle #" + (cycle + 1) + ",Epoch #" + train.getIteration() + " Train Error:"
+    private void verboseStatusNeural(MLTrain train, NewSimpleEarlyStoppingStrategy earlyStop) {
+        if (isVerbose()) {
+            System.out.println("Epoch #" + train.getIteration() + " Train Error:"
                     + Format.formatDouble(train.getError(), 6)
                     + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
                     ", Stagnant: " + earlyStop.getStagnantIterations());
         }
     }
 
-    public void run() {
+    @Override
+    public PayloadReport run(String[] fields, MLDataSet dataset, boolean regression) {
         Stopwatch sw = new Stopwatch();
         sw.start();
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
-        org.encog.ml.data.MLDataSet[] split = Transform.splitTrainValidate(getTask().getDataset(), rnd, 0.75);
+        org.encog.ml.data.MLDataSet[] split = Transform.splitTrainValidate(dataset, rnd, 0.75);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 
@@ -57,7 +58,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         network.addLayer(new BasicLayer(new ActivationReLU(), true, 100));
         network.addLayer(new BasicLayer(new ActivationReLU(), true, 25));
 
-        if (getTask().isRegression()) {
+        if (regression) {
             network.addLayer(new BasicLayer(new ActivationLinear(), false, trainingSet.getIdealSize()));
             ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         } else {
@@ -69,7 +70,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         //network.reset();
 
         // train the neural network
-        int miniBatchSize = Math.min(getTask().getDataset().size(), MINI_BATCH_SIZE);
+        int miniBatchSize = Math.min(dataset.size(), MINI_BATCH_SIZE);
         double learningRate = LEARNING_RATE / miniBatchSize;
         MiniBatchDataSet batchedDataSet = new MiniBatchDataSet(trainingSet, rnd);
         batchedDataSet.setBatchSize(miniBatchSize);
@@ -89,8 +90,8 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
 
             long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
 
-            if (getRunner() == null || train.getIteration() == 1 || train.isTrainingDone() || sinceLastUpdate > 60) {
-                verboseStatusNeural(getTask().getCycle(), train, earlyStop);
+            if (isVerbose() || train.getIteration() == 1 || train.isTrainingDone() || sinceLastUpdate > 60) {
+                verboseStatusNeural(train, earlyStop);
                 lastUpdate = System.currentTimeMillis();
             }
 
@@ -102,7 +103,9 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         train.finishTraining();
 
         sw.stop();
-        getTask().reportDone((int) (sw.getElapsedMilliseconds() / 1000), earlyStop.getValidationError(),
+        return new PayloadReport(
+                (int) (sw.getElapsedMilliseconds() / 1000),
+                earlyStop.getValidationError(),
                 train.getIteration(), "");
     }
 }

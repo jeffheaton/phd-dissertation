@@ -1,0 +1,77 @@
+package com.jeffheaton.dissertation.experiments.payloads;
+
+import org.encog.EncogError;
+import org.encog.ml.data.MLData;
+import org.encog.ml.data.MLDataPair;
+import org.encog.ml.data.MLDataSet;
+import org.encog.ml.data.basic.BasicMLData;
+import org.encog.ml.data.basic.BasicMLDataPair;
+import org.encog.ml.data.basic.BasicMLDataSet;
+import org.encog.ml.prg.EncogProgram;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by jeff on 6/15/16.
+ */
+public class PayloadEnsembleGP extends AbstractExperimentPayload {
+
+    public static int N = 5;
+
+    @Override
+    public PayloadReport run(String[] fields, MLDataSet dataset, boolean regression) {
+
+        if(!regression) {
+            throw new EncogError("Cannot currently evaluate GP classification.");
+        }
+
+
+        List<EncogProgram> gpFeatures = new ArrayList<>();
+        for(int i=0;i<PayloadEnsembleGP.N;i++) {
+            PayloadGeneticFit gp = new PayloadGeneticFit();
+            gp.setVerbose(isVerbose());
+            gp.run(fields,dataset,regression);
+            gpFeatures.add(gp.getBest());
+        }
+
+        System.out.println("Features:");
+        for(EncogProgram prg: gpFeatures) {
+            System.out.println(prg.dumpAsCommonExpression());
+        }
+
+        // generate ensemble training data
+        int originalFeatureCount = dataset.getInputSize();
+        int totalFeatureCount = originalFeatureCount + N;
+        int totalOutputCount = dataset.getIdealSize();
+        MLDataSet ensembleRun = new BasicMLDataSet();
+        for(MLDataPair item: dataset) {
+            MLData x = new BasicMLData(totalFeatureCount);
+            MLData y = new BasicMLData(totalOutputCount);
+
+            int idx = 0;
+            for(int i=0;i<originalFeatureCount;i++) {
+                x.setData(idx++,item.getInput().getData(i));
+            }
+            for(int i=0;i<N;i++) {
+                MLData output = gpFeatures.get(i).compute(item.getInput());
+                x.setData(idx++,output.getData(0));
+            }
+
+            for(int i=0;i<totalOutputCount;i++) {
+                y.setData(i,item.getIdeal().getData(0));
+            }
+
+            MLDataPair newPair = new BasicMLDataPair(x,y);
+            ensembleRun.add(newPair);
+        }
+
+        // Train neural network
+        PayloadNeuralFit neuralPayload = new PayloadNeuralFit();
+        neuralPayload.setVerbose(isVerbose());
+        neuralPayload.run(null,ensembleRun,regression);
+
+
+        return null;
+    }
+}

@@ -49,7 +49,10 @@ public class ParseModelType {
         return this.name.toLowerCase().equals("gp");
     }
 
+    public boolean isEnsemble() { return this.name.toLowerCase().equals("ensemble"); }
+
     public boolean isRegression() {
         return this.type.toLowerCase().charAt(0)=='r';
     }
+
 }

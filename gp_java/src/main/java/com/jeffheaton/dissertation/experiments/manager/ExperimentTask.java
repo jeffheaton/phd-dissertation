@@ -1,8 +1,6 @@
 package com.jeffheaton.dissertation.experiments.manager;
 
-import com.jeffheaton.dissertation.experiments.payloads.ExperimentPayload;
-import com.jeffheaton.dissertation.experiments.payloads.PayloadGeneticFit;
-import com.jeffheaton.dissertation.experiments.payloads.PayloadNeuralFit;
+import com.jeffheaton.dissertation.experiments.payloads.*;
 import com.jeffheaton.dissertation.util.*;
 import org.encog.EncogError;
 import org.encog.ml.data.MLDataSet;
@@ -78,20 +76,37 @@ public class ExperimentTask implements Runnable {
         ParseModelType model = new ParseModelType(this.algorithm);
         this.regression = model.isRegression();
 
+        PayloadReport report = null;
+
         if (model.isNeuralNetwork()) {
             loadDataset(false,model.getTarget());
             ExperimentPayload payload = new PayloadNeuralFit();
-            payload.init(owner,this);
-            payload.run();
+            payload.setVerbose(this.owner==null||this.owner.isVerbose());
+            report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
         } else if (model.isGeneticProgram()) {
             loadDataset(true,model.getTarget());
             ExperimentPayload payload = new PayloadGeneticFit();
-            payload.init(owner,this);
-            payload.run();
-        } else {
+            payload.setVerbose(this.owner==null||this.owner.isVerbose());
+            report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
+        } else if (model.isEnsemble() ) {
+            loadDataset(true,model.getTarget());
+            ExperimentPayload payload = new PayloadEnsembleGP();
+            payload.setVerbose(this.owner==null||this.owner.isVerbose());
+            report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
+        }else {
             throw new EncogError("Unknown algorithm: " + this.algorithm);
         }
-        this.owner.reportComplete(this);
+
+        if(report!=null) {
+            this.elapsed = report.getElapsed();
+            this.result = report.getResult();
+            this.iterations = report.getIteration();
+            setInfo(report.getComment());
+        }
+
+        if(this.owner!=null) {
+            this.owner.reportComplete(this);
+        }
 
     }
 
@@ -188,10 +203,4 @@ public class ExperimentTask implements Runnable {
         return this.quick;
     }
 
-    public void reportDone(int theElapsed, double theResult, int theIterations, String theInfo) {
-        this.elapsed = theElapsed;
-        this.result = theResult;
-        this.iterations = theIterations;
-        setInfo(theInfo);
-    }
 }

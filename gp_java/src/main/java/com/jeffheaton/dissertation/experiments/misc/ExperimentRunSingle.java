@@ -1,6 +1,7 @@
 package com.jeffheaton.dissertation.experiments.misc;
 
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
+import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationFunction;
 import org.encog.engine.network.activation.ActivationSoftMax;
 
@@ -36,19 +37,23 @@ public class ExperimentRunSingle {
                 0);
         task.run();*/
 
-        ExperimentTask task = new ExperimentTask(
+        /*ExperimentTask task = new ExperimentTask(
                 "test",
                 "auto-mpg.csv",
                 "neural-r:mpg",
                 null,
                 0);
-        task.run();
+        task.run();*/
 
-        /*ActivationFunction af = new ActivationSoftMax();
-        double[] d = {1, 2, 3, 4};
-        af.activationFunction(d,0,4);
-        System.out.println(Arrays.toString(d));
-        System.out.println(af.derivativeFunction(1,1));*/
+        ExperimentTask task = new ExperimentTask(
+                "test",
+                "auto-mpg.csv",
+                "ensemble-r:mpg",
+                null,
+                0);
+        task.run();
+        Encog.getInstance().shutdown();
+
     }
 
 }

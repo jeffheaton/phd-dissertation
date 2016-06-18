@@ -37,6 +37,15 @@ public class QuickEncodeDataset {
         return result;
     }
 
+    public String[] getFieldNames() {
+        String[] result = new String[getPredictors().size()];
+        int idx = 0;
+        for (QuickEncodeDataset.QuickField field: getPredictors()) {
+            result[idx++] = field.getName();
+        }
+        return result;
+    }
+
     public enum QuickFieldEncode {
         NumericCategory,
         OneHot,

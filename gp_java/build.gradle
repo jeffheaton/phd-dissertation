@@ -25,7 +25,7 @@ dependencies {
     compile('gov.nist.math:jama:1.0.3')
     compile('jfree:jfreechart:1.0.12')
 	compile group: 'org.json', name: 'json', version: '20160212'
-	compile('org.encog:encog-core:3.4.0-SNAPSHOT'){changing=true}
+	compile('org.encog:encog-core:3.4.0-SNAPSHOT')
 }
 
 task wrapper(type: Wrapper) {

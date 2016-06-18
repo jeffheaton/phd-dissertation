@@ -8,6 +8,7 @@ import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.generate.GenerateRandom;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
+import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.ea.score.adjust.ComplexityAdjustedScore;
 import org.encog.ml.ea.train.basic.TrainEA;
@@ -37,9 +38,10 @@ import java.util.Random;
 public class PayloadGeneticFit extends AbstractExperimentPayload {
 
     public static final int POPULATION_SIZE = 100;
+    private EncogProgram best;
 
-    public void verboseStatusGeneticProgram(TrainEA genetic, EncogProgram best, NewSimpleEarlyStoppingStrategy earlyStop, PrgPopulation pop) {
-        if( getRunner()==null || getRunner().isVerbose() ) {
+    private void verboseStatusGeneticProgram(TrainEA genetic, EncogProgram best, NewSimpleEarlyStoppingStrategy earlyStop, PrgPopulation pop) {
+        if( isVerbose() ) {
             System.out.println(genetic.getIteration() + ", Error: "
                     + Format.formatDouble(best.getScore(), 6) + ",Validation Score: " + earlyStop.getValidationError()
                     + ",Best Genome Size:" + best.size()
@@ -48,8 +50,9 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
     }
 
     @Override
-    public void run() {
-        if(!getTask().isRegression()) {
+    public PayloadReport run(String[] fields, MLDataSet dataset, boolean regression) {
+
+        if(!regression) {
             throw new EncogError("Cannot currently evaluate GP classification.");
         }
 
@@ -58,13 +61,13 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         sw.start();
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
-        org.encog.ml.data.MLDataSet[] split = Transform.splitTrainValidate(getTask().getDataset(), rnd, 0.75);
+        org.encog.ml.data.MLDataSet[] split = Transform.splitTrainValidate(dataset, rnd, 0.75);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
-        for (QuickEncodeDataset.QuickField field: getTask().getQuick().getPredictors()) {
-            context.defineVariable(field.getName());
+        for (String field: fields) {
+            context.defineVariable(field);
         }
 
         FunctionFactory factory = context.getFunctions();
@@ -102,20 +105,25 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
 
         genetic.setShouldIgnoreExceptions(false);
 
-        EncogProgram best = null;
+        this.best = null;
         long lastUpdate = System.currentTimeMillis();
 
 
         do {
             long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
             genetic.iteration();
-            best = (EncogProgram) genetic.getBestGenome();
-            if (getRunner()==null || genetic.getIteration() == 1 || genetic.isTrainingDone() || sinceLastUpdate > 60) {
-                verboseStatusGeneticProgram(genetic, best, earlyStop, pop);
+            this.best = (EncogProgram) genetic.getBestGenome();
+            if (isVerbose() || genetic.getIteration() == 1 || genetic.isTrainingDone() || sinceLastUpdate > 60) {
+                verboseStatusGeneticProgram(genetic, this.best, earlyStop, pop);
             }
         } while (!genetic.isTrainingDone());
 
-        getTask().reportDone((int) (sw.getElapsedMilliseconds() / 1000),earlyStop.getValidationError(),
-                genetic.getIteration(),best.dumpAsCommonExpression());
+        return new PayloadReport(
+                (int) (sw.getElapsedMilliseconds() / 1000),earlyStop.getValidationError(),
+                genetic.getIteration(),this.best.dumpAsCommonExpression());
+    }
+
+    public EncogProgram getBest() {
+        return this.best;
     }
 }
