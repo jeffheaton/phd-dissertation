@@ -107,10 +107,21 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
 
         this.best = null;
         long lastUpdate = System.currentTimeMillis();
+        int populationFails = 0;
 
 
         do {
             long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
+
+            if( pop.getSpecies().size()==0 ) {
+                populationFails++;
+
+                (new RampedHalfAndHalf(context, 1, 6)).generate(new Random(), pop);
+                if( populationFails>=5 ) {
+                    throw new EncogError("Entire population invalid after 5 regenerations: ");
+                }
+            }
+
             genetic.iteration();
             this.best = (EncogProgram) genetic.getBestGenome();
             if (isVerbose() || genetic.getIteration() == 1 || genetic.isTrainingDone() || sinceLastUpdate > 60) {

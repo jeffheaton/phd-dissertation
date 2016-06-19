@@ -1,28 +1,15 @@
 package com.jeffheaton.dissertation.experiments.ex1;
 
-import com.jeffheaton.dissertation.experiments.ExperimentResult;
+import com.jeffheaton.dissertation.experiments.AbstractExperiment;
 import com.jeffheaton.dissertation.experiments.data.AnalyzeEngineeredDataset;
-import com.jeffheaton.dissertation.experiments.data.SyntheticDatasets;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
 import com.jeffheaton.dissertation.experiments.report.GenerateComparisonReport;
-import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
-import com.jeffheaton.dissertation.util.Transform;
 import org.encog.Encog;
-import org.encog.engine.network.activation.ActivationLinear;
-import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
-import org.encog.mathutil.randomize.XaiverRandomizer;
-import org.encog.mathutil.randomize.generate.GenerateRandom;
-import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
-import org.encog.ml.data.MLDataSet;
-import org.encog.neural.error.CrossEntropyErrorFunction;
-import org.encog.neural.networks.BasicNetwork;
-import org.encog.neural.networks.layers.BasicLayer;
-import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
 
@@ -31,15 +18,15 @@ import java.io.File;
 /**
  * Created by jeff on 5/10/16.
  */
-public class PerformExperiment1 {
+public class PerformExperiment1 extends AbstractExperiment {
 
+    public String getName() {
+        return "experiment-1";
+    }
 
-    public static void main(String[] args) {
-        Stopwatch sw = new Stopwatch();
-        sw.start();
+    protected void internalRun() {
 
-        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
-        TaskQueueManager manager = new FileBasedTaskManager();
+        TaskQueueManager manager = new FileBasedTaskManager(createPath());
 
         AnalyzeEngineeredDataset info = new AnalyzeEngineeredDataset();
 
@@ -58,10 +45,12 @@ public class PerformExperiment1 {
         GenerateComparisonReport report = new GenerateComparisonReport(manager);
         File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report-exp1.csv");
         report.report(reportFile, 600);
+    }
 
+
+    public static void main(String[] args) {
+        PerformExperiment1 experiment = new PerformExperiment1();
+        experiment.run();
         Encog.getInstance().shutdown();
-        sw.stop();
-        System.out.println("Total runtime: " + Format.formatTimeSpan((int)(sw.getElapsedMilliseconds()/1000)));
-        ErrorCalculation.setMode(ErrorCalculationMode.LOGLOSS);
     }
 }

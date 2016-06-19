@@ -27,10 +27,10 @@ public class FileBasedTaskManager implements TaskQueueManager {
     private final Path pathWorkload;
     private final String computerName;
 
-    public FileBasedTaskManager() {
-        this.path = DissertationConfig.getInstance().getProjectPath().toPath();
-        this.pathLock = new File(DissertationConfig.getInstance().getProjectPath(), FILE_LOCK).toPath();
-        this.pathWorkload = new File(DissertationConfig.getInstance().getProjectPath(), FILE_WORKLOAD).toPath();
+    public FileBasedTaskManager(File thePath) {
+        this.path = thePath.toPath();
+        this.pathLock = new File(thePath, FILE_LOCK).toPath();
+        this.pathWorkload = new File(thePath, FILE_WORKLOAD).toPath();
         this.computerName = DissertationConfig.getInstance().getHost();
     }
 

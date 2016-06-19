@@ -1,6 +1,8 @@
 package com.jeffheaton.dissertation.experiments.payloads;
 
 import org.encog.EncogError;
+import org.encog.mathutil.error.ErrorCalculation;
+import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
@@ -8,6 +10,7 @@ import org.encog.ml.data.basic.BasicMLData;
 import org.encog.ml.data.basic.BasicMLDataPair;
 import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.ml.prg.EncogProgram;
+import org.encog.util.Stopwatch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +29,10 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
             throw new EncogError("Cannot currently evaluate GP classification.");
         }
 
+        Stopwatch sw = new Stopwatch();
+        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
+        sw.start();
+
 
         List<EncogProgram> gpFeatures = new ArrayList<>();
         for(int i=0;i<PayloadEnsembleGP.N;i++) {
@@ -35,10 +42,10 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
             gpFeatures.add(gp.getBest());
         }
 
-        System.out.println("Features:");
+        /*System.out.println("Features:");
         for(EncogProgram prg: gpFeatures) {
             System.out.println(prg.dumpAsCommonExpression());
-        }
+        }*/
 
         // generate ensemble training data
         int originalFeatureCount = dataset.getInputSize();
@@ -69,9 +76,13 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
         // Train neural network
         PayloadNeuralFit neuralPayload = new PayloadNeuralFit();
         neuralPayload.setVerbose(isVerbose());
-        neuralPayload.run(null,ensembleRun,regression);
+        PayloadReport neuralFit = neuralPayload.run(null,ensembleRun,regression);
+        sw.stop();
 
 
-        return null;
+        return new PayloadReport(
+                (int) (sw.getElapsedMilliseconds() / 1000),
+                neuralFit.getResult(),
+                neuralFit.getIteration(), "");
     }
 }

@@ -1,29 +1,13 @@
 package com.jeffheaton.dissertation.experiments.ex3;
 
-import com.jeffheaton.dissertation.experiments.ExperimentResult;
-import com.jeffheaton.dissertation.experiments.data.AnalyzeEngineeredDataset;
-import com.jeffheaton.dissertation.experiments.data.SyntheticDatasets;
+import com.jeffheaton.dissertation.experiments.AbstractExperiment;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
 import com.jeffheaton.dissertation.experiments.report.GenerateComparisonReport;
-import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
-import com.jeffheaton.dissertation.util.Transform;
-import org.encog.Encog;
-import org.encog.engine.network.activation.ActivationLinear;
-import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
-import org.encog.mathutil.randomize.XaiverRandomizer;
-import org.encog.mathutil.randomize.generate.GenerateRandom;
-import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
-import org.encog.ml.data.MLDataSet;
-import org.encog.neural.error.CrossEntropyErrorFunction;
-import org.encog.neural.networks.BasicNetwork;
-import org.encog.neural.networks.layers.BasicLayer;
-import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
-import org.encog.util.Format;
 import org.encog.util.Stopwatch;
 
 import java.io.File;
@@ -31,7 +15,7 @@ import java.io.File;
 /**
  * Created by jeff on 5/10/16.
  */
-public class PerformExperiment3 {
+public class PerformExperiment3 extends AbstractExperiment {
 
     public static void addDataSet(TaskQueueManager manager, boolean regression, String filename, String target) {
         String type = regression ? "r":"c";
@@ -40,30 +24,37 @@ public class PerformExperiment3 {
 
 
     public static void main(String[] args) {
-        Stopwatch sw = new Stopwatch();
-        sw.start();
+        PerformExperiment3 ex = new PerformExperiment3();
+        ex.run();
+    }
 
-        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
-        TaskQueueManager manager = new FileBasedTaskManager();
+    @Override
+    public String getName() {
+        return "experiment-3";
+    }
+
+    @Override
+    protected void internalRun() {
+        File path = createPath();
+        TaskQueueManager manager = new FileBasedTaskManager(path);
 
         manager.removeAll();
         addDataSet(manager,true,"auto-mpg.csv","mpg");
-        addDataSet(manager,false,"iris.csv","species");
-        addDataSet(manager,false,"abalone.csv","sex");
+        //addDataSet(manager,false,"iris.csv","species");
+        //addDataSet(manager,false,"abalone.csv","sex");
         addDataSet(manager,true,"bupa.csv","selector");
         addDataSet(manager,true,"covtype.csv","cover_type");
         addDataSet(manager,true,"ecoli.csv","sequence");
-        addDataSet(manager,false,"forestfires.csv","area");
+        //addDataSet(manager,false,"forestfires.csv","area");
         addDataSet(manager,true,"glass.csv","type");
-        addDataSet(manager,false,"hepatitis.csv","class");
-        addDataSet(manager,false,"horse-colic.csv","outcome");
-        addDataSet(manager,false,"housing.csv","crim");
-        addDataSet(manager,false,"pima-indians-diabetes.csv","class");
-        addDataSet(manager,false,"wcbreast_wdbc.csv","diagnosis");
-        addDataSet(manager,false,"wcbreast_wpbc.csv","outcome");
-        addDataSet(manager,false,"wine.csv","class");
-        addDataSet(manager,false,"crx.csv","a16");
-
+        //addDataSet(manager,false,"hepatitis.csv","class");
+        //addDataSet(manager,false,"horse-colic.csv","outcome");
+        //addDataSet(manager,false,"housing.csv","crim");
+        //addDataSet(manager,false,"pima-indians-diabetes.csv","class");
+        //addDataSet(manager,false,"wcbreast_wdbc.csv","diagnosis");
+        //addDataSet(manager,false,"wcbreast_wpbc.csv","outcome");
+        //addDataSet(manager,false,"wine.csv","class");
+        //addDataSet(manager,false,"crx.csv","a16");
 
         ThreadedRunner runner = new ThreadedRunner(manager);
         runner.setVerbose(false);
@@ -72,12 +63,7 @@ public class PerformExperiment3 {
         runner.shutdown();
 
         GenerateComparisonReport report = new GenerateComparisonReport(manager);
-        File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report-exp2.csv");
+        File reportFile = new File(path,"report-exp2.csv");
         report.report(reportFile, 60);
-
-        Encog.getInstance().shutdown();
-        sw.stop();
-        System.out.println("Total runtime: " + Format.formatTimeSpan((int)(sw.getElapsedMilliseconds()/1000)));
-        ErrorCalculation.setMode(ErrorCalculationMode.LOGLOSS);
     }
 }
