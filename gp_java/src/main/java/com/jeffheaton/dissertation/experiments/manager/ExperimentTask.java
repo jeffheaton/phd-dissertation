@@ -143,6 +143,10 @@ public class ExperimentTask implements Runnable {
         return this.status.startsWith("done") || this.status.startsWith("error");
     }
 
+    public boolean isError() {
+        return this.status.startsWith("error");
+    }
+
     public void reportError(String owner, Exception ex) {
         this.status = "error-" + owner;
     }

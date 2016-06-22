@@ -16,7 +16,6 @@ public class ThreadedRunner {
     private final List<ThreadedWorker> workers = new ArrayList<>();
     private int maxWait = 600;
     private boolean verbose;
-    private int currentCount;
 
     public ThreadedRunner(TaskQueueManager theManager) {
         this.manager = theManager;
@@ -62,10 +61,17 @@ public class ThreadedRunner {
     }
 
     public synchronized void reportComplete(ExperimentTask task) {
-        int totalCount = this.getManager().getQueue(this.maxWait).size();
-        this.currentCount++;
-        System.out.println("Complete: " + this.currentCount + "/" + totalCount + ", " + task.getKey()
-                + " - " + task.getResult() );
+        List<ExperimentTask> queue = this.getManager().getQueue(this.maxWait);
+        int totalCount = queue.size();
+        int completeCount = QueueUtil.countComplete(queue)+1;
+        int errorCount = QueueUtil.countError(queue);
 
+        if( errorCount==0 ) {
+            System.out.println("Complete: " + completeCount + "/" + totalCount + ", " + task.getKey()
+                    + " - " + task.getResult());
+        } else {
+            System.out.println("Complete: " + completeCount + "/" + totalCount + "(errored=" + errorCount
+                    +  "), " + task.getKey() + " - " + task.getResult());
+        }
     }
 }
