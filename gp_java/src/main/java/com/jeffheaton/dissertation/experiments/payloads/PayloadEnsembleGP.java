@@ -33,19 +33,18 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         sw.start();
 
+        PayloadGeneticFit gp = new PayloadGeneticFit();
+        gp.setVerbose(isVerbose());
+        gp.setN(N);
+        gp.run(fields,dataset,regression);
+        List<EncogProgram> gpFeatures = gp.getBest();
 
-        List<EncogProgram> gpFeatures = new ArrayList<>();
-        for(int i=0;i<PayloadEnsembleGP.N;i++) {
-            PayloadGeneticFit gp = new PayloadGeneticFit();
-            gp.setVerbose(isVerbose());
-            gp.run(fields,dataset,regression);
-            gpFeatures.add(gp.getBest());
+        if(isVerbose()) {
+            System.out.println("Features:");
+            for(EncogProgram prg: gpFeatures) {
+                System.out.println(prg.dumpAsCommonExpression());
+            }
         }
-
-        /*System.out.println("Features:");
-        for(EncogProgram prg: gpFeatures) {
-            System.out.println(prg.dumpAsCommonExpression());
-        }*/
 
         // generate ensemble training data
         int originalFeatureCount = dataset.getInputSize();

@@ -30,6 +30,8 @@ import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -38,7 +40,11 @@ import java.util.Random;
 public class PayloadGeneticFit extends AbstractExperimentPayload {
 
     public static final int POPULATION_SIZE = 100;
-    private EncogProgram best;
+    private final List<EncogProgram> best = new ArrayList<>();
+    private int n = 1;
+    private FunctionFactory factory;
+    private double globalError;
+    private int totalIterations;
 
     private void verboseStatusGeneticProgram(TrainEA genetic, EncogProgram best, NewSimpleEarlyStoppingStrategy earlyStop, PrgPopulation pop) {
         if( isVerbose() ) {
@@ -51,7 +57,6 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
 
     @Override
     public PayloadReport run(String[] fields, MLDataSet dataset, boolean regression) {
-
         if(!regression) {
             throw new EncogError("Cannot currently evaluate GP classification.");
         }
@@ -80,6 +85,22 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         factory.addExtension(StandardExtensions.EXTENSION_DIV);
         factory.addExtension(StandardExtensions.EXTENSION_POWER);
 
+        this.totalIterations = 0;
+        this.globalError = 0;
+        this.best.clear();
+
+        for(int i=0;i<this.n;i++) {
+            fitOne(context,trainingSet,validationSet);
+        }
+
+        sw.stop();
+
+        return new PayloadReport(
+                (int) (sw.getElapsedMilliseconds() / 1000),this.globalError/this.n,
+                this.totalIterations,this.best.get(0).dumpAsCommonExpression());
+    }
+
+    private void fitOne(EncogProgramContext context, MLDataSet trainingSet, MLDataSet validationSet) {
 
         PrgPopulation pop = new PrgPopulation(context, POPULATION_SIZE);
 
@@ -87,12 +108,11 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         score.addObjective(1.0, new TrainingSetScore(trainingSet));
 
         TrainEA genetic = new TrainEA(pop, score);
-        //genetic.setValidationMode(true);
         genetic.setCODEC(new PrgCODEC());
         genetic.addOperation(0.5, new SubtreeCrossover());
-        genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
-        genetic.addOperation(0.25, new SubtreeMutation(context,4));
-        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
+        genetic.addOperation(0.25, new ConstMutation(context, 0.5, 1.0));
+        genetic.addOperation(0.25, new SubtreeMutation(context, 4));
+        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10, 20, 10, 50.0));
         genetic.getRules().addRewriteRule(new RewriteConstants());
         genetic.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
@@ -105,7 +125,6 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
 
         genetic.setShouldIgnoreExceptions(false);
 
-        this.best = null;
         long lastUpdate = System.currentTimeMillis();
         int populationFails = 0;
 
@@ -113,28 +132,37 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         do {
             long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
 
-            if( pop.getSpecies().size()==0 ) {
+            if (pop.getSpecies().size() == 0) {
                 populationFails++;
 
                 (new RampedHalfAndHalf(context, 1, 6)).generate(new Random(), pop);
-                if( populationFails>=5 ) {
+                if (populationFails >= 5) {
                     throw new EncogError("Entire population invalid after 5 regenerations: ");
                 }
             }
 
             genetic.iteration();
-            this.best = (EncogProgram) genetic.getBestGenome();
+            EncogProgram currentBest = (EncogProgram) genetic.getBestGenome();
             if (isVerbose() || genetic.getIteration() == 1 || genetic.isTrainingDone() || sinceLastUpdate > 60) {
-                verboseStatusGeneticProgram(genetic, this.best, earlyStop, pop);
+                verboseStatusGeneticProgram(genetic, currentBest, earlyStop, pop);
             }
         } while (!genetic.isTrainingDone());
 
-        return new PayloadReport(
-                (int) (sw.getElapsedMilliseconds() / 1000),earlyStop.getValidationError(),
-                genetic.getIteration(),this.best.dumpAsCommonExpression());
+        this.totalIterations += genetic.getIteration();
+        this.globalError += earlyStop.getValidationError();
+        this.best.add((EncogProgram) genetic.getBestGenome());
+
     }
 
-    public EncogProgram getBest() {
+    public List<EncogProgram> getBest() {
         return this.best;
+    }
+
+    public int getN() {
+        return n;
+    }
+
+    public void setN(int n) {
+        this.n = n;
     }
 }
