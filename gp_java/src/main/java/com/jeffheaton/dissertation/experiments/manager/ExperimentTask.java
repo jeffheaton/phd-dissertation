@@ -93,7 +93,12 @@ public class ExperimentTask implements Runnable {
             ExperimentPayload payload = new PayloadEnsembleGP();
             payload.setVerbose(this.owner==null||this.owner.isVerbose());
             report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
-        }else {
+        } else if (model.isPatterns() ) {
+            loadDataset(true,model.getTarget());
+            ExperimentPayload payload = new PayloadPatterns();
+            payload.setVerbose(this.owner==null||this.owner.isVerbose());
+            report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
+        } else {
             throw new EncogError("Unknown algorithm: " + this.algorithm);
         }
 

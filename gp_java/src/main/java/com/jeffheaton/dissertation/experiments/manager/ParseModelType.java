@@ -55,4 +55,5 @@ public class ParseModelType {
         return this.type.toLowerCase().charAt(0)=='r';
     }
 
+    public boolean isPatterns() { return this.name.toLowerCase().equals("patterns"); }
 }

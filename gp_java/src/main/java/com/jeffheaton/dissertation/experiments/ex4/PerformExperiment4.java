@@ -1,36 +1,31 @@
-package com.jeffheaton.dissertation.experiments.ex3;
+package com.jeffheaton.dissertation.experiments.ex4;
 
 import com.jeffheaton.dissertation.experiments.AbstractExperiment;
-import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
 import com.jeffheaton.dissertation.experiments.report.GenerateComparisonReport;
-import org.encog.mathutil.error.ErrorCalculation;
-import org.encog.mathutil.error.ErrorCalculationMode;
-import org.encog.util.Stopwatch;
 
 import java.io.File;
 
 /**
- * Created by jeff on 5/10/16.
+ * Created by jeff on 6/25/16.
  */
-public class PerformExperiment3 extends AbstractExperiment {
-
+public class PerformExperiment4  extends AbstractExperiment {
     public static void addDataSet(TaskQueueManager manager, boolean regression, String filename, String target) {
         String type = regression ? "r":"c";
-        manager.addTaskCycles("exp3",filename,"ensemble-"+type+":"+target,null,5);
+        manager.addTaskCycles("exp4",filename,"patterns-"+type+":"+target,null,5);
     }
 
 
     public static void main(String[] args) {
-        PerformExperiment3 ex = new PerformExperiment3();
+        PerformExperiment4 ex = new PerformExperiment4();
         ex.run();
     }
 
     @Override
     public String getName() {
-        return "experiment-3";
+        return "experiment-4";
     }
 
     @Override
@@ -40,21 +35,21 @@ public class PerformExperiment3 extends AbstractExperiment {
 
         manager.removeAll();
         addDataSet(manager,true,"auto-mpg.csv","mpg");
-        //addDataSet(manager,false,"iris.csv","species");
-        //addDataSet(manager,false,"abalone.csv","sex");
+        ////addDataSet(manager,false,"iris.csv","species");
+        ////addDataSet(manager,false,"abalone.csv","sex");
         addDataSet(manager,true,"bupa.csv","selector");
-        //addDataSet(manager,true,"covtype.csv","cover_type"); -- too slow!
+        /////addDataSet(manager,true,"covtype.csv","cover_type"); -- too slow!
         addDataSet(manager,true,"ecoli.csv","sequence");
-        //addDataSet(manager,false,"forestfires.csv","area");
+        ////addDataSet(manager,false,"forestfires.csv","area");
         addDataSet(manager,true,"glass.csv","type");
-        //addDataSet(manager,false,"hepatitis.csv","class");
-        //addDataSet(manager,false,"horse-colic.csv","outcome");
-        //addDataSet(manager,false,"housing.csv","crim");
-        //addDataSet(manager,false,"pima-indians-diabetes.csv","class");
-        //addDataSet(manager,false,"wcbreast_wdbc.csv","diagnosis");
-        //addDataSet(manager,false,"wcbreast_wpbc.csv","outcome");
-        //addDataSet(manager,false,"wine.csv","class");
-        //addDataSet(manager,false,"crx.csv","a16");
+        ////addDataSet(manager,false,"hepatitis.csv","class");
+        ////addDataSet(manager,false,"horse-colic.csv","outcome");
+        ////addDataSet(manager,false,"housing.csv","crim");
+        ////addDataSet(manager,false,"pima-indians-diabetes.csv","class");
+        ////addDataSet(manager,false,"wcbreast_wdbc.csv","diagnosis");
+        ////addDataSet(manager,false,"wcbreast_wpbc.csv","outcome");
+        ////addDataSet(manager,false,"wine.csv","class");
+        ////addDataSet(manager,false,"crx.csv","a16");
 
         ThreadedRunner runner = new ThreadedRunner(manager);
         runner.setVerbose(false);
@@ -63,7 +58,7 @@ public class PerformExperiment3 extends AbstractExperiment {
         runner.shutdown();
 
         GenerateComparisonReport report = new GenerateComparisonReport(manager);
-        File reportFile = new File(path,"report-exp3.csv");
+        File reportFile = new File(path,"report-exp4.csv");
         report.report(reportFile, 60);
     }
 }
