@@ -4,7 +4,8 @@ import com.jeffheaton.dissertation.experiments.AbstractExperiment;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
-import com.jeffheaton.dissertation.experiments.report.GenerateComparisonReport;
+import com.jeffheaton.dissertation.experiments.report.GenerateAggregateReport;
+import com.jeffheaton.dissertation.experiments.report.GenerateSimpleReport;
 
 import java.io.File;
 
@@ -57,7 +58,7 @@ public class PerformExperiment4  extends AbstractExperiment {
         manager.blockUntilDone(60);
         runner.shutdown();
 
-        GenerateComparisonReport report = new GenerateComparisonReport(manager);
+        GenerateSimpleReport report = new GenerateSimpleReport(manager);
         File reportFile = new File(path,"report-exp4.csv");
         report.report(reportFile, 60);
     }

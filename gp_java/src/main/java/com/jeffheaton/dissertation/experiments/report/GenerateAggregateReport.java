@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * Created by jeff on 5/28/16.
  */
-public class GenerateComparisonReport {
+public class GenerateAggregateReport {
     private TaskQueueManager manager;
     private Map<String, ReportItem> reportItems = new HashMap<>();
 
@@ -164,7 +164,7 @@ public class GenerateComparisonReport {
         private double result;
     }
 
-    public GenerateComparisonReport(TaskQueueManager theManager) {
+    public GenerateAggregateReport(TaskQueueManager theManager) {
         this.manager = theManager;
     }
 

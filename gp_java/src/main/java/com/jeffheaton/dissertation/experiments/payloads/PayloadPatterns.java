@@ -43,15 +43,10 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
             util.find(prg);
         }
 
-        for(FindPatternsGP.FoundPattern fp: util.getPatterns()) {
-            System.out.println(fp);
-        }
-
-
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
-                100,
-                N, "");
+                -1,
+                N, util.reportString(5,N));
     }
 
 

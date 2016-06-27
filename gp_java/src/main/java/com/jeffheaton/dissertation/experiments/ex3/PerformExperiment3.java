@@ -1,14 +1,10 @@
 package com.jeffheaton.dissertation.experiments.ex3;
 
 import com.jeffheaton.dissertation.experiments.AbstractExperiment;
-import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
-import com.jeffheaton.dissertation.experiments.report.GenerateComparisonReport;
-import org.encog.mathutil.error.ErrorCalculation;
-import org.encog.mathutil.error.ErrorCalculationMode;
-import org.encog.util.Stopwatch;
+import com.jeffheaton.dissertation.experiments.report.GenerateAggregateReport;
 
 import java.io.File;
 
@@ -62,7 +58,7 @@ public class PerformExperiment3 extends AbstractExperiment {
         manager.blockUntilDone(60);
         runner.shutdown();
 
-        GenerateComparisonReport report = new GenerateComparisonReport(manager);
+        GenerateAggregateReport report = new GenerateAggregateReport(manager);
         File reportFile = new File(path,"report-exp3.csv");
         report.report(reportFile, 60);
     }

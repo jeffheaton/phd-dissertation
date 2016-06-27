@@ -189,6 +189,20 @@ public class FindPatternsGP {
         return this.patternSet;
     }
 
+    public String reportString(int top, int total) {
+        StringBuilder result = new StringBuilder();
+        for(int i=0;i<Math.min(top,this.patternSet.size());i++) {
+            if( i>0 ) {
+                result.append(",");
+            }
+            FoundPattern p = this.patternSet.get(i);
+            double pct = ((double)p.getCount())/total;
+            pct = ((double)((int)(pct*100))/100.0);
+            result.append(""+pct+":"+p.getPattern());
+        }
+        return result.toString();
+    }
+
     public static void main(String[] args) {
         EncogProgramContext context = new EncogProgramContext();
         context.defineVariable("x");

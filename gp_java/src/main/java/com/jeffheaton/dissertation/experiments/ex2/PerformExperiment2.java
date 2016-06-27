@@ -1,11 +1,10 @@
 package com.jeffheaton.dissertation.experiments.ex2;
 
 import com.jeffheaton.dissertation.experiments.AbstractExperiment;
-import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
-import com.jeffheaton.dissertation.experiments.report.GenerateComparisonReport;
+import com.jeffheaton.dissertation.experiments.report.GenerateAggregateReport;
 
 import java.io.File;
 
@@ -64,7 +63,7 @@ public class PerformExperiment2 extends AbstractExperiment {
         manager.blockUntilDone(60);
         runner.shutdown();
 
-        GenerateComparisonReport report = new GenerateComparisonReport(manager);
+        GenerateAggregateReport report = new GenerateAggregateReport(manager);
         File reportFile = new File(path,"report-exp2.csv");
         report.report(reportFile, 60);
     }
