@@ -38,11 +38,11 @@ public class PerformExperiment4  extends AbstractExperiment {
         addDataSet(manager,true,"auto-mpg.csv","mpg");
         ////addDataSet(manager,false,"iris.csv","species");
         ////addDataSet(manager,false,"abalone.csv","sex");
-        //addDataSet(manager,true,"bupa.csv","selector");
+        addDataSet(manager,true,"bupa.csv","selector");
         /////addDataSet(manager,true,"covtype.csv","cover_type"); -- too slow!
-        //addDataSet(manager,true,"ecoli.csv","sequence");
+        addDataSet(manager,true,"ecoli.csv","sequence");
         ////addDataSet(manager,false,"forestfires.csv","area");
-        //addDataSet(manager,true,"glass.csv","type");
+        addDataSet(manager,true,"glass.csv","type");
         ////addDataSet(manager,false,"hepatitis.csv","class");
         ////addDataSet(manager,false,"horse-colic.csv","outcome");
         ////addDataSet(manager,false,"housing.csv","crim");

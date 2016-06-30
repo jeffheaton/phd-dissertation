@@ -10,6 +10,7 @@ import org.encog.ml.prg.extension.StandardExtensions;
 import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.tree.TreeNode;
 import org.encog.parse.expression.ExpressionNodeType;
+import org.encog.util.Format;
 
 import java.util.*;
 
@@ -196,8 +197,7 @@ public class FindPatternsGP {
                 result.append(",");
             }
             FoundPattern p = this.patternSet.get(i);
-            double pct = ((double)p.getCount())/total;
-            pct = ((double)((int)(pct*100))/100.0);
+            String pct = Format.formatDouble( ((double)p.getCount())/total,4);
             result.append(""+pct+":"+p.getPattern());
         }
         return result.toString();
