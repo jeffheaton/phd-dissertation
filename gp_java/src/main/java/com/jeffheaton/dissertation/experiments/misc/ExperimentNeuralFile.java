@@ -1,6 +1,9 @@
 package com.jeffheaton.dissertation.experiments.misc;
 
 import com.jeffheaton.dissertation.util.*;
+import com.jeffheaton.dissertation.util.importance.FeatureImportance;
+import com.jeffheaton.dissertation.util.importance.FeatureRank;
+import com.jeffheaton.dissertation.util.importance.NeuralFeatureImportanceCalc;
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationLinear;
 import org.encog.engine.network.activation.ActivationReLU;
@@ -64,9 +67,11 @@ public class ExperimentNeuralFile {
         train.finishTraining();
 
 
-        NeuralFeatureImportanceCalc fi = new NeuralFeatureImportanceCalc(network,quick.nameOutputVectorFields());
-        fi.calculateFeatureImportance();
-        for (FeatureRanking ranking : fi.getFeatures()) {
+        FeatureImportance fi = new NeuralFeatureImportanceCalc();
+        fi.init(network,quick.nameOutputVectorFields());
+        fi.performRanking();
+
+        for (FeatureRank ranking : fi.getFeatures()) {
             System.out.println(ranking.toString());
         }
         Encog.getInstance().shutdown();

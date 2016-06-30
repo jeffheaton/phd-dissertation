@@ -1,14 +1,14 @@
-package com.jeffheaton.dissertation.util;
+package com.jeffheaton.dissertation.util.importance;
 
 /**
  * Created by Jeff on 3/31/2016.
  */
-public class FeatureRanking implements Comparable<FeatureRanking> {
+public class FeatureRank implements Comparable<FeatureRank> {
     private final String name;
     private double totalWeight;
     private double importancePercent;
 
-    public FeatureRanking(String theName) {
+    public FeatureRank(String theName) {
         this.name = theName;
     }
 
@@ -51,7 +51,7 @@ public class FeatureRanking implements Comparable<FeatureRanking> {
     }
 
     @Override
-    public int compareTo(FeatureRanking o) {
+    public int compareTo(FeatureRank o) {
         return Double.compare(getImportancePercent(),o.getImportancePercent());
     }
 }

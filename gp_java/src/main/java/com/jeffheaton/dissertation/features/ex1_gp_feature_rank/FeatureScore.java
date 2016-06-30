@@ -1,13 +1,12 @@
 package com.jeffheaton.dissertation.features.ex1_gp_feature_rank;
 
-import com.jeffheaton.dissertation.util.FeatureRanking;
-import com.jeffheaton.dissertation.util.NeuralFeatureImportanceCalc;
+import com.jeffheaton.dissertation.util.importance.FeatureRank;
+import com.jeffheaton.dissertation.util.importance.NeuralFeatureImportanceCalc;
 import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
 import org.encog.Encog;
 import org.encog.EncogError;
 import org.encog.engine.network.activation.ActivationLinear;
 import org.encog.engine.network.activation.ActivationReLU;
-import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.ml.CalculateScore;
 import org.encog.ml.MLMethod;
@@ -18,23 +17,17 @@ import org.encog.ml.data.MLDataSet;
 import org.encog.ml.data.basic.BasicMLData;
 import org.encog.ml.data.basic.BasicMLDataPair;
 import org.encog.ml.data.basic.BasicMLDataSet;
-import org.encog.ml.ea.codec.GeneticCODEC;
 import org.encog.ml.ea.exception.EARuntimeError;
 import org.encog.ml.ea.genome.Genome;
 import org.encog.ml.ea.population.Population;
-import org.encog.ml.ea.species.Species;
 import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EndIterationsStrategy;
-import org.encog.ml.train.strategy.end.SimpleEarlyStoppingStrategy;
 import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
-import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
-import org.encog.neural.networks.training.pso.NeuralPSO;
 import org.encog.util.Format;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -176,12 +169,13 @@ public class FeatureScore implements CalculateScore {
 
         // Evaluate feature importance
 
-        NeuralFeatureImportanceCalc fi = new NeuralFeatureImportanceCalc(network);
+        NeuralFeatureImportanceCalc fi = new NeuralFeatureImportanceCalc();
+        fi.init(network,null);
         fi.calculateFeatureImportance();
 
         int count = Math.min(fi.getFeatures().size(),genomes.size());// might not be needed
         for(int i=0;i<count;i++) {
-            FeatureRanking rank = fi.getFeatures().get(i);
+            FeatureRank rank = fi.getFeatures().get(i);
             genomes.get(i).setScore(rank.getImportancePercent());
         }
 
