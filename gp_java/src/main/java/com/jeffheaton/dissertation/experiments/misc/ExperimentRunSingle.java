@@ -48,7 +48,7 @@ public class ExperimentRunSingle {
         ExperimentTask task = new ExperimentTask(
                 "test",
                 "auto-mpg.csv",
-                "ensemble-r:mpg",
+                "importance-r:mpg",
                 null,
                 0);
         task.run();

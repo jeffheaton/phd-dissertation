@@ -4,6 +4,7 @@ import com.jeffheaton.dissertation.util.*;
 import com.jeffheaton.dissertation.util.importance.FeatureImportance;
 import com.jeffheaton.dissertation.util.importance.FeatureRank;
 import com.jeffheaton.dissertation.util.importance.NeuralFeatureImportanceCalc;
+import com.jeffheaton.dissertation.util.importance.PermutationFeatureImportanceCalc;
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationLinear;
 import org.encog.engine.network.activation.ActivationReLU;
@@ -66,14 +67,28 @@ public class ExperimentNeuralFile {
         } while(!train.isTrainingDone());
         train.finishTraining();
 
-
-        FeatureImportance fi = new NeuralFeatureImportanceCalc();
+        System.out.println();
+        System.out.println("Feature importance (permutation)");
+        FeatureImportance fi = new PermutationFeatureImportanceCalc(); //new NeuralFeatureImportanceCalc();
         fi.init(network,quick.nameOutputVectorFields());
-        fi.performRanking();
+        fi.performRanking(validationSet);
 
-        for (FeatureRank ranking : fi.getFeatures()) {
+        for (FeatureRank ranking : fi.getFeaturesSorted()) {
             System.out.println(ranking.toString());
         }
+        System.out.println(fi.toString());
+
+        System.out.println();
+        System.out.println("Feature importance (weights)");
+        fi = new NeuralFeatureImportanceCalc();
+        fi.init(network,quick.nameOutputVectorFields());
+        fi.performRanking(validationSet);
+
+        for (FeatureRank ranking : fi.getFeaturesSorted()) {
+            System.out.println(ranking.toString());
+        }
+        System.out.println(fi.toString());
+
         Encog.getInstance().shutdown();
 
 

@@ -16,5 +16,6 @@ public interface FeatureImportance {
     void performRanking();
     void performRanking(MLDataSet theDataset);
     List<FeatureRank> getFeatures();
+    List<FeatureRank> getFeaturesSorted();
     MLRegression getModel();
 }

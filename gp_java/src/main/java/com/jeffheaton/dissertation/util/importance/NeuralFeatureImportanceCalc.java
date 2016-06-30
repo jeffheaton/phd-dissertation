@@ -18,11 +18,6 @@ public class NeuralFeatureImportanceCalc extends AbstractFeatureImportance {
     }
 
     @Override
-    public String toString() {
-        return getFeatures().toString();
-    }
-
-    @Override
     public void performRanking() {
         // Reset rankings
         for (FeatureRank rank : getFeatures()) {
@@ -47,35 +42,20 @@ public class NeuralFeatureImportanceCalc extends AbstractFeatureImportance {
 
         }
         // sum total weight to input neurons.
-        double sum = 0;
+        double max = 0;
         for (FeatureRank rank : getFeatures() ) {
-            sum += Math.abs(rank.getTotalWeight());
+            max = Math.max(max, Math.abs(rank.getTotalWeight()));
         }
 
         // calculate each feature's importance percent
         for (FeatureRank rank : getFeatures()) {
-            rank.setImportancePercent(Math.abs(rank.getTotalWeight()) / sum);
+            rank.setImportancePercent(Math.abs(rank.getTotalWeight()) / max);
         }
     }
 
 
     @Override
     public void performRanking(MLDataSet theDataset) {
-        throw new EncogError("This ranking algorithm cannot rank relative to a dataset.  Please call peformRanking with no arguments.");
-    }
-
-    public double calculateDeviation() {
-        double sum = 0;
-        for (FeatureRank rank : getFeatures()) {
-            sum += rank.getImportancePercent();
-        }
-        double mean = sum / getFeatures().size();
-
-        sum = 0;
-        for (FeatureRank rank : getFeatures()) {
-            double d = mean - rank.getImportancePercent();
-            sum += d * d;
-        }
-        return Math.sqrt(sum / getFeatures().size());
+        performRanking();
     }
 }

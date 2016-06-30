@@ -41,7 +41,7 @@ public abstract class AbstractFeatureImportance implements FeatureImportance {
         return this.features;
     }
 
-    public List<FeatureRank> getSortedFeatures() {
+    public List<FeatureRank> getFeaturesSorted() {
         ArrayList<FeatureRank> result = new ArrayList<>();
         result.addAll(this.features);
         result.sort(new Comparator<FeatureRank>() {
@@ -51,6 +51,19 @@ public abstract class AbstractFeatureImportance implements FeatureImportance {
             }
         });
         return result;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        for (FeatureRank ranking : getFeaturesSorted()) {
+            int idx = getFeatures().indexOf(ranking);
+            if( result.length()>0) {
+                result.append(",");
+            }
+            result.append(idx);
+        }
+        return result.toString();
     }
 
     @Override
