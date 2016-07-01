@@ -67,9 +67,7 @@ public class ExperimentTask implements Runnable {
     private void loadDataset(boolean singleFieldCatagorical, String target) {
         ObtainInputStream source = new ObtainFallbackStream(this.datasetFilename);
         this.quick = new QuickEncodeDataset(singleFieldCatagorical,false);
-        this.quick.dumpFieldInfo();
         this.dataset = quick.process(source, target, this.predictors, true, CSVFormat.EG_FORMAT);
-        //Transform.interpolate(dataset);
     }
 
     public void run() {

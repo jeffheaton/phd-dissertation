@@ -457,6 +457,11 @@ public class QuickEncodeDataset {
     }
 
     private MLDataSet processPass3() {
+
+        if( this.targetField.getEncodeType()==QuickFieldEncode.Ignore) {
+            throw new EncogError("Target field can't be set to an encoding of ignore.");
+        }
+
         for (QuickField field : this.fields) {
             field.finalizePass2();
             if( field!=this.targetField && field.getEncodeType()!=QuickFieldEncode.Ignore) {
