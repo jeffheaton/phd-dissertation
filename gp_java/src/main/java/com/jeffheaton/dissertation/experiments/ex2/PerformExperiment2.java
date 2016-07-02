@@ -44,7 +44,6 @@ public class PerformExperiment2 extends AbstractExperiment {
         addDataSet(manager,false,"abalone.csv","sex");
         addDataSet(manager,true,"bupa.csv","selector");
         addDataSet(manager,true,"covtype.csv","cover_type");
-        addDataSet(manager,true,"ecoli.csv","sequence");
         addDataSet(manager,false,"forestfires.csv","area");
         addDataSet(manager,true,"glass.csv","type");
         addDataSet(manager,false,"hepatitis.csv","class");

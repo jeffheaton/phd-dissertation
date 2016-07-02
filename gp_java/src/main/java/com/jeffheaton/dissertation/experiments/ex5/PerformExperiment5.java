@@ -35,22 +35,21 @@ public class PerformExperiment5  extends AbstractExperiment {
         TaskQueueManager manager = new FileBasedTaskManager(path);
 
         manager.removeAll();
-        //addDataSet(manager,true,"auto-mpg.csv","mpg");
-        //addDataSet(manager,false,"iris.csv","species");
-        //addDataSet(manager,false,"abalone.csv","sex");
-        //addDataSet(manager,true,"bupa.csv","selector");
-        //addDataSet(manager,true,"covtype.csv","cover_type"); -- too slow!
-        addDataSet(manager,true,"ecoli.csv","sequence");
-        //addDataSet(manager,false,"forestfires.csv","area");
-        //addDataSet(manager,true,"glass.csv","type");
-        //addDataSet(manager,false,"hepatitis.csv","class");
-        //addDataSet(manager,false,"horse-colic.csv","outcome");
-        //addDataSet(manager,false,"housing.csv","crim");
-        //addDataSet(manager,false,"pima-indians-diabetes.csv","class");
-        //addDataSet(manager,false,"wcbreast_wdbc.csv","diagnosis");
-        //addDataSet(manager,false,"wcbreast_wpbc.csv","outcome");
-        //addDataSet(manager,false,"wine.csv","class");
-        //addDataSet(manager,false,"crx.csv","a16");
+        addDataSet(manager,true,"auto-mpg.csv","mpg");
+        addDataSet(manager,false,"iris.csv","species");
+        addDataSet(manager,false,"abalone.csv","sex");
+        addDataSet(manager,true,"bupa.csv","selector");
+        addDataSet(manager,true,"covtype.csv","cover_type");
+        addDataSet(manager,false,"forestfires.csv","area");
+        addDataSet(manager,true,"glass.csv","type");
+        addDataSet(manager,false,"hepatitis.csv","class");
+        addDataSet(manager,false,"horse-colic.csv","outcome");
+        addDataSet(manager,false,"housing.csv","crim");
+        addDataSet(manager,false,"pima-indians-diabetes.csv","class");
+        addDataSet(manager,false,"wcbreast_wdbc.csv","diagnosis");
+        addDataSet(manager,false,"wcbreast_wpbc.csv","outcome");
+        addDataSet(manager,false,"wine.csv","class");
+        addDataSet(manager,false,"crx.csv","a16");
 
         ThreadedRunner runner = new ThreadedRunner(manager);
         runner.setVerbose(false);
