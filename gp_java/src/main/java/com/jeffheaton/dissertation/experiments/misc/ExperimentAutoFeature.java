@@ -23,7 +23,8 @@ public class ExperimentAutoFeature {
 
         ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
         QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
-        MLDataSet dataset = quick.process(source,"mpg", null, true, CSVFormat.EG_FORMAT);
+        quick.analyze(source,"mpg", true, CSVFormat.EG_FORMAT);
+        MLDataSet dataset = quick.generateDataset();
         Transform.interpolate(dataset);
         Transform.zscore(dataset);
 

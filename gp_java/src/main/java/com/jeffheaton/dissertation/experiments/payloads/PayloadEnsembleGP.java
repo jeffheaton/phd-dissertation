@@ -25,8 +25,8 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
     @Override
     public PayloadReport run(String[] fields, MLDataSet dataset, boolean regression) {
 
-        if(!regression) {
-            throw new EncogError("Cannot currently evaluate GP classification.");
+        if(dataset.getIdealSize()>1) {
+            throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
         }
 
         Stopwatch sw = new Stopwatch();

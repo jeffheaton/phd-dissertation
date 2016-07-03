@@ -64,40 +64,49 @@ public class ExperimentTask implements Runnable {
         return result.toString();
     }
 
-    private void loadDataset(boolean singleFieldCatagorical, String target) {
+    private boolean loadDataset(ParseModelType model) {
+        boolean isGP = model.getName().equalsIgnoreCase("gp") || model.getName().equalsIgnoreCase("ensemble");
+        String target = model.getTarget();
         ObtainInputStream source = new ObtainFallbackStream(this.datasetFilename);
-        this.quick = new QuickEncodeDataset(singleFieldCatagorical,false);
-        this.dataset = quick.process(source, target, this.predictors, true, CSVFormat.EG_FORMAT);
+        this.quick = new QuickEncodeDataset(isGP,false);
+        quick.analyze(source, target, true, CSVFormat.EG_FORMAT);
+
+        if( this.predictors!=null && this.predictors.length()>0 ) {
+            quick.forcePredictors(this.predictors);
+        }
+
+        if( isGP && this.quick.getTargetField().getEncodeType()== QuickEncodeDataset.QuickFieldEncode.NumericCategory
+                && this.quick.getTargetField().getUnique()>2) {
+            throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
+        }
+
+        this.dataset = quick.generateDataset();
+
+        return model.isRegression();
     }
 
     public void run() {
         ParseModelType model = new ParseModelType(this.algorithm);
-        this.regression = model.isRegression();
-
-        PayloadReport report = null;
+        this.regression = loadDataset(model);
+        PayloadReport report;
 
         if (model.isNeuralNetwork()) {
-            loadDataset(false,model.getTarget());
             ExperimentPayload payload = new PayloadNeuralFit();
             payload.setVerbose(this.owner==null||this.owner.isVerbose());
             report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
         } else if (model.isGeneticProgram()) {
-            loadDataset(true,model.getTarget());
             ExperimentPayload payload = new PayloadGeneticFit();
             payload.setVerbose(this.owner==null||this.owner.isVerbose());
             report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
         } else if (model.isEnsemble() ) {
-            loadDataset(true,model.getTarget());
             ExperimentPayload payload = new PayloadEnsembleGP();
             payload.setVerbose(this.owner==null||this.owner.isVerbose());
             report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
         } else if (model.isPatterns() ) {
-            loadDataset(true,model.getTarget());
             ExperimentPayload payload = new PayloadPatterns();
             payload.setVerbose(this.owner==null||this.owner.isVerbose());
             report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
         } else if (model.isImportance() ) {
-            loadDataset(true,model.getTarget());
             ExperimentPayload payload = new PayloadImportance();
             payload.setVerbose(this.owner==null||this.owner.isVerbose());
             report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);

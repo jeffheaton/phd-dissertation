@@ -45,9 +45,10 @@ public class ExperimentGPFile {
 
         ObtainInputStream source = new ObtainFallbackStream("feature_eng.csv");
         QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
-        MLDataSet dataset = quick.process(source,"diff-y0", "diff-x0,diff-x1", true, CSVFormat.EG_FORMAT);
+        quick.analyze(source,"diff-y0", true, CSVFormat.EG_FORMAT);
+        quick.forcePredictors("diff-x0,diff-x1");
+        MLDataSet dataset = quick.generateDataset();
         Transform.interpolate(dataset);
-        //quick.dumpFieldInfo();
 
         // split
         MLDataSet[] split = Transform.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);

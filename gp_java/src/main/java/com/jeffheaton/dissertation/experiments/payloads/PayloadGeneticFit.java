@@ -39,6 +39,7 @@ import java.util.Random;
  */
 public class PayloadGeneticFit extends AbstractExperimentPayload {
 
+    public static String GP_CLASS_ERROR = "GP cannot be used with multiple outputs (classification with more than 2 values)";
     public static final int POPULATION_SIZE = 100;
     private final List<EncogProgram> best = new ArrayList<>();
     private int n = 1;
@@ -57,8 +58,8 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
 
     @Override
     public PayloadReport run(String[] fields, MLDataSet dataset, boolean regression) {
-        if(!regression) {
-            throw new EncogError("Cannot currently evaluate GP classification.");
+        if(dataset.getIdealSize()>2) {
+            throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
         }
 
         Stopwatch sw = new Stopwatch();

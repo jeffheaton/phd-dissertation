@@ -9,7 +9,12 @@ import com.jeffheaton.dissertation.experiments.report.GenerateAggregateReport;
 import java.io.File;
 
 /**
- * Created by jeff on 5/10/16.
+ * Experiment 2: For the dissertation algorithm to be effective, engineered features from this algorithm must enhance
+ * neural network accuracy.  To measure this performance, a number of public and synthetic data sets will evaluate it.
+ * It is necessary to collect a baseline RMSE or log loss of a deep neural network with that data set that
+ * receives no help from the dissertation algorithm.  The neural network topology, or hyper-parameters, will
+ * be determined experimentally.  It is important that the topology include enough hidden neurons that the data
+ * set can be learned with reasonable accuracy.
  */
 public class PerformExperiment2 extends AbstractExperiment {
 

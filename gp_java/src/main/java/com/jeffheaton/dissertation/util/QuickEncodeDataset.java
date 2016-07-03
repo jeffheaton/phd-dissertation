@@ -2,16 +2,13 @@ package com.jeffheaton.dissertation.util;
 
 import org.encog.EncogError;
 import org.encog.ml.data.MLData;
-import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.data.basic.BasicMLData;
-import org.encog.ml.data.basic.BasicMLDataPair;
 import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.csv.ReadCSV;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 
@@ -44,6 +41,10 @@ public class QuickEncodeDataset {
             result[idx++] = field.getName();
         }
         return result;
+    }
+
+    public QuickField getTargetField() {
+        return this.targetField;
     }
 
     public enum QuickFieldEncode {
@@ -186,11 +187,13 @@ public class QuickEncodeDataset {
             } else if( this.isInteger() && this.calculateUniquePercent()==1.0 ) {
                 // Likely an ID field
                 this.encodeType = QuickFieldEncode.Ignore;
-            } else if (isLowRange()) {
-                this.encodeType = this.owner.isSingleFieldCatagorical() ? QuickFieldEncode.NumericCategory : QuickFieldEncode.OneHot;
-            } else if( !this.isNumeric() ) {
+            } else if (isLowRange() || !this.isNumeric() ) {
                 // Treat as catagorical
-                this.encodeType = this.owner.isSingleFieldCatagorical() ? QuickFieldEncode.NumericCategory : QuickFieldEncode.OneHot;
+                if( this.uniqueCounts.size()==2 ) {
+                    this.encodeType = QuickFieldEncode.NumericCategory;
+                } else {
+                    this.encodeType = this.owner.isSingleFieldCatagorical() ? QuickFieldEncode.NumericCategory : QuickFieldEncode.OneHot;
+                }
             } else if( this.numeric ) {
                 this.encodeType = QuickFieldEncode.RawNumeric;
             } else {
@@ -429,6 +432,12 @@ public class QuickEncodeDataset {
         }
         csv.close();
 
+        for (QuickField field : this.fields) {
+            field.finalizePass2();
+            if( field!=this.targetField && field.getEncodeType()!=QuickFieldEncode.Ignore) {
+                this.predictors.add(field);
+            }
+        }
     }
 
     public int getCount() {
@@ -456,14 +465,7 @@ public class QuickEncodeDataset {
         return this.targetField.encodeColumnsNeeded();
     }
 
-    private MLDataSet processPass3() {
-
-        for (QuickField field : this.fields) {
-            field.finalizePass2();
-            if( field!=this.targetField && field.getEncodeType()!=QuickFieldEncode.Ignore) {
-                this.predictors.add(field);
-            }
-        }
+    public MLDataSet generateDataset() {
 
         if( this.targetField.getEncodeType()==QuickFieldEncode.Ignore) {
             throw new EncogError("Target field can't be set to an encoding of ignore.");
@@ -497,7 +499,7 @@ public class QuickEncodeDataset {
     }
 
 
-    public MLDataSet process(ObtainInputStream theStreamSource, String theTargetColumn, String thePredictorColumns,
+    public void analyze(ObtainInputStream theStreamSource, String theTargetColumn,
                              boolean theHeaders, CSVFormat theFormat) {
         this.streamSource = theStreamSource;
         this.headers = theHeaders;
@@ -505,7 +507,9 @@ public class QuickEncodeDataset {
 
         processPass1(theTargetColumn);
         processPass2();
+    }
 
+    public void forcePredictors(String thePredictorColumns) {
         if( thePredictorColumns !=null ) {
             // we've been provided a list of predictors to use, ignore others
             List<String> used = Arrays.asList(thePredictorColumns.split(","));
@@ -515,10 +519,6 @@ public class QuickEncodeDataset {
                 }
             }
         }
-
-
-
-        return processPass3();
     }
 
     public List<QuickField> getPredictors() {
@@ -541,8 +541,8 @@ public class QuickEncodeDataset {
     public static void main(String[] args) {
         ObtainInputStream source = new ObtainFallbackStream("auto-mpg.csv");
         QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
-        MLDataSet dataset = quick.process(source,"mpg", null, true, CSVFormat.EG_FORMAT);
-        quick.dumpFieldInfo();
+        quick.analyze(source,"mpg", true, CSVFormat.EG_FORMAT);
+        MLDataSet dataset = quick.generateDataset();
         System.out.println(quick.getCount());
     }
 }
