@@ -47,9 +47,9 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "auto-mpg.csv",
-                "importance-r:mpg",
-                null,
+                "feature_eng.csv",
+                "gp-r:ratio_poly-y0",
+                "ratio_poly-x0",
                 0);
         task.run();
         Encog.getInstance().shutdown();

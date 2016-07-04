@@ -2,6 +2,8 @@ package com.jeffheaton.dissertation.experiments.ex1;
 
 import com.jeffheaton.dissertation.experiments.AbstractExperiment;
 import com.jeffheaton.dissertation.experiments.data.AnalyzeEngineeredDataset;
+import com.jeffheaton.dissertation.experiments.data.DatasetInfo;
+import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
@@ -10,6 +12,7 @@ import com.jeffheaton.dissertation.experiments.report.GenerateAggregateReport;
 import org.encog.Encog;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Created by jeff on 5/10/16.
@@ -24,12 +27,27 @@ public class PerformExperiment1 extends AbstractExperiment {
 
         TaskQueueManager manager = new FileBasedTaskManager(createPath());
 
-        AnalyzeEngineeredDataset info = new AnalyzeEngineeredDataset();
+        //AnalyzeEngineeredDataset info = new AnalyzeEngineeredDataset();
 
         manager.removeAll();
-        for(String f: info.getFeatures()) {
-            manager.addTaskCycles("exp1","feature_eng.csv","neural-r:"+f+"-y0",info.getPredictors(f),5);
-            manager.addTaskCycles("exp1","feature_eng.csv","gp-r:"+f+"-y0",info.getPredictors(f),5);
+        List<DatasetInfo> datasets = ExperimentDatasets.getInstance().getDatasetsForExperiment(getName());
+
+
+
+
+        for(DatasetInfo info: datasets) {
+
+            // Build comma separated list
+            StringBuilder pred = new StringBuilder();
+            for(String str: info.getPredictors()) {
+                if( pred.length()>0 ) {
+                    pred.append(",");
+                }
+                pred.append(str);
+            }
+            ///System.out.println(info.getTarget() + ":" + pred.toString());
+            manager.addTaskCycles("exp1","feature_eng.csv","neural-r:"+info.getTarget(),pred.toString(),5);
+            manager.addTaskCycles("exp1","feature_eng.csv","gp-r:"+info.getTarget(),pred.toString(),5);
         }
 
         ThreadedRunner runner = new ThreadedRunner(manager);

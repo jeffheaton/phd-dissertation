@@ -20,10 +20,10 @@ public class QuickEncodeDataset {
     public String[] nameOutputVectorFields() {
         String[] result = new String[encodedColumnsNeededX()];
         int idx = 0;
-        for(QuickField field: this.predictors) {
+        for (QuickField field : this.predictors) {
             int needed = field.encodeColumnsNeeded();
 
-            if( needed==1 ) {
+            if (needed == 1) {
                 result[idx++] = field.getName();
             } else {
                 for (int i = 0; i < needed; i++) {
@@ -37,7 +37,7 @@ public class QuickEncodeDataset {
     public String[] getFieldNames() {
         String[] result = new String[getPredictors().size()];
         int idx = 0;
-        for (QuickEncodeDataset.QuickField field: getPredictors()) {
+        for (QuickEncodeDataset.QuickField field : getPredictors()) {
             result[idx++] = field.getName();
         }
         return result;
@@ -68,10 +68,9 @@ public class QuickEncodeDataset {
         private boolean integer;
         private boolean missing;
         private int count;
-        private Map<String,Integer> uniqueCounts = new HashMap<>();
-        private Map<String,Integer> uniqueIndex = new HashMap<>();
+        private Map<String, Integer> uniqueCounts = new HashMap<>();
+        private Map<String, Integer> uniqueIndex = new HashMap<>();
         private QuickFieldEncode encodeType = QuickFieldEncode.Ignore;
-
 
 
         public static boolean isNA(String str) {
@@ -96,11 +95,11 @@ public class QuickEncodeDataset {
         }
 
         private void updateUnique(String str) {
-            if(this.uniqueCounts.containsKey(str)) {
-                this.uniqueCounts.put(str,this.uniqueCounts.get(str)+1);
+            if (this.uniqueCounts.containsKey(str)) {
+                this.uniqueCounts.put(str, this.uniqueCounts.get(str) + 1);
             } else {
-                this.uniqueCounts.put(str,1);
-                this.uniqueIndex.put(str,this.uniqueIndex.size());
+                this.uniqueCounts.put(str, 1);
+                this.uniqueIndex.put(str, this.uniqueIndex.size());
             }
         }
 
@@ -115,7 +114,7 @@ public class QuickEncodeDataset {
             if (this.integer) {
                 try {
                     int intValue = Integer.parseInt(str);
-                    if( Double.isNaN(this.max)) {
+                    if (Double.isNaN(this.max)) {
                         this.max = this.min = intValue;
                     } else {
                         this.max = Math.max(intValue, this.max);
@@ -132,7 +131,7 @@ public class QuickEncodeDataset {
             if (this.numeric) {
                 try {
                     double floatValue = Double.parseDouble(str);
-                    if( Double.isNaN(this.max)) {
+                    if (Double.isNaN(this.max)) {
                         this.max = this.min = floatValue;
                     } else {
                         this.max = Math.max(floatValue, this.max);
@@ -164,13 +163,13 @@ public class QuickEncodeDataset {
         }
 
         public boolean isLowRange() {
-            if(!isInteger()) {
+            if (!isInteger()) {
                 return false;
             }
-            if( ((int)getMin()!=0) && ((int)getMin()!=1) )
+            if (((int) getMin() != 0) && ((int) getMin() != 1))
                 return false;
 
-            return ((int)getMax()-(int)getMin())<=5;
+            return ((int) getMax() - (int) getMin()) <= 5;
         }
 
         public void finalizePass2() {
@@ -178,23 +177,23 @@ public class QuickEncodeDataset {
                 this.sd = Math.sqrt(this.sum / this.count);
             }
 
-            if( !this.isNumeric() && this.getUnique()>100 ) {
+            if (!this.isNumeric() && this.getUnique() > 100) {
                 // Pure string field, can't use it
                 this.encodeType = QuickFieldEncode.Ignore;
-            } else if( this.calculateMissingPercent()>0.5 ) {
+            } else if (this.calculateMissingPercent() > 0.5) {
                 // Too many missing, can't use it
                 this.encodeType = QuickFieldEncode.Ignore;
-            } else if( this.isInteger() && this.calculateUniquePercent()==1.0 ) {
+            } else if (this.isInteger() && this.calculateUniquePercent() == 1.0) {
                 // Likely an ID field
                 this.encodeType = QuickFieldEncode.Ignore;
-            } else if (isLowRange() || !this.isNumeric() ) {
+            } else if (isLowRange() || !this.isNumeric()) {
                 // Treat as catagorical
-                if( this.uniqueCounts.size()==2 ) {
+                if (this.uniqueCounts.size() == 2) {
                     this.encodeType = QuickFieldEncode.NumericCategory;
                 } else {
                     this.encodeType = this.owner.isSingleFieldCatagorical() ? QuickFieldEncode.NumericCategory : QuickFieldEncode.OneHot;
                 }
-            } else if( this.numeric ) {
+            } else if (this.numeric) {
                 this.encodeType = QuickFieldEncode.RawNumeric;
             } else {
                 // I don't think it reaches this point, but ignore just in case...
@@ -283,11 +282,11 @@ public class QuickEncodeDataset {
         }
 
         public double calculateUniquePercent() {
-            return (double)this.getUnique()/(double)this.getCount();
+            return (double) this.getUnique() / (double) this.getCount();
         }
 
         public double calculateMissingPercent() {
-            return (double)this.getMissing()/(double)this.owner.getCount();
+            return (double) this.getMissing() / (double) this.owner.getCount();
         }
 
         public int getMissing() {
@@ -295,7 +294,7 @@ public class QuickEncodeDataset {
         }
 
         public int encodeColumnsNeeded() {
-            switch(getEncodeType()) {
+            switch (getEncodeType()) {
                 case Ignore:
                     return 0;
                 case RawNumeric:
@@ -311,30 +310,30 @@ public class QuickEncodeDataset {
         }
 
         public int encode(int startIndex, String str, double[] vec) {
-            switch(getEncodeType()) {
+            switch (getEncodeType()) {
                 case Ignore:
                     return startIndex;
                 case RawNumeric:
-                    if(isNA(str)) {
+                    if (isNA(str)) {
                         vec[startIndex] = this.mean;
                     } else {
                         vec[startIndex] = Double.parseDouble(str);
                     }
-                    return startIndex+1;
+                    return startIndex + 1;
                 case NumericCategory:
                     vec[startIndex] = findCategoryIndex(str);
-                    return startIndex+1;
+                    return startIndex + 1;
                 case OneHot:
                     int len = encodeColumnsNeeded();
                     int idx = findCategoryIndex(str);
-                    for(int i=0;i<len;i++) {
-                        if(i==idx) {
-                            vec[startIndex+i] = 1;
+                    for (int i = 0; i < len; i++) {
+                        if (i == idx) {
+                            vec[startIndex + i] = 1;
                         } else {
                             vec[startIndex + i] = 0;
                         }
                     }
-                    return startIndex+getUnique();
+                    return startIndex + getUnique();
                 default:
                     // Should not happen.
                     return startIndex;
@@ -359,19 +358,19 @@ public class QuickEncodeDataset {
             result.append(",max=");
             result.append(getMax());
             result.append(",type=");
-            if( isInteger() ) {
+            if (isInteger()) {
                 result.append("integer");
-            } else if( isNumeric() ) {
+            } else if (isNumeric()) {
                 result.append("numeric");
             } else {
                 result.append("string");
             }
             result.append(",unique=");
             result.append(getUnique());
-            result.append("("+ Format.formatPercent(calculateUniquePercent())+")");
+            result.append("(" + Format.formatPercent(calculateUniquePercent()) + ")");
             result.append(",missing=");
             result.append(getMissing());
-            result.append("("+ Format.formatPercent(calculateMissingPercent())+")");
+            result.append("(" + Format.formatPercent(calculateMissingPercent()) + ")");
             result.append(",encodeType=");
             result.append(getEncodeType());
             result.append("]");
@@ -395,14 +394,14 @@ public class QuickEncodeDataset {
         ReadCSV csv = new ReadCSV(stream, headers, format);
 
         for (int i = 0; i < csv.getColumnNames().size(); i++) {
-            QuickField field = new QuickField(this,csv.getColumnNames().get(i),i);
+            QuickField field = new QuickField(this, csv.getColumnNames().get(i), i);
             this.fields.add(field);
-            if( field.getName().equals(theTargetColumn)) {
+            if (field.getName().equals(theTargetColumn)) {
                 this.targetField = field;
             }
         }
 
-        if( this.targetField==null ) {
+        if (this.targetField == null) {
             throw new EncogError("Can't find target column: " + theTargetColumn);
         }
 
@@ -431,10 +430,15 @@ public class QuickEncodeDataset {
             }
         }
         csv.close();
+        findPredictors();
 
+    }
+
+    private void findPredictors() {
+        this.predictors.clear();
         for (QuickField field : this.fields) {
             field.finalizePass2();
-            if( field!=this.targetField && field.getEncodeType()!=QuickFieldEncode.Ignore) {
+            if (field != this.targetField && field.getEncodeType() != QuickFieldEncode.Ignore) {
                 this.predictors.add(field);
             }
         }
@@ -455,8 +459,8 @@ public class QuickEncodeDataset {
 
     public int encodedColumnsNeededX() {
         int result = 0;
-        for(QuickField field: this.predictors) {
-            result+=field.encodeColumnsNeeded();
+        for (QuickField field : this.predictors) {
+            result += field.encodeColumnsNeeded();
         }
         return result;
     }
@@ -467,7 +471,7 @@ public class QuickEncodeDataset {
 
     public MLDataSet generateDataset() {
 
-        if( this.targetField.getEncodeType()==QuickFieldEncode.Ignore) {
+        if (this.targetField.getEncodeType() == QuickFieldEncode.Ignore) {
             throw new EncogError("Target field can't be set to an encoding of ignore.");
         }
 
@@ -477,15 +481,15 @@ public class QuickEncodeDataset {
         double[] xVector = new double[encodedColumnsNeededX()];
         double[] yVector = new double[encodedColumnsNeededY()];
 
-        while(csv.next()) {
+        while (csv.next()) {
             int idx = 0;
-            for(QuickField field: this.predictors) {
-                idx = field.encode(idx,csv.get(field.getIndex()),xVector);
+            for (QuickField field : this.predictors) {
+                idx = field.encode(idx, csv.get(field.getIndex()), xVector);
             }
-            this.targetField.encode(0,csv.get(this.targetField.getIndex()),yVector);
+            this.targetField.encode(0, csv.get(this.targetField.getIndex()), yVector);
             MLData xData = new BasicMLData(xVector);
             MLData yData = new BasicMLData(yVector);
-            result.add(xData,yData);
+            result.add(xData, yData);
         }
 
         csv.close();
@@ -500,7 +504,7 @@ public class QuickEncodeDataset {
 
 
     public void analyze(ObtainInputStream theStreamSource, String theTargetColumn,
-                             boolean theHeaders, CSVFormat theFormat) {
+                        boolean theHeaders, CSVFormat theFormat) {
         this.streamSource = theStreamSource;
         this.headers = theHeaders;
         this.format = theFormat;
@@ -510,15 +514,25 @@ public class QuickEncodeDataset {
     }
 
     public void forcePredictors(String thePredictorColumns) {
-        if( thePredictorColumns !=null ) {
+        if (thePredictorColumns != null) {
             // we've been provided a list of predictors to use, ignore others
             List<String> used = Arrays.asList(thePredictorColumns.split(","));
-            for(QuickField field: this.fields) {
-                if( field!=this.targetField && !used.contains(field.getName()) ) {
+            for (QuickField field : this.fields) {
+                if (field != this.targetField && !used.contains(field.getName())) {
                     field.setEncodeType(QuickFieldEncode.Ignore);
                 }
             }
         }
+        findPredictors();
+    }
+
+    public void forcePredictors(List<String> thePredictorColumns) {
+        for (QuickField field : this.fields) {
+            if (field != this.targetField && !thePredictorColumns.contains(field.getName())) {
+                field.setEncodeType(QuickFieldEncode.Ignore);
+            }
+        }
+        findPredictors();
     }
 
     public List<QuickField> getPredictors() {
@@ -540,8 +554,8 @@ public class QuickEncodeDataset {
 
     public static void main(String[] args) {
         ObtainInputStream source = new ObtainFallbackStream("auto-mpg.csv");
-        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
-        quick.analyze(source,"mpg", true, CSVFormat.EG_FORMAT);
+        QuickEncodeDataset quick = new QuickEncodeDataset(false, false);
+        quick.analyze(source, "mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();
         System.out.println(quick.getCount());
     }

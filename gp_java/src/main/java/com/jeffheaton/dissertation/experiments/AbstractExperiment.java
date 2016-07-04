@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments;
 
+import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
@@ -15,6 +16,12 @@ public abstract class AbstractExperiment {
 
     public abstract String getName();
     protected abstract void internalRun();
+
+    public AbstractExperiment() {
+        System.out.println("Analyzing datasets...");
+        ExperimentDatasets.getInstance();
+        System.out.println("Analysis complete...");
+    }
 
     protected File createPath() {
         File experimentsRoot = new File(DissertationConfig.getInstance().getProjectPath(), "experiment-results");
