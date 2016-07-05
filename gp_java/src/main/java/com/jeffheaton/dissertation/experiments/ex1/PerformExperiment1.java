@@ -27,13 +27,8 @@ public class PerformExperiment1 extends AbstractExperiment {
 
         TaskQueueManager manager = new FileBasedTaskManager(createPath());
 
-        //AnalyzeEngineeredDataset info = new AnalyzeEngineeredDataset();
-
         manager.removeAll();
         List<DatasetInfo> datasets = ExperimentDatasets.getInstance().getDatasetsForExperiment(getName());
-
-
-
 
         for(DatasetInfo info: datasets) {
 
@@ -45,7 +40,7 @@ public class PerformExperiment1 extends AbstractExperiment {
                 }
                 pred.append(str);
             }
-            ///System.out.println(info.getTarget() + ":" + pred.toString());
+
             manager.addTaskCycles("exp1","feature_eng.csv","neural-r:"+info.getTarget(),pred.toString(),5);
             manager.addTaskCycles("exp1","feature_eng.csv","gp-r:"+info.getTarget(),pred.toString(),5);
         }
