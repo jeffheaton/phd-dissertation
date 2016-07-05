@@ -3,10 +3,7 @@ package com.jeffheaton.dissertation.experiments.manager;
 import com.jeffheaton.dissertation.experiments.payloads.*;
 import com.jeffheaton.dissertation.util.*;
 import org.encog.EncogError;
-import org.encog.ml.data.MLDataSet;
 import org.encog.util.csv.CSVFormat;
-
-import java.util.Random;
 
 /**
  * Created by jeff on 5/16/16.
@@ -21,12 +18,10 @@ public class ExperimentTask implements Runnable {
     private int iterations;
     private double result;
     private int elapsed;
-    private QuickEncodeDataset quick;
-    private MLDataSet dataset;
     private String predictors;
     private String info;
-    private boolean regression;
     private ThreadedRunner owner;
+    private ParseModelType modelType;
 
     public ExperimentTask(String theName, String theDataset, String theAlgorithm, String thePredictors, int theCycle) {
         this.name = theName;
@@ -64,55 +59,56 @@ public class ExperimentTask implements Runnable {
         return result.toString();
     }
 
-    private boolean loadDataset(ParseModelType model) {
-        boolean isGP = model.getName().equalsIgnoreCase("gp") || model.getName().equalsIgnoreCase("ensemble");
-        String target = model.getTarget();
+    public QuickEncodeDataset loadDatasetNeural() {
         ObtainInputStream source = new ObtainFallbackStream(this.datasetFilename);
-        this.quick = new QuickEncodeDataset(isGP,false);
-        quick.analyze(source, target, true, CSVFormat.EG_FORMAT);
+        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
+        quick.analyze(source, this.modelType.getTarget(), true, CSVFormat.EG_FORMAT);
 
         if( this.predictors!=null && this.predictors.length()>0 ) {
             quick.forcePredictors(this.predictors);
         }
 
-        if( isGP && this.quick.getTargetField().getEncodeType()== QuickEncodeDataset.QuickFieldEncode.NumericCategory
-                && this.quick.getTargetField().getUnique()>2) {
+        return quick;
+    }
+
+    public QuickEncodeDataset loadDatasetGP() {
+        ObtainInputStream source = new ObtainFallbackStream(this.datasetFilename);
+        QuickEncodeDataset quick = new QuickEncodeDataset(true,false);
+        quick.analyze(source, this.modelType.getTarget(), true, CSVFormat.EG_FORMAT);
+
+        if( this.predictors!=null && this.predictors.length()>0 ) {
+            quick.forcePredictors(this.predictors);
+        }
+
+        if( quick.getTargetField().getEncodeType()== QuickEncodeDataset.QuickFieldEncode.NumericCategory
+                && quick.getTargetField().getUnique()>2) {
             throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
         }
 
-        this.dataset = quick.generateDataset();
-
-        return model.isRegression();
+        return quick;
     }
 
     public void run() {
-        ParseModelType model = new ParseModelType(this.algorithm);
-        this.regression = loadDataset(model);
+        this.modelType = new ParseModelType(this.algorithm);
         PayloadReport report;
+        ExperimentPayload payload = null;
 
-        if (model.isNeuralNetwork()) {
-            ExperimentPayload payload = new PayloadNeuralFit();
-            payload.setVerbose(this.owner==null||this.owner.isVerbose());
-            report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
-        } else if (model.isGeneticProgram()) {
-            ExperimentPayload payload = new PayloadGeneticFit();
-            payload.setVerbose(this.owner==null||this.owner.isVerbose());
-            report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
-        } else if (model.isEnsemble() ) {
-            ExperimentPayload payload = new PayloadEnsembleGP();
-            payload.setVerbose(this.owner==null||this.owner.isVerbose());
-            report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
-        } else if (model.isPatterns() ) {
-            ExperimentPayload payload = new PayloadPatterns();
-            payload.setVerbose(this.owner==null||this.owner.isVerbose());
-            report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
-        } else if (model.isImportance() ) {
-            ExperimentPayload payload = new PayloadImportance();
-            payload.setVerbose(this.owner==null||this.owner.isVerbose());
-            report = payload.run(this.quick.getFieldNames(),this.dataset,this.regression);
+        if (this.modelType.isNeuralNetwork()) {
+            payload = new PayloadNeuralFit();
+        } else if (this.modelType.isGeneticProgram()) {
+            payload = new PayloadGeneticFit();
+        } else if (this.modelType.isEnsemble() ) {
+            payload = new PayloadEnsembleGP();
+        } else if (this.modelType.isPatterns() ) {
+            payload = new PayloadPatterns();
+        } else if (this.modelType.isImportance() ) {
+            payload = new PayloadImportance();
         } else {
             throw new EncogError("Unknown algorithm: " + this.algorithm);
         }
+
+        payload.setVerbose(this.owner==null||this.owner.isVerbose());
+        report = payload.run(this);
 
         if(report!=null) {
             this.elapsed = report.getElapsed();
@@ -212,16 +208,6 @@ public class ExperimentTask implements Runnable {
         this.info = info;
     }
 
-    public MLDataSet getDataset() {
-        return dataset;
-    }
-
-    public boolean isRegression() {
-        return this.regression;
-    }
-
-    public QuickEncodeDataset getQuick() {
-        return this.quick;
-    }
+    public ParseModelType getModelType() { return this.modelType; }
 
 }

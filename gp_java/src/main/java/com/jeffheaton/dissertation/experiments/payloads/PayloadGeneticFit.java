@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.payloads;
 
+import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import com.jeffheaton.dissertation.util.Transform;
@@ -57,7 +58,10 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
     }
 
     @Override
-    public PayloadReport run(String[] fields, MLDataSet dataset, boolean regression) {
+    public PayloadReport run(ExperimentTask task) {
+        QuickEncodeDataset quick = task.loadDatasetGP();
+        MLDataSet dataset = quick.generateDataset();
+
         if(dataset.getIdealSize()>2) {
             throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
         }
@@ -72,7 +76,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
-        for (String field: fields) {
+        for (String field: quick.getFieldNames()) {
             context.defineVariable(field);
         }
 

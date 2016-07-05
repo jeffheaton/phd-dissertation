@@ -1,6 +1,8 @@
 package com.jeffheaton.dissertation.experiments.ex5;
 
 import com.jeffheaton.dissertation.experiments.AbstractExperiment;
+import com.jeffheaton.dissertation.experiments.data.DatasetInfo;
+import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
@@ -8,14 +10,15 @@ import com.jeffheaton.dissertation.experiments.report.GenerateAggregateReport;
 import com.jeffheaton.dissertation.experiments.report.GenerateSimpleReport;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Created by jeff on 6/25/16.
  */
 public class PerformExperiment5  extends AbstractExperiment {
-    public static void addDataSet(TaskQueueManager manager, boolean regression, String filename, String target) {
-        String type = regression ? "r":"c";
-        manager.addTask("exp5",filename,"importance-"+type+":"+target,null,1);
+    public static void addDataSet(TaskQueueManager manager, DatasetInfo info) {
+        String type = info.isRegression() ? "r":"c";
+        manager.addTask("exp5",info.getName(),"importance-"+type+":"+info.getTarget(),null,1);
     }
 
 
@@ -35,21 +38,12 @@ public class PerformExperiment5  extends AbstractExperiment {
         TaskQueueManager manager = new FileBasedTaskManager(path);
 
         manager.removeAll();
-        addDataSet(manager,true,"auto-mpg.csv","mpg");
-        addDataSet(manager,false,"iris.csv","species");
-        addDataSet(manager,false,"abalone.csv","sex");
-        addDataSet(manager,true,"bupa.csv","selector");
-        addDataSet(manager,true,"covtype.csv","cover_type");
-        addDataSet(manager,false,"forestfires.csv","area");
-        addDataSet(manager,true,"glass.csv","type");
-        addDataSet(manager,false,"hepatitis.csv","class");
-        addDataSet(manager,false,"horse-colic.csv","outcome");
-        addDataSet(manager,false,"housing.csv","crim");
-        addDataSet(manager,false,"pima-indians-diabetes.csv","class");
-        addDataSet(manager,false,"wcbreast_wdbc.csv","diagnosis");
-        addDataSet(manager,false,"wcbreast_wpbc.csv","outcome");
-        addDataSet(manager,false,"wine.csv","class");
-        addDataSet(manager,false,"crx.csv","a16");
+        List<DatasetInfo> datasets = ExperimentDatasets.getInstance().getDatasetsForExperiment(getName());
+        for(DatasetInfo info: datasets) {
+            if( info.isRegression() || info.getTargetElements()<3 ) {
+                addDataSet(manager, info);
+            }
+        }
 
         ThreadedRunner runner = new ThreadedRunner(manager);
         runner.setVerbose(false);

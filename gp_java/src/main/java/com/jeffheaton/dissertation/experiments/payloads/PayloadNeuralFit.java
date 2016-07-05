@@ -42,9 +42,12 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
     }
 
     @Override
-    public PayloadReport run(String[] fields, MLDataSet dataset, boolean regression) {
+    public PayloadReport run(ExperimentTask task) {
         Stopwatch sw = new Stopwatch();
         sw.start();
+        // get the dataset
+        MLDataSet dataset = task.loadDatasetNeural().generateDataset();
+
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
         org.encog.ml.data.MLDataSet[] split = Transform.splitTrainValidate(dataset, rnd, 0.75);
@@ -58,7 +61,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         network.addLayer(new BasicLayer(new ActivationReLU(), true, 100));
         network.addLayer(new BasicLayer(new ActivationReLU(), true, 25));
 
-        if (regression) {
+        if (task.getModelType().isRegression()) {
             network.addLayer(new BasicLayer(new ActivationLinear(), false, trainingSet.getIdealSize()));
             ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         } else {

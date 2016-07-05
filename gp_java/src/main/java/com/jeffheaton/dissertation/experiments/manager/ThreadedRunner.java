@@ -67,10 +67,10 @@ public class ThreadedRunner {
         int errorCount = QueueUtil.countError(queue);
 
         if( errorCount==0 ) {
-            System.out.println("Complete: " + completeCount + "/" + totalCount + ", " + task.getKey()
+            System.out.println(task.getName() + ": Complete: " + completeCount + "/" + totalCount + ", " + task.getKey()
                     + " - " + task.getResult());
         } else {
-            System.out.println("Complete: " + completeCount + "/" + totalCount + "(errored=" + errorCount
+            System.out.println(task.getName() + ": Complete: " + completeCount + "/" + totalCount + "(errored=" + errorCount
                     +  "), " + task.getKey() + " - " + task.getResult());
         }
     }

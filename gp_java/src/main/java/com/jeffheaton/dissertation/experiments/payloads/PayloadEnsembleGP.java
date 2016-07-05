@@ -1,5 +1,7 @@
 package com.jeffheaton.dissertation.experiments.payloads;
 
+import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
+import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.EncogError;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
@@ -23,20 +25,26 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
     public static int N = 5;
 
     @Override
-    public PayloadReport run(String[] fields, MLDataSet dataset, boolean regression) {
-
-        if(dataset.getIdealSize()>1) {
-            throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
-        }
+    public PayloadReport run(ExperimentTask task) {
 
         Stopwatch sw = new Stopwatch();
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         sw.start();
 
+        QuickEncodeDataset quickNeural = task.loadDatasetNeural();
+        QuickEncodeDataset quickGP = task.loadDatasetGP();
+
+        MLDataSet datasetNeural = quickNeural.generateDataset();
+        MLDataSet datasetGP = quickGP.generateDataset();
+
+        if(datasetNeural.getIdealSize()>1) {
+            throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
+        }
+
         PayloadGeneticFit gp = new PayloadGeneticFit();
         gp.setVerbose(isVerbose());
         gp.setN(N);
-        gp.run(fields,dataset,regression);
+        gp.run(task);
         List<EncogProgram> gpFeatures = gp.getBest();
 
         if(isVerbose()) {
@@ -47,25 +55,29 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
         }
 
         // generate ensemble training data
-        int originalFeatureCount = dataset.getInputSize();
+        int originalFeatureCount = datasetNeural.getInputSize();
         int totalFeatureCount = originalFeatureCount + N;
-        int totalOutputCount = dataset.getIdealSize();
+        int totalOutputCount = datasetGP.getIdealSize();
         MLDataSet ensembleRun = new BasicMLDataSet();
-        for(MLDataPair item: dataset) {
+
+        for(int itemnum=0;itemnum<datasetGP.size();itemnum++) {
+            MLDataPair itemNeural = datasetNeural.get(itemnum);
+            MLDataPair itemGP = datasetGP.get(itemnum);
+
             MLData x = new BasicMLData(totalFeatureCount);
             MLData y = new BasicMLData(totalOutputCount);
 
             int idx = 0;
             for(int i=0;i<originalFeatureCount;i++) {
-                x.setData(idx++,item.getInput().getData(i));
+                x.setData(idx++,itemNeural.getInput().getData(i));
             }
             for(int i=0;i<N;i++) {
-                MLData output = gpFeatures.get(i).compute(item.getInput());
+                MLData output = gpFeatures.get(i).compute(itemGP.getInput());
                 x.setData(idx++,output.getData(0));
             }
 
             for(int i=0;i<totalOutputCount;i++) {
-                y.setData(i,item.getIdeal().getData(0));
+                y.setData(i,itemGP.getIdeal().getData(0));
             }
 
             MLDataPair newPair = new BasicMLDataPair(x,y);
@@ -75,7 +87,7 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
         // Train neural network
         PayloadNeuralFit neuralPayload = new PayloadNeuralFit();
         neuralPayload.setVerbose(isVerbose());
-        PayloadReport neuralFit = neuralPayload.run(null,ensembleRun,regression);
+        PayloadReport neuralFit = neuralPayload.run(task);
         sw.stop();
 
 

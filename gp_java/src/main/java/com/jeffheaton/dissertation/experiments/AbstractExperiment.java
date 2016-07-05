@@ -16,11 +16,15 @@ public abstract class AbstractExperiment {
 
     public abstract String getName();
     protected abstract void internalRun();
+    private static boolean datasetsLoaded;
 
     public AbstractExperiment() {
-        System.out.println("Analyzing datasets...");
-        ExperimentDatasets.getInstance();
-        System.out.println("Analysis complete...");
+        if(!datasetsLoaded) {
+            datasetsLoaded = true;
+            System.out.println("Analyzing datasets...");
+            ExperimentDatasets.getInstance();
+            System.out.println("Analysis complete.");
+        }
     }
 
     protected File createPath() {

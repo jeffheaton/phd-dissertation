@@ -10,5 +10,5 @@ import org.encog.ml.data.MLDataSet;
 public interface ExperimentPayload {
     boolean isVerbose();
     void setVerbose(boolean theVerbose);
-    PayloadReport run(String[] fields, MLDataSet dataset, boolean regression);
+    PayloadReport run(ExperimentTask task);
 }

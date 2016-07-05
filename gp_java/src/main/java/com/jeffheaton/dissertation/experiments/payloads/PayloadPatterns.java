@@ -1,6 +1,8 @@
 package com.jeffheaton.dissertation.experiments.payloads;
 
+import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.features.FindPatternsGP;
+import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.EncogError;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
@@ -22,7 +24,9 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
     public static int N = 500;
 
     @Override
-    public PayloadReport run(String[] fields, MLDataSet dataset, boolean regression) {
+    public PayloadReport run(ExperimentTask task) {
+        QuickEncodeDataset quick = task.loadDatasetGP();
+        MLDataSet dataset = quick.generateDataset();
 
         if(dataset.getIdealSize()>2) {
             throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
@@ -35,7 +39,7 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
         PayloadGeneticFit gp = new PayloadGeneticFit();
         gp.setVerbose(isVerbose());
         gp.setN(N);
-        gp.run(fields,dataset,regression);
+        gp.run(task);
         List<EncogProgram> gpFeatures = gp.getBest();
 
         FindPatternsGP util = new FindPatternsGP();
