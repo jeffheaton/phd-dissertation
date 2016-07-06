@@ -47,9 +47,9 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "feature_eng.csv",
-                "gp-r:ratio_poly-y0",
-                "ratio_poly-x0",
+                "covtype.csv",
+                "gp-c:cover_type",
+                null,
                 0);
         task.run();
         Encog.getInstance().shutdown();

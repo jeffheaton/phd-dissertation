@@ -2,7 +2,7 @@
 "c","abalone.csv","sex","","experiment-2,experiment-3,experiment-4,experiment-5"
 "r","auto-mpg.csv","mpg","","experiment-2,experiment-3,experiment-4,experiment-5"
 "r","bupa.csv","selector","","experiment-2,experiment-3,experiment-4,experiment-5"
-"r","covtype.csv","cover_type","","experiment-2,experiment-3,experiment-4,experiment-5"
+"c","covtype.csv","cover_type","","experiment-2,experiment-3,experiment-4,experiment-5"
 "r","crx.csv","a16","","experiment-2,experiment-3,experiment-4,experiment-5"
 "r","feature_eng.csv","ratio_poly-y0","ratio_poly-x0","experiment-1"
 "r","feature_eng.csv","ratio_diff-y0","ratio_diff-x0,ratio_diff-x1,ratio_diff-x2,ratio_diff-x3","experiment-1"

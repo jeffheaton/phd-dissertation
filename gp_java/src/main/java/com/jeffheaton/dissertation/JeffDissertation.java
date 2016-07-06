@@ -1,8 +1,11 @@
 package com.jeffheaton.dissertation;
 
 import com.jeffheaton.dissertation.experiments.ex1.PerformExperiment1;
+import com.jeffheaton.dissertation.experiments.ex1to5.PerformExperiments1To5;
 import com.jeffheaton.dissertation.experiments.ex2.PerformExperiment2;
 import com.jeffheaton.dissertation.experiments.ex3.PerformExperiment3;
+import com.jeffheaton.dissertation.experiments.ex4.PerformExperiment4;
+import com.jeffheaton.dissertation.experiments.ex5.PerformExperiment5;
 import com.jeffheaton.dissertation.experiments.misc.ExperimentAutoFeature;
 import com.jeffheaton.dissertation.experiments.misc.ExperimentGPFile;
 import com.jeffheaton.dissertation.experiments.misc.ExperimentNeuralXOR;
@@ -24,6 +27,12 @@ public class JeffDissertation {
             (new PerformExperiment2()).main(null);
         } else if( args[0].equalsIgnoreCase("experiment-3")) {
             (new PerformExperiment3()).main(null);
+        } else if( args[0].equalsIgnoreCase("experiment-4")) {
+            (new PerformExperiment4()).main(null);
+        } else if( args[0].equalsIgnoreCase("experiment-5")) {
+            (new PerformExperiment5()).main(null);
+        } else if( args[0].equalsIgnoreCase("experiment-1to5")) {
+            (new PerformExperiments1To5()).main(null);
         }
     }
 }

@@ -51,9 +51,11 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
     private void verboseStatusGeneticProgram(TrainEA genetic, EncogProgram best, NewSimpleEarlyStoppingStrategy earlyStop, PrgPopulation pop) {
         if( isVerbose() ) {
             System.out.println(genetic.getIteration() + ", Error: "
-                    + Format.formatDouble(best.getScore(), 6) + ",Validation Score: " + earlyStop.getValidationError()
+                    + Format.formatDouble(best.getScore(), 6)
                     + ",Best Genome Size:" + best.size()
-                    + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
+                    + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression()
+                    + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
+                    ", Stagnant: " + earlyStop.getStagnantIterations());
         }
     }
 
