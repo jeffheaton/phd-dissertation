@@ -25,7 +25,8 @@ public class PerformExperiment1 extends AbstractExperiment {
 
     protected void internalRun() {
 
-        TaskQueueManager manager = new FileBasedTaskManager(createPath());
+        File path = DissertationConfig.getInstance().createPath(getName());
+        TaskQueueManager manager = new FileBasedTaskManager(path);
 
         manager.removeAll();
         List<DatasetInfo> datasets = ExperimentDatasets.getInstance().getDatasetsForExperiment(getName());
@@ -41,8 +42,8 @@ public class PerformExperiment1 extends AbstractExperiment {
                 pred.append(str);
             }
 
-            manager.addTaskCycles("exp1","feature_eng.csv","neural-r:"+info.getTarget(),pred.toString(),5);
-            manager.addTaskCycles("exp1","feature_eng.csv","gp-r:"+info.getTarget(),pred.toString(),5);
+            manager.addTaskCycles(getName(),"feature_eng.csv","neural-r:"+info.getTarget(),pred.toString(),5);
+            manager.addTaskCycles(getName(),"feature_eng.csv","gp-r:"+info.getTarget(),pred.toString(),5);
         }
 
         ThreadedRunner runner = new ThreadedRunner(manager);

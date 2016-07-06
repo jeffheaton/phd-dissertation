@@ -74,6 +74,34 @@ public final class DissertationConfig {
         }
     }
 
+    public File getPath(String name) {
+        File experimentsRoot = new File(getProjectPath(), "experiment-results");
+        if( !experimentsRoot.exists() ) {
+            experimentsRoot.mkdir();
+        }
+        File experimentRoot = new File(experimentsRoot,name);
+        if( !experimentRoot.exists() ) {
+            experimentRoot.mkdir();
+        }
+
+        return experimentRoot;
+    }
+
+    public File createPath(String name) {
+        File experimentRoot = getPath(name);
+
+        // Clear this experiment
+        File[] files = experimentRoot.listFiles();
+        if( files!=null ) {
+            for (File file : experimentRoot.listFiles()) {
+                if (file.isFile()) {
+                    file.delete();
+                }
+            }
+        }
+        return experimentRoot;
+    }
+
     public boolean isVerboseForced() {
         return prop.containsKey("verbose");
     }
@@ -86,4 +114,5 @@ public final class DissertationConfig {
             return false;
         }
     }
+
 }

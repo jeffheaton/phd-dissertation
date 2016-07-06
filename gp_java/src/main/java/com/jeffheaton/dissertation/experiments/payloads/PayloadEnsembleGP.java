@@ -37,7 +37,7 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
         MLDataSet datasetNeural = quickNeural.generateDataset();
         MLDataSet datasetGP = quickGP.generateDataset();
 
-        if(datasetNeural.getIdealSize()>1) {
+        if(datasetGP.getIdealSize()>1) {
             throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
         }
 

@@ -5,6 +5,8 @@ import com.jeffheaton.dissertation.util.*;
 import org.encog.EncogError;
 import org.encog.util.csv.CSVFormat;
 
+import java.io.*;
+
 /**
  * Created by jeff on 5/16/16.
  */
@@ -22,6 +24,7 @@ public class ExperimentTask implements Runnable {
     private String info;
     private ThreadedRunner owner;
     private ParseModelType modelType;
+    private File logFilename;
 
     public ExperimentTask(String theName, String theDataset, String theAlgorithm, String thePredictors, int theCycle) {
         this.name = theName;
@@ -50,13 +53,14 @@ public class ExperimentTask implements Runnable {
     public String getKey() {
         StringBuilder result = new StringBuilder();
         result.append(this.name);
-        result.append("|");
+        result.append("_");
         result.append(this.algorithm);
-        result.append("|");
+        result.append("_");
         result.append(this.datasetFilename);
-        result.append("|");
+        result.append("_");
         result.append(this.cycle);
-        return result.toString();
+
+        return result.toString().replaceAll("\\W+", "-");
     }
 
     public QuickEncodeDataset loadDatasetNeural() {
@@ -66,6 +70,10 @@ public class ExperimentTask implements Runnable {
 
         if( this.predictors!=null && this.predictors.length()>0 ) {
             quick.forcePredictors(this.predictors);
+        }
+
+        if( !modelType.isRegression() ) {
+            quick.getTargetField().setEncodeType(QuickEncodeDataset.QuickFieldEncode.OneHot);
         }
 
         return quick;
@@ -138,6 +146,21 @@ public class ExperimentTask implements Runnable {
         result.append(getKey());
         result.append("]");
         return result.toString();
+    }
+
+    public void log(String str) {
+        if( this.logFilename==null ) {
+            this.logFilename = new File(DissertationConfig.getInstance().getPath(this.name),getKey()+".log");
+        }
+
+        try {
+            Writer writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(this.logFilename, true), "UTF-8"));
+            writer.write(str+"\r\n");
+            writer.close();
+        } catch(IOException ex) {
+            throw new EncogError(ex);
+        }
     }
 
     public boolean isQueued() {

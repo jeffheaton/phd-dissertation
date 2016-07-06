@@ -27,29 +27,6 @@ public abstract class AbstractExperiment {
         }
     }
 
-    protected File createPath() {
-        File experimentsRoot = new File(DissertationConfig.getInstance().getProjectPath(), "experiment-results");
-        if( !experimentsRoot.exists() ) {
-            experimentsRoot.mkdir();
-        }
-        File experimentRoot = new File(experimentsRoot,getName());
-        if( !experimentRoot.exists() ) {
-            experimentRoot.mkdir();
-        }
-
-        // Clear this experiment
-        File[] files = experimentRoot.listFiles();
-        if( files!=null ) {
-            for (File file : experimentRoot.listFiles()) {
-                if (file.isFile()) {
-                    file.delete();
-                }
-            }
-        }
-
-        return experimentRoot;
-    }
-
     public void run() {
         System.out.println("Beginning " + getName());
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);

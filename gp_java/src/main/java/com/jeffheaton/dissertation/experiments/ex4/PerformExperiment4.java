@@ -3,6 +3,7 @@ package com.jeffheaton.dissertation.experiments.ex4;
 import com.jeffheaton.dissertation.experiments.AbstractExperiment;
 import com.jeffheaton.dissertation.experiments.data.DatasetInfo;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
+import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
 import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
@@ -16,9 +17,9 @@ import java.util.List;
  * Created by jeff on 6/25/16.
  */
 public class PerformExperiment4  extends AbstractExperiment {
-    public static void addDataSet(TaskQueueManager manager, DatasetInfo info) {
+    public void addDataSet(TaskQueueManager manager, DatasetInfo info) {
         String type = info.isRegression() ? "r":"c";
-        manager.addTask("exp4",info.getName(),"patterns-"+type+":"+info.getTarget(),null,1);
+        manager.addTask(getName(),info.getName(),"patterns-"+type+":"+info.getTarget(),null,1);
     }
 
 
@@ -34,7 +35,7 @@ public class PerformExperiment4  extends AbstractExperiment {
 
     @Override
     protected void internalRun() {
-        File path = createPath();
+        File path = DissertationConfig.getInstance().createPath(getName());
         TaskQueueManager manager = new FileBasedTaskManager(path);
 
         manager.removeAll();

@@ -47,11 +47,12 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "covtype.csv",
-                "gp-c:cover_type",
+                "wcbreast_wdbc.csv",
+                "gp-r:diagnosis",
                 null,
                 0);
         task.run();
+
         Encog.getInstance().shutdown();
 
     }

@@ -32,12 +32,21 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
     public static final double MOMENTUM = 0.9;
     public static final int STAGNANT_NEURAL = 50;
 
-    private void verboseStatusNeural(MLTrain train, NewSimpleEarlyStoppingStrategy earlyStop) {
+    private void statusNeural(ExperimentTask task, MLTrain train, NewSimpleEarlyStoppingStrategy earlyStop) {
+        StringBuilder line = new StringBuilder();
+
+        line.append("Epoch #");
+        line.append(train.getIteration());
+        line.append(" Train Error:");
+        line.append(Format.formatDouble(train.getError(), 6));
+        line.append(", Validation Error: ");
+        line.append(Format.formatDouble(earlyStop.getValidationError(), 6));
+        line.append(", Stagnant: ");
+        line.append(earlyStop.getStagnantIterations());
+        task.log(line.toString());
+
         if (isVerbose()) {
-            System.out.println("Epoch #" + train.getIteration() + " Train Error:"
-                    + Format.formatDouble(train.getError(), 6)
-                    + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
-                    ", Stagnant: " + earlyStop.getStagnantIterations());
+            System.out.println(line.toString());
         }
     }
 
@@ -77,7 +86,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         double learningRate = LEARNING_RATE / miniBatchSize;
         MiniBatchDataSet batchedDataSet = new MiniBatchDataSet(trainingSet, rnd);
         batchedDataSet.setBatchSize(miniBatchSize);
-        Backpropagation train = new Backpropagation(network, trainingSet, learningRate, MOMENTUM);
+        Backpropagation train = new Backpropagation(network, batchedDataSet, learningRate, MOMENTUM);
         train.setErrorFunction(new CrossEntropyErrorFunction());
         train.setThreadCount(1);
 
@@ -94,7 +103,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
             long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
 
             if (isVerbose() || train.getIteration() == 1 || train.isTrainingDone() || sinceLastUpdate > 60) {
-                verboseStatusNeural(train, earlyStop);
+                statusNeural(task, train, earlyStop);
                 lastUpdate = System.currentTimeMillis();
             }
 
