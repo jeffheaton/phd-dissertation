@@ -137,7 +137,9 @@ public class NewSimpleEarlyStoppingStrategy implements EndTrainingStrategy {
         if( this.lastCheck>this.checkFrequency || Double.isInfinite(this.lastValidationError) ) {
             double currentValidationError = EncogUtility.calculateRegressionError(this.model, this.validationSet);
 
-            if( (this.lastValidationError-currentValidationError)<this.minimumImprovement ) {
+            if( Double.isInfinite(currentValidationError) || Double.isNaN(currentValidationError) ) {
+                stop = true;
+            } else if( (this.lastValidationError-currentValidationError)<this.minimumImprovement ) {
                 // error did not drop by required amount
                 this.stagnantIterations+=this.lastCheck;
                 if(this.stagnantIterations>this.allowedStagnantIterations) {
