@@ -17,16 +17,11 @@ public class PerformExperiments1To5 {
         Stopwatch sw = new Stopwatch();
         sw.start();
 
-        PerformExperiment1 ex1 = new PerformExperiment1();
-        ex1.run();
-        PerformExperiment2 ex2 = new PerformExperiment2();
-        ex2.run();
-        PerformExperiment3 ex3 = new PerformExperiment3();
-        ex3.run();
-        PerformExperiment4 ex4 = new PerformExperiment4();
-        ex4.run();
-        PerformExperiment5 ex5 = new PerformExperiment5();
-        ex5.run();
+        (new PerformExperiment1()).run();
+        (new PerformExperiment2()).run();
+        (new PerformExperiment3()).run();
+        (new PerformExperiment4()).run();
+        (new PerformExperiment5()).run();
 
         System.out.println("Total runtime: " + Format.formatTimeSpan((int)(sw.getElapsedMilliseconds()/1000)));
         sw.stop();
