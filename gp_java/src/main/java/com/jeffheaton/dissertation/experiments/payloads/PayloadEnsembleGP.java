@@ -11,6 +11,7 @@ import org.encog.ml.data.MLDataSet;
 import org.encog.ml.data.basic.BasicMLData;
 import org.encog.ml.data.basic.BasicMLDataPair;
 import org.encog.ml.data.basic.BasicMLDataSet;
+import org.encog.ml.ea.exception.EARuntimeError;
 import org.encog.ml.prg.EncogProgram;
 import org.encog.util.Stopwatch;
 
@@ -72,8 +73,13 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
                 x.setData(idx++,itemNeural.getInput().getData(i));
             }
             for(int i=0;i<N;i++) {
-                MLData output = gpFeatures.get(i).compute(itemGP.getInput());
-                x.setData(idx++,output.getData(0));
+                try {
+                    MLData output = gpFeatures.get(i).compute(itemGP.getInput());
+                    x.setData(idx++, output.getData(0));
+                } catch(EARuntimeError ex) {
+                    // division by zero, usually.
+                    x.setData(idx++,0);
+                }
             }
 
             for(int i=0;i<totalOutputCount;i++) {

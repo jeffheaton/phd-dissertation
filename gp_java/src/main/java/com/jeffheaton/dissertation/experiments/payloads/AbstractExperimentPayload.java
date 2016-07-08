@@ -16,4 +16,3 @@ public abstract class AbstractExperimentPayload implements ExperimentPayload {
         this.verbose = theVerbose;
     }
 }
-p

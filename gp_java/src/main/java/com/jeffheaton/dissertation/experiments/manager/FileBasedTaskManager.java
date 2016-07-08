@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -229,6 +230,13 @@ public class FileBasedTaskManager implements TaskQueueManager {
                 Files.createFile(this.pathLock);
                 return;
             } catch (FileAlreadyExistsException ex) {
+                try {
+                    Thread.sleep(1000);
+                    tries++;
+                } catch (InterruptedException ex2) {
+                    throw new EncogError(ex2);
+                }
+            } catch(AccessDeniedException ex) {
                 try {
                     Thread.sleep(1000);
                     tries++;
