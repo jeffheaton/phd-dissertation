@@ -3,11 +3,10 @@ package com.jeffheaton.dissertation.experiments.ex2;
 import com.jeffheaton.dissertation.experiments.AbstractExperiment;
 import com.jeffheaton.dissertation.experiments.data.DatasetInfo;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
-import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
-import com.jeffheaton.dissertation.experiments.manager.FileBasedTaskManager;
-import com.jeffheaton.dissertation.experiments.manager.TaskQueueManager;
-import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
+import com.jeffheaton.dissertation.experiments.ex1.PerformExperiment1;
+import com.jeffheaton.dissertation.experiments.manager.*;
 import com.jeffheaton.dissertation.experiments.report.GenerateAggregateReport;
+import org.encog.Encog;
 
 import java.io.File;
 import java.util.List;
@@ -20,7 +19,7 @@ import java.util.List;
  * be determined experimentally.  It is important that the topology include enough hidden neurons that the data
  * set can be learned with reasonable accuracy.
  */
-public class PerformExperiment2 extends AbstractExperiment {
+public class PerformExperiment2 implements AbstractExperiment {
 
     public void addDataSet(TaskQueueManager manager, DatasetInfo info) {
         String type = info.isRegression() ? "r":"c";
@@ -30,38 +29,32 @@ public class PerformExperiment2 extends AbstractExperiment {
         }
     }
 
-
-    public static void main(String[] args) {
-        PerformExperiment2 experiment = new PerformExperiment2();
-        experiment.run();
-    }
-
     @Override
     public String getName() {
         return "experiment-2";
     }
 
     @Override
-    protected void internalRun() {
-        File path = DissertationConfig.getInstance().createPath(getName());
-
-        TaskQueueManager manager = new FileBasedTaskManager(path);
-
-        manager.removeAll();
-
+    public void registerTasks(TaskQueueManager manager) {
         List<DatasetInfo> datasets = ExperimentDatasets.getInstance().getDatasetsForExperiment(getName());
         for(DatasetInfo info: datasets) {
             addDataSet(manager,info);
         }
+    }
 
-        ThreadedRunner runner = new ThreadedRunner(manager);
-        runner.setVerbose(false);
-        runner.startup();
-        manager.blockUntilDone(60);
-        runner.shutdown();
-
+    @Override
+    public void runReport(TaskQueueManager manager) {
         GenerateAggregateReport report = new GenerateAggregateReport(manager);
-        File reportFile = new File(path,"report-exp2.csv");
+        File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report-exp2.csv");
         report.report(reportFile, 60);
     }
+
+    public static void main(String[] args) {
+        ExperimentRunner ex = new ExperimentRunner();
+        ex.addExperiment(new PerformExperiment2());
+        ex.runTasks();
+        ex.runReports();
+        Encog.getInstance().shutdown();
+    }
+
 }

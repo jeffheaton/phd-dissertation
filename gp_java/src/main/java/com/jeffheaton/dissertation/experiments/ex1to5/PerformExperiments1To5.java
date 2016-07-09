@@ -5,6 +5,7 @@ import com.jeffheaton.dissertation.experiments.ex2.PerformExperiment2;
 import com.jeffheaton.dissertation.experiments.ex3.PerformExperiment3;
 import com.jeffheaton.dissertation.experiments.ex4.PerformExperiment4;
 import com.jeffheaton.dissertation.experiments.ex5.PerformExperiment5;
+import com.jeffheaton.dissertation.experiments.manager.ExperimentRunner;
 import org.encog.Encog;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
@@ -14,17 +15,14 @@ import org.encog.util.Stopwatch;
  */
 public class PerformExperiments1To5 {
     public static void main(String[] args) {
-        Stopwatch sw = new Stopwatch();
-        sw.start();
-
-        (new PerformExperiment1()).run();
-        (new PerformExperiment2()).run();
-        (new PerformExperiment3()).run();
-        (new PerformExperiment4()).run();
-        (new PerformExperiment5()).run();
-
-        System.out.println("Total runtime: " + Format.formatTimeSpan((int)(sw.getElapsedMilliseconds()/1000)));
-        sw.stop();
+        ExperimentRunner ex = new ExperimentRunner();
+        ex.addExperiment(new PerformExperiment1());
+        ex.addExperiment(new PerformExperiment2());
+        ex.addExperiment(new PerformExperiment3());
+        ex.addExperiment(new PerformExperiment4());
+        ex.addExperiment(new PerformExperiment5());
+        ex.runTasks();
+        ex.runReports();
         Encog.getInstance().shutdown();
     }
 }
