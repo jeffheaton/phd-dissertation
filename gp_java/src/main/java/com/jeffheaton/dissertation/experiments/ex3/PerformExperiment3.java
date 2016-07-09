@@ -38,7 +38,7 @@ public class PerformExperiment3 implements AbstractExperiment {
     public void runReport(TaskQueueManager manager) {
         GenerateAggregateReport report = new GenerateAggregateReport(manager);
         File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report-exp3.csv");
-        report.report(reportFile, 60);
+        report.report(reportFile, getName(), 600);
     }
 
     public static void main(String[] args) {

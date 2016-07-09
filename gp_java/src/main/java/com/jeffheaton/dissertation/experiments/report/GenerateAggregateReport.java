@@ -201,12 +201,14 @@ public class GenerateAggregateReport {
 
     }
 
-    public void report(File file, int max) {
+    public void report(File file, String name, int max) {
         ReportHolder holder = new ReportHolder();
 
         List<ExperimentTask> queue = this.manager.getQueue(max);
         for (ExperimentTask task : queue) {
-            reportCycle(task);
+            if( task.getName().equals(name) ) {
+                reportCycle(task);
+            }
         }
 
 

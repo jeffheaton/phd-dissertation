@@ -40,7 +40,7 @@ public class PerformExperiment4 implements AbstractExperiment {
     public void runReport(TaskQueueManager manager) {
         GenerateSimpleReport report = new GenerateSimpleReport(manager);
         File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report-exp4.csv");
-        report.report(reportFile, 60);
+        report.report(reportFile, getName(), 600);
     }
 
     public static void main(String[] args) {

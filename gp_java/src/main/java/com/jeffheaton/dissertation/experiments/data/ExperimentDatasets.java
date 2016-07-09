@@ -64,12 +64,15 @@ public class ExperimentDatasets {
         return result;
     }
 
-    public DataCacheElement loadDatasetNeural(ExperimentTask task) {
+    public synchronized DataCacheElement loadDatasetNeural(ExperimentTask task) {
         String key = "neural:"+task.getDatasetFilename()+task.getModelType().getTarget()+task.getPredictors();
 
         if( this.cache.containsKey(key)) {
+            System.out.println("Neural Key Found: " + key);
             return this.cache.get(key);
         }
+
+        System.out.println("Neural Loading key: " + key);
 
         ObtainInputStream source = new ObtainFallbackStream(task.getDatasetFilename());
         QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
@@ -88,12 +91,15 @@ public class ExperimentDatasets {
         return element;
     }
 
-    public DataCacheElement loadDatasetGP(ExperimentTask task) {
+    public synchronized DataCacheElement loadDatasetGP(ExperimentTask task) {
         String key = "gp:"+task.getDatasetFilename()+task.getModelType().getTarget()+task.getPredictors();
 
         if( this.cache.containsKey(key)) {
+            System.out.println("GP Key Found: " + key);
             return this.cache.get(key);
         }
+
+        System.out.println("GP Loading key: " + key);
 
         ObtainInputStream source = new ObtainFallbackStream(task.getDatasetFilename());
         QuickEncodeDataset quick = new QuickEncodeDataset(true,false);
