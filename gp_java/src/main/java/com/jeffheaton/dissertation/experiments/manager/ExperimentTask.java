@@ -63,39 +63,6 @@ public class ExperimentTask implements Runnable {
         return result.toString().replaceAll("\\W+", "-");
     }
 
-    public QuickEncodeDataset loadDatasetNeural() {
-        ObtainInputStream source = new ObtainFallbackStream(this.datasetFilename);
-        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
-        quick.analyze(source, this.modelType.getTarget(), true, CSVFormat.EG_FORMAT);
-
-        if( this.predictors!=null && this.predictors.length()>0 ) {
-            quick.forcePredictors(this.predictors);
-        }
-
-        if( !modelType.isRegression() ) {
-            quick.getTargetField().setEncodeType(QuickEncodeDataset.QuickFieldEncode.OneHot);
-        }
-
-        return quick;
-    }
-
-    public QuickEncodeDataset loadDatasetGP() {
-        ObtainInputStream source = new ObtainFallbackStream(this.datasetFilename);
-        QuickEncodeDataset quick = new QuickEncodeDataset(true,false);
-        quick.analyze(source, this.modelType.getTarget(), true, CSVFormat.EG_FORMAT);
-
-        if( this.predictors!=null && this.predictors.length()>0 ) {
-            quick.forcePredictors(this.predictors);
-        }
-
-        if( quick.getTargetField().getEncodeType()== QuickEncodeDataset.QuickFieldEncode.NumericCategory
-                && quick.getTargetField().getUnique()>2) {
-            throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
-        }
-
-        return quick;
-    }
-
     public void run() {
         this.modelType = new ParseModelType(this.algorithm);
         PayloadReport report;

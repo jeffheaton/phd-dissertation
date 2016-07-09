@@ -1,5 +1,7 @@
 package com.jeffheaton.dissertation.experiments.payloads;
 
+import com.jeffheaton.dissertation.experiments.data.DataCacheElement;
+import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.EncogError;
@@ -32,8 +34,11 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         sw.start();
 
-        QuickEncodeDataset quickNeural = task.loadDatasetNeural();
-        QuickEncodeDataset quickGP = task.loadDatasetGP();
+        DataCacheElement cacheNeural = ExperimentDatasets.getInstance().loadDatasetNeural(task);
+        DataCacheElement cacheGP = ExperimentDatasets.getInstance().loadDatasetGP(task);
+
+        QuickEncodeDataset quickNeural = cacheNeural.getQuick();
+        QuickEncodeDataset quickGP = cacheGP.getQuick();
 
         MLDataSet datasetNeural = quickNeural.generateDataset();
         MLDataSet datasetGP = quickGP.generateDataset();
