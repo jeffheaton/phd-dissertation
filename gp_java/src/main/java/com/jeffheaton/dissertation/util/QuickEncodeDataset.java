@@ -180,12 +180,15 @@ public class QuickEncodeDataset {
             if (!this.isNumeric() && this.getUnique() > 100) {
                 // Pure string field, can't use it
                 this.encodeType = QuickFieldEncode.Ignore;
+                clearUniques();
             } else if (this.calculateMissingPercent() > 0.5) {
                 // Too many missing, can't use it
                 this.encodeType = QuickFieldEncode.Ignore;
+                clearUniques();
             } else if (this.isInteger() && this.calculateUniquePercent() == 1.0) {
                 // Likely an ID field
                 this.encodeType = QuickFieldEncode.Ignore;
+                clearUniques();
             } else if (isLowRange() || !this.isNumeric()) {
                 // Treat as catagorical
                 if (this.uniqueCounts.size() == 2) {
@@ -195,10 +198,17 @@ public class QuickEncodeDataset {
                 }
             } else if (this.numeric) {
                 this.encodeType = QuickFieldEncode.RawNumeric;
+                clearUniques();
             } else {
                 // I don't think it reaches this point, but ignore just in case...
                 this.encodeType = QuickFieldEncode.Ignore;
+                clearUniques();
             }
+        }
+
+        public void clearUniques() {
+            this.uniqueCounts.clear();
+            this.uniqueIndex.clear();
         }
 
         public String getName() {

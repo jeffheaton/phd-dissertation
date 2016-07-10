@@ -135,7 +135,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         genetic.addOperation(0.5, new SubtreeCrossover());
         genetic.addOperation(0.25, new ConstMutation(context, 0.5, 1.0));
         genetic.addOperation(0.25, new SubtreeMutation(context, 4));
-        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10, 20, 10, 50.0));
+        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10, 20, 50, 100.0));
         genetic.getRules().addRewriteRule(new RewriteConstants());
         genetic.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
@@ -173,7 +173,9 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
 
         this.totalIterations += genetic.getIteration();
         this.globalError += earlyStop.getValidationError();
-        this.best.add((EncogProgram) genetic.getBestGenome());
+        EncogProgram prg = (EncogProgram) genetic.getBestGenome();
+        prg.setPopulation(null);
+        this.best.add(prg);
         pop.clear();
 
     }
