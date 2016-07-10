@@ -68,6 +68,7 @@ public class QuickEncodeDataset {
         private boolean integer;
         private boolean missing;
         private int count;
+        private int uniqueCount;
         private Map<String, Integer> uniqueCounts = new HashMap<>();
         private Map<String, Integer> uniqueIndex = new HashMap<>();
         private QuickFieldEncode encodeType = QuickFieldEncode.Ignore;
@@ -180,15 +181,12 @@ public class QuickEncodeDataset {
             if (!this.isNumeric() && this.getUnique() > 100) {
                 // Pure string field, can't use it
                 this.encodeType = QuickFieldEncode.Ignore;
-                clearUniques();
             } else if (this.calculateMissingPercent() > 0.5) {
                 // Too many missing, can't use it
                 this.encodeType = QuickFieldEncode.Ignore;
-                clearUniques();
             } else if (this.isInteger() && this.calculateUniquePercent() == 1.0) {
                 // Likely an ID field
                 this.encodeType = QuickFieldEncode.Ignore;
-                clearUniques();
             } else if (isLowRange() || !this.isNumeric()) {
                 // Treat as catagorical
                 if (this.uniqueCounts.size() == 2) {
@@ -198,17 +196,17 @@ public class QuickEncodeDataset {
                 }
             } else if (this.numeric) {
                 this.encodeType = QuickFieldEncode.RawNumeric;
-                clearUniques();
             } else {
                 // I don't think it reaches this point, but ignore just in case...
                 this.encodeType = QuickFieldEncode.Ignore;
-                clearUniques();
             }
         }
 
         public void clearUniques() {
+            this.uniqueCount = this.uniqueCounts.size();
             this.uniqueCounts.clear();
             this.uniqueIndex.clear();
+
         }
 
         public String getName() {
@@ -280,7 +278,11 @@ public class QuickEncodeDataset {
         }
 
         public int getUnique() {
-            return this.uniqueCounts.size();
+            if( this.uniqueCounts.size()==0) {
+                return this.uniqueCount;
+            } else {
+                return this.uniqueCounts.size();
+            }
         }
 
         public QuickFieldEncode getEncodeType() {
@@ -560,6 +562,14 @@ public class QuickEncodeDataset {
 
     public boolean isSingleFieldCatagorical() {
         return this.singleFieldCatagorical;
+    }
+
+    public void clearUniques() {
+        for(QuickField field: this.fields) {
+            if( field.getEncodeType()!=QuickFieldEncode.OneHot && field.getEncodeType()!=QuickFieldEncode.NumericCategory) {
+                field.clearUniques();
+            }
+        }
     }
 
     public static void main(String[] args) {

@@ -40,6 +40,7 @@ public class ExperimentDatasets {
         ObtainInputStream source = new ObtainFallbackStream(dataset);
         QuickEncodeDataset quick = new QuickEncodeDataset(true,false);
         quick.analyze(source, target, true, CSVFormat.EG_FORMAT);
+        quick.clearUniques();
         return quick.getTargetField().getUnique();
     }
 
@@ -86,6 +87,7 @@ public class ExperimentDatasets {
             quick.getTargetField().setEncodeType(QuickEncodeDataset.QuickFieldEncode.OneHot);
         }
 
+        quick.clearUniques();
         DataCacheElement element = new DataCacheElement(quick);
         this.cache.put(key,element);
         return element;
@@ -114,6 +116,7 @@ public class ExperimentDatasets {
             throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
         }
 
+        quick.clearUniques();
         DataCacheElement element = new DataCacheElement(quick);
         this.cache.put(key,element);
         return element;

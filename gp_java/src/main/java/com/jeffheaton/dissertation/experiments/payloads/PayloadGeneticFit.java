@@ -174,7 +174,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         this.totalIterations += genetic.getIteration();
         this.globalError += earlyStop.getValidationError();
         EncogProgram prg = (EncogProgram) genetic.getBestGenome();
-        prg.setPopulation(null);
+        //prg.setPopulation(null);
         this.best.add(prg);
         pop.clear();
 
