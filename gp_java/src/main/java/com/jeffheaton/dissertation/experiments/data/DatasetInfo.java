@@ -88,7 +88,7 @@ public class DatasetInfo {
     }
 
     public synchronized DataCacheElement loadDatasetGP(String target, List<String> predictors) {
-        String key = "neural:"+target+":"+predictors;
+        String key = "gps:"+target+":"+predictors;
 
         if( this.cache.containsKey(key)) {
             //System.out.println("Neural Key Found: " + key);

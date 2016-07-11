@@ -172,6 +172,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
                 verboseStatusGeneticProgram(task, genetic, currentBest, earlyStop, pop);
             }
         } while (!genetic.isTrainingDone());
+        genetic.finishTraining();
 
         this.totalIterations += genetic.getIteration();
         this.globalError += earlyStop.getValidationError();

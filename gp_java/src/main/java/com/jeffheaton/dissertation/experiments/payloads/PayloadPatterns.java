@@ -28,7 +28,7 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
 
     @Override
     public PayloadReport run(ExperimentTask task) {
-        DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetNeural(task.getDatasetFilename(),
+        DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetGP(task.getDatasetFilename(),
                 task.getModelType().getTarget(),
                 ArrayUtils.string2list(task.getPredictors()));
         QuickEncodeDataset quick = cache.getQuick();
