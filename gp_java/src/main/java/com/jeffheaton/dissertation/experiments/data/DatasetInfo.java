@@ -1,8 +1,14 @@
 package com.jeffheaton.dissertation.experiments.data;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
+import com.jeffheaton.dissertation.experiments.payloads.PayloadGeneticFit;
+import com.jeffheaton.dissertation.util.ObtainFallbackStream;
+import com.jeffheaton.dissertation.util.ObtainInputStream;
+import com.jeffheaton.dissertation.util.QuickEncodeDataset;
+import org.encog.EncogError;
+import org.encog.util.csv.CSVFormat;
+
+import java.util.*;
 
 /**
  * Created by jeff on 7/4/16.
@@ -15,15 +21,18 @@ public class DatasetInfo {
     private final List<String> predictors = new ArrayList<>();
     private final List<String> experiments = new ArrayList<>();
     private final int targetElements;
+    private Map<String, DataCacheElement> cache = new HashMap<>();
 
     public DatasetInfo(boolean theRegression, String theName, String theTarget,
-                       List<String> thePredictors, List<String> theExperiments, int theTargetElements) {
+                       List<String> thePredictors, List<String> theExperiments) {
         this.regression = theRegression;
         this.name = theName;
         this.target = theTarget;
         this.predictors.addAll(thePredictors);
         this.experiments.addAll(theExperiments);
-        this.targetElements = theTargetElements;
+
+        QuickEncodeDataset quick = loadDatasetNeural(target,thePredictors).getQuick();
+        this.targetElements = quick.getTargetField().getUnique();
     }
 
     public boolean isRegression() {
@@ -48,6 +57,63 @@ public class DatasetInfo {
 
     public int getTargetElements() {
         return targetElements;
+    }
+
+    public synchronized DataCacheElement loadDatasetNeural(String target, List<String> predictors) {
+        String key = "neural:"+target+":"+predictors;
+
+        if( this.cache.containsKey(key)) {
+            //System.out.println("Neural Key Found: " + key);
+            return this.cache.get(key);
+        }
+
+        //System.out.println("Neural Loading key: " + key);
+
+        ObtainInputStream source = new ObtainFallbackStream(this.name);
+        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
+        quick.analyze(source, target, true, CSVFormat.EG_FORMAT);
+
+        if( predictors!=null && predictors.size()>0 ) {
+            quick.forcePredictors(predictors);
+        }
+
+        if( !isRegression() ) {
+            quick.getTargetField().setEncodeType(QuickEncodeDataset.QuickFieldEncode.OneHot);
+        }
+
+        quick.clearUniques();
+        DataCacheElement element = new DataCacheElement(quick);
+        this.cache.put(key,element);
+        return element;
+    }
+
+    public synchronized DataCacheElement loadDatasetGP(String target, List<String> predictors) {
+        String key = "neural:"+target+":"+predictors;
+
+        if( this.cache.containsKey(key)) {
+            //System.out.println("Neural Key Found: " + key);
+            return this.cache.get(key);
+        }
+
+        //System.out.println("GP Loading key: " + key);
+
+        ObtainInputStream source = new ObtainFallbackStream(getName());
+        QuickEncodeDataset quick = new QuickEncodeDataset(true,false);
+        quick.analyze(source, target, true, CSVFormat.EG_FORMAT);
+
+        if( predictors!=null && predictors.size()>0 ) {
+            quick.forcePredictors(predictors);
+        }
+
+        if( quick.getTargetField().getEncodeType()== QuickEncodeDataset.QuickFieldEncode.NumericCategory
+                && quick.getTargetField().getUnique()>2) {
+            throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
+        }
+
+        quick.clearUniques();
+        DataCacheElement element = new DataCacheElement(quick);
+        this.cache.put(key,element);
+        return element;
     }
 
     public String toString() {

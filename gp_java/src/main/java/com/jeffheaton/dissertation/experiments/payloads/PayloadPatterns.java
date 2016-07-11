@@ -4,6 +4,7 @@ import com.jeffheaton.dissertation.experiments.data.DataCacheElement;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.features.FindPatternsGP;
+import com.jeffheaton.dissertation.util.ArrayUtils;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.EncogError;
 import org.encog.mathutil.error.ErrorCalculation;
@@ -27,7 +28,9 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
 
     @Override
     public PayloadReport run(ExperimentTask task) {
-        DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetNeural(task);
+        DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetNeural(task.getDatasetFilename(),
+                task.getModelType().getTarget(),
+                ArrayUtils.string2list(task.getPredictors()));
         QuickEncodeDataset quick = cache.getQuick();
         MLDataSet dataset = cache.getData();
 

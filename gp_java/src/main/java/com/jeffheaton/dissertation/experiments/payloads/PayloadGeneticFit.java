@@ -3,6 +3,7 @@ package com.jeffheaton.dissertation.experiments.payloads;
 import com.jeffheaton.dissertation.experiments.data.DataCacheElement;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
+import com.jeffheaton.dissertation.util.ArrayUtils;
 import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import com.jeffheaton.dissertation.util.Transform;
@@ -76,7 +77,8 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
 
     @Override
     public PayloadReport run(ExperimentTask task) {
-        DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetGP(task);
+        DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetGP(task.getDatasetFilename(),task.getModelType().getTarget(),
+                ArrayUtils.string2list(task.getPredictors()));
         QuickEncodeDataset quick = cache.getQuick();
         MLDataSet dataset = cache.getData();
 

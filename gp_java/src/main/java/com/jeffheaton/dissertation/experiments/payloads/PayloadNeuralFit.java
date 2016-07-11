@@ -3,6 +3,7 @@ package com.jeffheaton.dissertation.experiments.payloads;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
+import com.jeffheaton.dissertation.util.ArrayUtils;
 import com.jeffheaton.dissertation.util.MiniBatchDataSet;
 import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
 import com.jeffheaton.dissertation.util.Transform;
@@ -56,7 +57,10 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         Stopwatch sw = new Stopwatch();
         sw.start();
         // get the dataset
-        MLDataSet dataset = ExperimentDatasets.getInstance().loadDatasetNeural(task).getData();
+        MLDataSet dataset = ExperimentDatasets.getInstance().loadDatasetNeural(
+                task.getDatasetFilename(),
+                task.getModelType().getTarget(),
+                ArrayUtils.string2list(task.getPredictors())).getData();
 
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
