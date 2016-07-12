@@ -72,7 +72,7 @@ public class GenerateAggregateReport {
         }
 
         public ReportItem(ExperimentTask task) {
-            this(task.getName(), task.getDatasetFilename(), task.getAlgorithm());
+            this(task.getName(), task.getAlgorithm(), task.getDatasetFilename());
         }
 
         public void reportCycle(double result, int iterations, int seconds) {
@@ -216,10 +216,19 @@ public class GenerateAggregateReport {
         for (String key2 : this.reportItems.keySet()) {
             ReportItem item = this.reportItems.get(key2);
             item.collectStats();
-            holder.addLine(new String[]{item.getExperiment(), item.getAlgorithm(), item.getDataset(),
-                    Format.formatDouble(item.getMinResult(), 4), Format.formatDouble(item.getMaxResult(), 4),
-                    Format.formatDouble(item.getMeanResult(), 4), Format.formatDouble(item.getSDevResult(), 4),
-                    Format.formatTimeSpan(item.getMeanElapsed())});
+
+            if( Double.isInfinite(item.getMeanResult()) || Double.isNaN(item.getMeanResult()) ) {
+                holder.addLine(new String[]{item.getExperiment(), item.getAlgorithm(), item.getDataset(),
+                        "NaN", "NaN", "NaN", "NaN",
+                        Format.formatTimeSpan(item.getMeanElapsed())});
+            } else {
+                holder.addLine(new String[]{item.getExperiment(), item.getAlgorithm(), item.getDataset(),
+                        Format.formatDouble(item.getMinResult(), 4), Format.formatDouble(item.getMaxResult(), 4),
+                        Format.formatDouble(item.getMeanResult(), 4), Format.formatDouble(item.getSDevResult(), 4),
+                        Format.formatTimeSpan(item.getMeanElapsed())});
+            }
+
+
         }
         holder.sort(new int[]{0, 1, 2});
         holder.write(file);
