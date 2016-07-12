@@ -33,6 +33,7 @@ public class NormalizedError {
 
         this.mean = sum / outputCount;
 
+        sum = 0;
         for(MLDataPair pair: theData) {
             for(double d: pair.getIdealArray()) {
                 double z = d - this.mean;
@@ -54,6 +55,7 @@ public class NormalizedError {
             }
         }
 
-        return Math.sqrt (sum/this.outputCount) / (this.max - this.min);
+        //return Math.sqrt (sum/this.outputCount) / (this.max - this.min);
+        return Math.sqrt (sum/this.outputCount) / Math.abs(this.mean);
     }
 }
