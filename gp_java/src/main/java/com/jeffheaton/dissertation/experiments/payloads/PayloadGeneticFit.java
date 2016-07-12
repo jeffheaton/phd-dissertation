@@ -175,7 +175,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         this.totalIterations += genetic.getIteration();
 
         NormalizedError error = new NormalizedError(validationSet);
-        double normalizedError = error.calculateNormalizedRange(validationSet,(MLRegression) genetic.getBestGenome());
+        double normalizedError = error.calculateNormalizedMean(validationSet,(MLRegression) genetic.getBestGenome());
 
         this.globalError += normalizedError;
         EncogProgram prg = (EncogProgram) genetic.getBestGenome();

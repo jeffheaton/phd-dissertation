@@ -119,7 +119,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
 
         NormalizedError error = new NormalizedError(validationSet);
         MLRegression bestNetwork = earlyStop.getBestModel()==null?network:earlyStop.getBestModel();
-        double normalizedError = error.calculateNormalizedRange(validationSet,bestNetwork);
+        double normalizedError = error.calculateNormalizedMean(validationSet,bestNetwork);
 
         sw.stop();
         return new PayloadReport(

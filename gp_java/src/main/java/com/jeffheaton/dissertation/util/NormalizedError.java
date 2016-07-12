@@ -4,6 +4,7 @@ import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
+import org.encog.ml.ea.exception.EARuntimeError;
 
 /**
  * Created by jeff on 7/11/16.
@@ -44,18 +45,37 @@ public class NormalizedError {
         this.sd = Math.sqrt(sum/this.outputCount);
     }
 
-    public double calculateNormalizedRange(MLDataSet theData,MLRegression theModel) {
+    private double calculateSum(MLDataSet theData,MLRegression theModel) {
         double sum = 0;
         for(MLDataPair pair: theData) {
-            MLData actual = theModel.compute(pair.getInput());
+            MLData actual;
+            try {
+                actual = theModel.compute(pair.getInput());
+            } catch (EARuntimeError e) {
+                return Double.NaN;
+            }
             for(int i=0;i<pair.getIdeal().size();i++) {
                 double d = actual.getData(i) - pair.getIdeal().getData(i);
                 d = d * d;
                 sum+=d;
             }
         }
+        return sum;
+    }
 
-        //return Math.sqrt (sum/this.outputCount) / (this.max - this.min);
+    public double calculateNormalizedMean(MLDataSet theData,MLRegression theModel) {
+        double sum = calculateSum(theData,theModel);
+        if( Double.isNaN(sum) || Double.isInfinite(sum) ) {
+            return Double.NaN;
+        }
         return Math.sqrt (sum/this.outputCount) / Math.abs(this.mean);
+    }
+
+    public double calculateNormalizedRange(MLDataSet theData,MLRegression theModel) {
+        double sum = calculateSum(theData,theModel);
+        if( Double.isNaN(sum) || Double.isInfinite(sum) ) {
+            return Double.NaN;
+        }
+        return Math.sqrt (sum/this.outputCount) / (this.max - this.min);
     }
 }
