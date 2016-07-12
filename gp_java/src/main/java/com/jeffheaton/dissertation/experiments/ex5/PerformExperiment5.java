@@ -39,6 +39,7 @@ public class PerformExperiment5  implements AbstractExperiment {
     @Override
     public void runReport(TaskQueueManager manager) {
         GenerateSimpleReport report = new GenerateSimpleReport(manager);
+        report.setIFieldNames("IMP-W","IMP-P");
         File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report-exp5.csv");
         report.report(reportFile, getName(), 600);
     }

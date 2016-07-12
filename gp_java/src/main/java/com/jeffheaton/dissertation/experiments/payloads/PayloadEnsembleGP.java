@@ -105,7 +105,7 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
 
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
-                neuralFit.getResult(),
+                neuralFit.getResult(), neuralFit.getResultRaw(), neuralFit.getI1(), neuralFit.getI2(),
                 neuralFit.getIteration(), "");
     }
 }

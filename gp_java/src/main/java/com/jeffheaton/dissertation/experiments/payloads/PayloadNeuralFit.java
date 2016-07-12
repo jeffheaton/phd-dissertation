@@ -124,7 +124,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         sw.stop();
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
-                normalizedError,
+                normalizedError, earlyStop.getValidationError(), 0, 0,
                 train.getIteration(), "");
     }
 }

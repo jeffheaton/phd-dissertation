@@ -3,10 +3,7 @@ package com.jeffheaton.dissertation.experiments.payloads;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
-import com.jeffheaton.dissertation.util.ArrayUtils;
-import com.jeffheaton.dissertation.util.MiniBatchDataSet;
-import com.jeffheaton.dissertation.util.NewSimpleEarlyStoppingStrategy;
-import com.jeffheaton.dissertation.util.Transform;
+import com.jeffheaton.dissertation.util.*;
 import com.jeffheaton.dissertation.util.importance.FeatureImportance;
 import com.jeffheaton.dissertation.util.importance.FeatureRank;
 import com.jeffheaton.dissertation.util.importance.NeuralFeatureImportanceCalc;
@@ -19,6 +16,7 @@ import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.mathutil.randomize.generate.GenerateRandom;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
+import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.train.MLTrain;
 import org.encog.neural.error.CrossEntropyErrorFunction;
@@ -165,11 +163,15 @@ public class PayloadImportance extends AbstractExperimentPayload {
             }
             System.out.println(fi.toString());
         }
+        NormalizedError error = new NormalizedError(validationSet);
+        MLRegression bestNetwork = earlyStop.getBestModel()==null?network:earlyStop.getBestModel();
+        double normalizedError = error.calculateNormalizedMean(validationSet,bestNetwork);
+
 
         sw.stop();
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
-                earlyStop.getValidationError(),
-                train.getIteration(), "W:" + this.networkRankingStable +",P:" + this.permRankingStable);
+                normalizedError, earlyStop.getValidationError(), this.networkRankingStable, this.permRankingStable,
+                train.getIteration(), "");
     }
 }

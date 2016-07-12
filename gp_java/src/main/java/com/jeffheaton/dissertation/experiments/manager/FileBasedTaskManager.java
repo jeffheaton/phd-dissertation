@@ -46,7 +46,7 @@ public class FileBasedTaskManager implements TaskQueueManager {
                 while ((line = reader.readNext()) != null) {
                     ExperimentTask task = new ExperimentTask(line[0], line[2], line[3], line[4], Integer.parseInt(line[5]));
                     task.setResult(Double.parseDouble(line[6]));
-                    task.setNormalizedResult(Double.parseDouble(line[7]));
+                    task.setRaw(Double.parseDouble(line[7]));
                     task.setI1(Integer.parseInt(line[8]));
                     task.setI2(Integer.parseInt(line[9]));
                     task.setIterations(Integer.parseInt(line[10]));
@@ -66,11 +66,11 @@ public class FileBasedTaskManager implements TaskQueueManager {
     private void saveTasks(List<ExperimentTask> tasks) {
 
         try (CSVWriter writer = new CSVWriter(new FileWriter(this.pathWorkload.toFile()));) {
-            writer.writeNext(new String[]{"name", "status", "dataset", "algorithm", "predictors", "cycle", "result", "result-normalized", "i1", "i2", "iterations", "elapsed", "info" });
+            writer.writeNext(new String[]{"name", "status", "dataset", "algorithm", "predictors", "cycle", "result", "result-raw", "i1", "i2", "iterations", "elapsed", "info" });
             for (ExperimentTask task : tasks) {
                 writer.writeNext(new String[]{task.getName(), task.getStatus(), task.getDatasetFilename(), task.getAlgorithm(),
                         task.getPredictors(),"" + task.getCycle(), "" + task.getResult(),
-                        "" + task.getNormalizedResult(), ""+ task.getI1(), "" + task.getI2(),
+                        "" + task.getRawResult(), ""+ task.getI1(), "" + task.getI2(),
                         "" + task.getIterations(), "" + task.getElapsed(), task.getInfo()});
             }
 

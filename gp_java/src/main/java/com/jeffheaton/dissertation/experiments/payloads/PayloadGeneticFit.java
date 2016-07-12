@@ -10,7 +10,6 @@ import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.generate.GenerateRandom;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.MLRegression;
-import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.ea.score.adjust.ComplexityAdjustedScore;
 import org.encog.ml.ea.train.basic.TrainEA;
@@ -46,7 +45,8 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
     private final List<EncogProgram> best = new ArrayList<>();
     private int n = 1;
     private FunctionFactory factory;
-    private double globalError;
+    private double rawError;
+    private double normalizedError;
     private int totalIterations;
 
     private void verboseStatusGeneticProgram(ExperimentTask task, TrainEA genetic, EncogProgram best, NewSimpleEarlyStoppingStrategy earlyStop, PrgPopulation pop) {
@@ -109,7 +109,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         factory.addExtension(StandardExtensions.EXTENSION_POWER);
 
         this.totalIterations = 0;
-        this.globalError = 0;
+        this.rawError = this.normalizedError = 0;
         this.best.clear();
 
         for(int i=0;i<this.n;i++) {
@@ -119,7 +119,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         sw.stop();
 
         return new PayloadReport(
-                (int) (sw.getElapsedMilliseconds() / 1000),this.globalError/this.n,
+                (int) (sw.getElapsedMilliseconds() / 1000),getNormalizedError(),getRawError(), 0,0,
                 this.totalIterations,this.best.get(0).dumpAsCommonExpression());
     }
 
@@ -177,7 +177,8 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         NormalizedError error = new NormalizedError(validationSet);
         double normalizedError = error.calculateNormalizedMean(validationSet,(MLRegression) genetic.getBestGenome());
 
-        this.globalError += normalizedError;
+        this.normalizedError += normalizedError;
+        this.rawError += genetic.getError();
         EncogProgram prg = (EncogProgram) genetic.getBestGenome();
         //prg.setPopulation(null);
         this.best.add(prg);
@@ -195,5 +196,13 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
 
     public void setN(int n) {
         this.n = n;
+    }
+
+    public double getNormalizedError() {
+        return this.normalizedError/this.n;
+    }
+
+    public double getRawError() {
+        return this.rawError/this.n;
     }
 }

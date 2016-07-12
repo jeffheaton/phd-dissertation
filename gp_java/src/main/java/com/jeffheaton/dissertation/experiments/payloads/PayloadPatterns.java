@@ -55,7 +55,7 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
 
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
-                -1,
+                -1, 0,0,0,
                 N, util.reportString(5,N));
     }
 
