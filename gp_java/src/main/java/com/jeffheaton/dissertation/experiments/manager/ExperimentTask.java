@@ -19,6 +19,9 @@ public class ExperimentTask implements Runnable {
     private String status = "queued";
     private int iterations;
     private double result;
+    private double normalizedResult;
+    private int i1;
+    private int i2;
     private int elapsed;
     private String predictors;
     private String info;
@@ -200,4 +203,27 @@ public class ExperimentTask implements Runnable {
 
     public ParseModelType getModelType() { return this.modelType; }
 
+    public double getNormalizedResult() {
+        return normalizedResult;
+    }
+
+    public void setNormalizedResult(double normalizedResult) {
+        this.normalizedResult = normalizedResult;
+    }
+
+    public int getI1() {
+        return i1;
+    }
+
+    public void setI1(int i1) {
+        this.i1 = i1;
+    }
+
+    public int getI2() {
+        return i2;
+    }
+
+    public void setI2(int i2) {
+        this.i2 = i2;
+    }
 }
