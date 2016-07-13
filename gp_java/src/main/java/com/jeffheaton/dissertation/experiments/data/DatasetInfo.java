@@ -63,14 +63,11 @@ public class DatasetInfo {
         String key = "neural:"+target+":"+predictors;
 
         if( this.cache.containsKey(key)) {
-            //System.out.println("Neural Key Found: " + key);
             return this.cache.get(key);
         }
 
-        //System.out.println("Neural Loading key: " + key);
-
         ObtainInputStream source = new ObtainFallbackStream(this.name);
-        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
+        QuickEncodeDataset quick = new QuickEncodeDataset(false,true);
         quick.analyze(source, target, true, CSVFormat.EG_FORMAT);
 
         if( predictors!=null && predictors.size()>0 ) {
@@ -91,11 +88,9 @@ public class DatasetInfo {
         String key = "gps:"+target+":"+predictors;
 
         if( this.cache.containsKey(key)) {
-            //System.out.println("Neural Key Found: " + key);
             return this.cache.get(key);
         }
 
-        //System.out.println("GP Loading key: " + key);
 
         ObtainInputStream source = new ObtainFallbackStream(getName());
         QuickEncodeDataset quick = new QuickEncodeDataset(true,false);

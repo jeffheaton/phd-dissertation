@@ -47,11 +47,16 @@ public class QuickEncodeDataset {
         return this.targetField;
     }
 
+    public boolean isScale() {
+        return this.scale;
+    }
+
     public enum QuickFieldEncode {
         NumericCategory,
         OneHot,
         Ignore,
-        RawNumeric
+        RawNumeric,
+        ZScore
     }
 
     public static class QuickField {
@@ -195,7 +200,11 @@ public class QuickEncodeDataset {
                     this.encodeType = this.owner.isSingleFieldCatagorical() ? QuickFieldEncode.NumericCategory : QuickFieldEncode.OneHot;
                 }
             } else if (this.numeric) {
-                this.encodeType = QuickFieldEncode.RawNumeric;
+                if( this.owner.isScale() ) {
+                    this.encodeType = QuickFieldEncode.ZScore;
+                } else {
+                    this.encodeType = QuickFieldEncode.RawNumeric;
+                }
             } else {
                 // I don't think it reaches this point, but ignore just in case...
                 this.encodeType = QuickFieldEncode.Ignore;
@@ -315,6 +324,8 @@ public class QuickEncodeDataset {
                     return 1;
                 case OneHot:
                     return getUnique();
+                case ZScore:
+                    return 1;
                 default:
                     // Should not happen.
                     return 0;
@@ -334,6 +345,9 @@ public class QuickEncodeDataset {
                     return startIndex + 1;
                 case NumericCategory:
                     vec[startIndex] = findCategoryIndex(str);
+                    return startIndex + 1;
+                case ZScore:
+                    vec[startIndex] = (Double.parseDouble(str)-this.mean)/this.sd;
                     return startIndex + 1;
                 case OneHot:
                     int len = encodeColumnsNeeded();
