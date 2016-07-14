@@ -200,7 +200,7 @@ public class QuickEncodeDataset {
                     this.encodeType = this.owner.isSingleFieldCatagorical() ? QuickFieldEncode.NumericCategory : QuickFieldEncode.OneHot;
                 }
             } else if (this.numeric) {
-                if( this.owner.isScale() ) {
+                if( this.owner.isScale() && this != this.owner.getTargetField()  ) {
                     this.encodeType = QuickFieldEncode.ZScore;
                 } else {
                     this.encodeType = QuickFieldEncode.RawNumeric;
@@ -347,7 +347,11 @@ public class QuickEncodeDataset {
                     vec[startIndex] = findCategoryIndex(str);
                     return startIndex + 1;
                 case ZScore:
-                    vec[startIndex] = (Double.parseDouble(str)-this.mean)/this.sd;
+                    if( isNA(str)) {
+                        vec[startIndex] = 0;
+                    } else {
+                        vec[startIndex] = (Double.parseDouble(str) - this.mean) / this.sd;
+                    }
                     return startIndex + 1;
                 case OneHot:
                     int len = encodeColumnsNeeded();

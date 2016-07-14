@@ -9,6 +9,9 @@ import java.util.List;
  */
 public class ArrayUtils {
     public static List<String> string2list(String str) {
+        if( str==null ) {
+            return null;
+        }
         List<String> result = new ArrayList<String>();
         String[] list = str.split(",");
         for(String s:list) {

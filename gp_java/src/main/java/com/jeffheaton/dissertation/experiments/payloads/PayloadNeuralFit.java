@@ -28,7 +28,7 @@ import org.encog.util.Stopwatch;
 public class PayloadNeuralFit extends AbstractExperimentPayload {
 
     public static final int MINI_BATCH_SIZE = 50;
-    public static final double LEARNING_RATE = 1e-12;
+    public static final double LEARNING_RATE = 1e-5;
     public static final double MOMENTUM = 0.9;
     public static final int STAGNANT_NEURAL = 50;
 

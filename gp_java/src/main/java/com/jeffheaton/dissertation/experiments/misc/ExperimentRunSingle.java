@@ -47,8 +47,8 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "wcbreast_wdbc.csv",
-                "gp-r:diagnosis",
+                "auto-mpg.csv",
+                "neural-r:mpg",
                 null,
                 0);
         task.run();

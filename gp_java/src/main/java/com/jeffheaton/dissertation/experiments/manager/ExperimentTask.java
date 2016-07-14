@@ -91,6 +91,7 @@ public class ExperimentTask implements Runnable {
         if(report!=null) {
             this.elapsed = report.getElapsed();
             this.result = report.getResult();
+            this.rawResult = report.getResultRaw();
             this.iterations = report.getIteration();
             setInfo(report.getComment());
         }
