@@ -19,6 +19,7 @@ import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.train.MLTrain;
+import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
@@ -38,7 +39,7 @@ public class PayloadImportance extends AbstractExperimentPayload {
     private int permRankingStable;
     private int networkRankingStable;
 
-    private void verboseStatusImportance(MLTrain train, NewSimpleEarlyStoppingStrategy earlyStop) {
+    private void verboseStatusImportance(MLTrain train, EarlyStoppingStrategy earlyStop) {
         if (isVerbose()) {
             System.out.println("Epoch #" + train.getIteration() + " Train Error:"
                     + Format.formatDouble(train.getError(), 6) + ", Perm("+this.permRankingStable+"):"
@@ -116,7 +117,7 @@ public class PayloadImportance extends AbstractExperimentPayload {
         train.setErrorFunction(new CrossEntropyErrorFunction());
         train.setThreadCount(1);
 
-        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet, 10, STAGNANT_NEURAL, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, STAGNANT_NEURAL, 0.01);
         earlyStop.setSaveBest(true);
         train.addStrategy(earlyStop);
 

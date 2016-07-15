@@ -15,6 +15,7 @@ import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.train.MLTrain;
+import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
@@ -32,7 +33,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
     public static final double MOMENTUM = 0.9;
     public static final int STAGNANT_NEURAL = 50;
 
-    private void statusNeural(ExperimentTask task, MLTrain train, NewSimpleEarlyStoppingStrategy earlyStop) {
+    private void statusNeural(ExperimentTask task, MLTrain train, EarlyStoppingStrategy earlyStop) {
         StringBuilder line = new StringBuilder();
 
         line.append("Epoch #");
@@ -93,7 +94,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         train.setErrorFunction(new CrossEntropyErrorFunction());
         train.setThreadCount(1);
 
-        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet, 10, STAGNANT_NEURAL, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, STAGNANT_NEURAL, 0.01);
         earlyStop.setSaveBest(true);
         train.addStrategy(earlyStop);
 

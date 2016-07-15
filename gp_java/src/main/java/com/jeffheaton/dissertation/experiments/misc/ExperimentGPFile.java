@@ -22,6 +22,7 @@ import org.encog.ml.prg.species.PrgSpeciation;
 import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
+import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.parse.expression.latex.RenderLatexExpression;
 import org.encog.util.Format;
@@ -90,7 +91,7 @@ public class ExperimentGPFile {
         genetic.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
 
-        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet, 5, 500, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 500, 0.01);
         genetic.addStrategy(earlyStop);
 
         (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);

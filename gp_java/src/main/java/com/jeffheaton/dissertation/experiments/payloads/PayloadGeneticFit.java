@@ -27,6 +27,7 @@ import org.encog.ml.prg.species.PrgSpeciation;
 import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
+import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
@@ -49,7 +50,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
     private double normalizedError;
     private int totalIterations;
 
-    private void verboseStatusGeneticProgram(ExperimentTask task, TrainEA genetic, EncogProgram best, NewSimpleEarlyStoppingStrategy earlyStop, PrgPopulation pop) {
+    private void verboseStatusGeneticProgram(ExperimentTask task, TrainEA genetic, EncogProgram best, EarlyStoppingStrategy earlyStop, PrgPopulation pop) {
         StringBuilder line = new StringBuilder();
 
         line.append("Epoch #");
@@ -141,7 +142,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         genetic.setSpeciation(new PrgSpeciation());
         genetic.setThreadCount(1);
 
-        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet, 5, 50, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 50, 0.01);
         genetic.addStrategy(earlyStop);
 
         (new RampedHalfAndHalf(context, 1, 6)).generate(new Random(), pop);

@@ -13,6 +13,7 @@ import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
+import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
@@ -53,7 +54,7 @@ public class ExperimentNeuralFile {
         final Backpropagation train = new Backpropagation(network, trainingSet, 1e-5, 0.9);
         train.setErrorFunction(new CrossEntropyErrorFunction());
         train.setNesterovUpdate(true);
-        NewSimpleEarlyStoppingStrategy earlyStop = new NewSimpleEarlyStoppingStrategy(validationSet);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet);
         train.addStrategy(earlyStop);
 
         int epoch = 1;
