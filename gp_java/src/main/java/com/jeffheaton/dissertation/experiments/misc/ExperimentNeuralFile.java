@@ -18,6 +18,8 @@ import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
+import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
+import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
 
@@ -51,9 +53,12 @@ public class ExperimentNeuralFile {
         //seedInput(network);
 
         // train the neural network
-        final Backpropagation train = new Backpropagation(network, trainingSet, 1e-5, 0.9);
-        train.setErrorFunction(new CrossEntropyErrorFunction());
-        train.setNesterovUpdate(true);
+        final StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet);
+        //train.setErrorFunction(new CrossEntropyErrorFunction());
+        //train.setNesterovUpdate(true);
+        train.setLearningRate(0.1);
+        train.setL2(1e-7);
+
         EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet);
         train.addStrategy(earlyStop);
 
