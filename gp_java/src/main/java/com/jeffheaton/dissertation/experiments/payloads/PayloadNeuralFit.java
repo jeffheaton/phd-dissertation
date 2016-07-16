@@ -21,6 +21,7 @@ import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
 import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
+import org.encog.neural.networks.training.propagation.sgd.update.AdaGradUpdate;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
 
@@ -30,9 +31,10 @@ import org.encog.util.Stopwatch;
 public class PayloadNeuralFit extends AbstractExperimentPayload {
 
     public static final int MINI_BATCH_SIZE = 50;
-    public static final double LEARNING_RATE = 1e-5;
-    public static final double MOMENTUM = 0.9;
+    public static final double LEARNING_RATE = 1e-2;
     public static final int STAGNANT_NEURAL = 50;
+    public static final double L1 = 0;
+    public static final double L2 = 1e-8;
 
     private void statusNeural(ExperimentTask task, MLTrain train, EarlyStoppingStrategy earlyStop) {
         StringBuilder line = new StringBuilder();
@@ -88,8 +90,11 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
 
         // train the neural networks
         StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet);
-        train.setL2(1e-8);
-        train.setLearningRate(0.1);
+        train.setUpdateRule(new AdaGradUpdate());
+        train.setBatchSize(MINI_BATCH_SIZE);
+        train.setL1(L1);
+        train.setL2(L2);
+        train.setLearningRate(LEARNING_RATE);
 
         EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, STAGNANT_NEURAL, 0.01);
         earlyStop.setSaveBest(true);
