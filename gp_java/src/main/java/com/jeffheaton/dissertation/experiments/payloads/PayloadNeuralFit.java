@@ -20,6 +20,7 @@ import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
+import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
 
@@ -85,14 +86,10 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         (new XaiverRandomizer()).randomize(network);
         //network.reset();
 
-        // train the neural network
-        int miniBatchSize = Math.min(dataset.size(), MINI_BATCH_SIZE);
-        double learningRate = LEARNING_RATE / miniBatchSize;
-        MiniBatchDataSet batchedDataSet = new MiniBatchDataSet(trainingSet, rnd);
-        batchedDataSet.setBatchSize(miniBatchSize);
-        Backpropagation train = new Backpropagation(network, batchedDataSet, learningRate, MOMENTUM);
-        train.setErrorFunction(new CrossEntropyErrorFunction());
-        train.setThreadCount(1);
+        // train the neural networks
+        StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet);
+        train.setL2(1e-8);
+        train.setLearningRate(0.1);
 
         EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, STAGNANT_NEURAL, 0.01);
         earlyStop.setSaveBest(true);
@@ -102,7 +99,6 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
 
         do {
             train.iteration();
-            batchedDataSet.advance();
 
             long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
 
