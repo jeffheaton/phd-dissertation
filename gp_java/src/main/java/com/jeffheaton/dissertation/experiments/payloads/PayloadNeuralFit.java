@@ -79,10 +79,10 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
 
         if (task.getModelType().isRegression()) {
             network.addLayer(new BasicLayer(new ActivationLinear(), false, trainingSet.getIdealSize()));
-            ErrorCalculation.setMode(ErrorCalculationMode.RMS);
+            //ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         } else {
             network.addLayer(new BasicLayer(new ActivationSoftMax(), false, trainingSet.getIdealSize()));
-            ErrorCalculation.setMode(ErrorCalculationMode.HOT_LOGLOSS);
+            //ErrorCalculation.setMode(ErrorCalculationMode.HOT_LOGLOSS);
         }
         network.getStructure().finalizeStructure();
         (new XaiverRandomizer()).randomize(network);
@@ -121,9 +121,14 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
 
         NormalizedError error = new NormalizedError(validationSet);
         MLRegression bestNetwork = earlyStop.getBestModel()==null?network:earlyStop.getBestModel();
-        double normalizedError = error.calculateNormalizedMean(validationSet,bestNetwork);
+        double normalizedError = error.calculateNormalizedRange(validationSet,bestNetwork);
 
         sw.stop();
+
+        if( isVerbose() ) {
+            System.out.println("Normalized error: " + normalizedError);
+        }
+
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
                 normalizedError, earlyStop.getValidationError(), 0, 0,

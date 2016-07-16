@@ -47,8 +47,8 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "auto-mpg.csv",
-                "neural-r:mpg",
+                "covtype.csv",
+                "neural-c:cover_type",
                 null,
                 0);
         task.run();
