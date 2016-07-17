@@ -39,14 +39,12 @@ public class PayloadImportance extends AbstractExperimentPayload {
     private int permRankingStable;
     private int networkRankingStable;
 
-    private void verboseStatusImportance(MLTrain train, EarlyStoppingStrategy earlyStop) {
-        if (isVerbose()) {
-            System.out.println("Epoch #" + train.getIteration() + " Train Error:"
+    private void verboseStatusImportance(ExperimentTask task, MLTrain train, EarlyStoppingStrategy earlyStop) {
+        task.log("Epoch #" + train.getIteration() + " Train Error:"
                     + Format.formatDouble(train.getError(), 6) + ", Perm("+this.permRankingStable+"):"
                     + this.permRanking + ", Weight("+this.networkRankingStable+"):" + this.networkRanking
                     + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
                     ", Stagnant: " + earlyStop.getStagnantIterations());
-        }
     }
 
     private String calculateImportanceType(BasicNetwork network, MLDataSet validationSet, FeatureImportance fi) {
@@ -131,7 +129,7 @@ public class PayloadImportance extends AbstractExperimentPayload {
             long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;
 
             if (isVerbose() || train.getIteration() == 1 || train.isTrainingDone() || sinceLastUpdate > 60) {
-                verboseStatusImportance(train, earlyStop);
+                verboseStatusImportance(task, train, earlyStop);
                 lastUpdate = System.currentTimeMillis();
             }
 

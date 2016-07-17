@@ -48,10 +48,6 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         line.append(", Stagnant: ");
         line.append(earlyStop.getStagnantIterations());
         task.log(line.toString());
-
-        if (isVerbose()) {
-            System.out.println(line.toString());
-        }
     }
 
     @Override
@@ -125,9 +121,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
 
         sw.stop();
 
-        if( isVerbose() ) {
-            System.out.println("Normalized error: " + normalizedError);
-        }
+        task.log("Normalized error: " + normalizedError);
 
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),

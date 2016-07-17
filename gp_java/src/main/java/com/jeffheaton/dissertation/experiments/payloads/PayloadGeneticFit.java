@@ -50,9 +50,15 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
     private double normalizedError;
     private int totalIterations;
 
-    private void verboseStatusGeneticProgram(ExperimentTask task, TrainEA genetic, EncogProgram best, EarlyStoppingStrategy earlyStop, PrgPopulation pop) {
+    private void verboseStatusGeneticProgram(int current, ExperimentTask task, TrainEA genetic, EncogProgram best, EarlyStoppingStrategy earlyStop, PrgPopulation pop) {
         StringBuilder line = new StringBuilder();
 
+        if( this.n!=1 ) {
+            line.append(current);
+            line.append("/");
+            line.append(this.n);
+            line.append(":");
+        }
         line.append("Epoch #");
         line.append(genetic.getIteration());
         line.append(" Train Error:");
@@ -68,10 +74,6 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         line.append(", Stagnant: ");
         line.append(earlyStop.getStagnantIterations());
         task.log(line.toString());
-
-        if( isVerbose() ) {
-            System.out.println(line.toString());
-        }
     }
 
     @Override
@@ -114,7 +116,8 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         this.best.clear();
 
         for(int i=0;i<this.n;i++) {
-            fitOne(task, context,trainingSet,validationSet);
+            task.log("GP: Fit " + (i+1) + "/" + this.n);
+            fitOne(i+1, task, context,trainingSet,validationSet);
         }
 
         sw.stop();
@@ -124,7 +127,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
                 this.totalIterations,this.best.get(0).dumpAsCommonExpression());
     }
 
-    private void fitOne(ExperimentTask task, EncogProgramContext context, MLDataSet trainingSet, MLDataSet validationSet) {
+    private void fitOne(int current, ExperimentTask task, EncogProgramContext context, MLDataSet trainingSet, MLDataSet validationSet) {
 
         PrgPopulation pop = new PrgPopulation(context, POPULATION_SIZE);
 
@@ -168,7 +171,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
             genetic.iteration();
             EncogProgram currentBest = (EncogProgram) genetic.getBestGenome();
             if (isVerbose() || genetic.getIteration() == 1 || genetic.isTrainingDone() || sinceLastUpdate > 60) {
-                verboseStatusGeneticProgram(task, genetic, currentBest, earlyStop, pop);
+                verboseStatusGeneticProgram(current, task, genetic, currentBest, earlyStop, pop);
             }
         } while (!genetic.isTrainingDone());
         genetic.finishTraining();

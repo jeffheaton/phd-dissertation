@@ -120,6 +120,10 @@ public class ExperimentTask implements Runnable {
     }
 
     public void log(String str) {
+        if( getOwner()==null || getOwner().isVerbose() ) {
+            System.out.println(str);
+        }
+
         if( this.logFilename==null ) {
             this.logFilename = new File(DissertationConfig.getInstance().getPath(this.name),getKey()+".log");
         }

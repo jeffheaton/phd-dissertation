@@ -31,7 +31,7 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
         DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetGP(task.getDatasetFilename(),
                 task.getModelType().getTarget(),
                 ArrayUtils.string2list(task.getPredictors()));
-        QuickEncodeDataset quick = cache.getQuick();
+
         MLDataSet dataset = cache.getData();
 
         if(dataset.getIdealSize()>2) {
@@ -55,7 +55,7 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
 
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
-                -1, 0,0,0,
+                gp.getNormalizedError(), 0,0,0,
                 N, util.reportString(5,N));
     }
 

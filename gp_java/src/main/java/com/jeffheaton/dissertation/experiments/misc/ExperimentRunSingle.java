@@ -47,8 +47,8 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "covtype.csv",
-                "neural-c:cover_type",
+                "abalone.csv",
+                "patterns-r:rings",
                 null,
                 0);
         task.run();
