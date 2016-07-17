@@ -1,6 +1,5 @@
 package com.jeffheaton.dissertation.experiments.manager;
 
-import com.jeffheaton.dissertation.experiments.AbstractExperiment;
 import com.jeffheaton.dissertation.experiments.data.DatasetInfo;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import org.encog.mathutil.error.ErrorCalculation;
@@ -8,7 +7,6 @@ import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 

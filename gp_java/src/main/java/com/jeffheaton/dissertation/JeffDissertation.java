@@ -1,11 +1,11 @@
 package com.jeffheaton.dissertation;
 
-import com.jeffheaton.dissertation.experiments.ex1.PerformExperiment1;
-import com.jeffheaton.dissertation.experiments.ex1to5.PerformExperiments1To5;
-import com.jeffheaton.dissertation.experiments.ex2.PerformExperiment2;
-import com.jeffheaton.dissertation.experiments.ex3.PerformExperiment3;
-import com.jeffheaton.dissertation.experiments.ex4.PerformExperiment4;
-import com.jeffheaton.dissertation.experiments.ex5.PerformExperiment5;
+import com.jeffheaton.dissertation.experiments.PerformExperiment1;
+import com.jeffheaton.dissertation.experiments.PerformExperiments1To5;
+import com.jeffheaton.dissertation.experiments.PerformExperiment2;
+import com.jeffheaton.dissertation.experiments.PerformExperiment3;
+import com.jeffheaton.dissertation.experiments.PerformExperiment4;
+import com.jeffheaton.dissertation.experiments.PerformExperiment5;
 import com.jeffheaton.dissertation.experiments.misc.ExperimentAutoFeature;
 import com.jeffheaton.dissertation.experiments.misc.ExperimentGPFile;
 import com.jeffheaton.dissertation.experiments.misc.ExperimentNeuralXOR;

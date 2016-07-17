@@ -1,4 +1,4 @@
-package com.jeffheaton.dissertation.experiments;
+package com.jeffheaton.dissertation.experiments.manager;
 
 import org.encog.util.Format;
 

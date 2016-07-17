@@ -24,15 +24,12 @@ import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
+import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
+import org.encog.neural.networks.training.propagation.sgd.update.AdaGradUpdate;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
 
 public class PayloadImportance extends AbstractExperimentPayload {
-
-    public static final int MINI_BATCH_SIZE = 50;
-    public static final double LEARNING_RATE = 1e-12;
-    public static final double MOMENTUM = 0.9;
-    public static final int STAGNANT_NEURAL = 50;
 
     private String permRanking;
     private String networkRanking;
@@ -107,15 +104,14 @@ public class PayloadImportance extends AbstractExperimentPayload {
         //network.reset();
 
         // train the neural network
-        int miniBatchSize = Math.min(dataset.size(), MINI_BATCH_SIZE);
-        double learningRate = LEARNING_RATE / miniBatchSize;
-        MiniBatchDataSet batchedDataSet = new MiniBatchDataSet(trainingSet, rnd);
-        batchedDataSet.setBatchSize(miniBatchSize);
-        Backpropagation train = new Backpropagation(network, trainingSet, learningRate, MOMENTUM);
-        train.setErrorFunction(new CrossEntropyErrorFunction());
-        train.setThreadCount(1);
+        StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet);
+        train.setUpdateRule(new AdaGradUpdate());
+        train.setBatchSize(PayloadNeuralFit.MINI_BATCH_SIZE);
+        train.setL1(PayloadNeuralFit.L1);
+        train.setL2(PayloadNeuralFit.L2);
+        train.setLearningRate(PayloadNeuralFit.LEARNING_RATE);
 
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, STAGNANT_NEURAL, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, PayloadNeuralFit.STAGNANT_NEURAL, 0.01);
         earlyStop.setSaveBest(true);
         train.addStrategy(earlyStop);
 
@@ -123,7 +119,6 @@ public class PayloadImportance extends AbstractExperimentPayload {
 
         do {
             train.iteration();
-            batchedDataSet.advance();
             calculateImportance(network,validationSet);
 
             long sinceLastUpdate = (System.currentTimeMillis() - lastUpdate) / 1000;

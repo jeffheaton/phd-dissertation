@@ -1,29 +1,25 @@
-package com.jeffheaton.dissertation.experiments.ex4;
+package com.jeffheaton.dissertation.experiments;
 
-import com.jeffheaton.dissertation.experiments.AbstractExperiment;
 import com.jeffheaton.dissertation.experiments.data.DatasetInfo;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
-import com.jeffheaton.dissertation.experiments.ex2.PerformExperiment2;
 import com.jeffheaton.dissertation.experiments.manager.*;
 import com.jeffheaton.dissertation.experiments.report.GenerateAggregateReport;
-import com.jeffheaton.dissertation.experiments.report.GenerateSimpleReport;
 import org.encog.Encog;
 
 import java.io.File;
 import java.util.List;
 
-/**
- * Created by jeff on 6/25/16.
- */
-public class PerformExperiment4 implements AbstractExperiment {
+
+public class PerformExperiment3 implements AbstractExperiment {
+
     public void addDataSet(TaskQueueManager manager, DatasetInfo info) {
         String type = info.isRegression() ? "r":"c";
-        manager.addTask(getName(),info.getName(),"patterns-"+type+":"+info.getTarget(),null,1);
+        manager.addTaskCycles(getName(),info.getName(),"ensemble-"+type+":"+info.getTarget(),null,5);
     }
 
     @Override
     public String getName() {
-        return "experiment-4";
+        return "experiment-3";
     }
 
     @Override
@@ -38,14 +34,14 @@ public class PerformExperiment4 implements AbstractExperiment {
 
     @Override
     public void runReport(TaskQueueManager manager) {
-        GenerateSimpleReport report = new GenerateSimpleReport(manager);
-        File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report-exp4.csv");
+        GenerateAggregateReport report = new GenerateAggregateReport(manager);
+        File reportFile = new File(DissertationConfig.getInstance().getProjectPath(),"report-exp3.csv");
         report.report(reportFile, getName(), 600);
     }
 
     public static void main(String[] args) {
         ExperimentRunner ex = new ExperimentRunner();
-        ex.addExperiment(new PerformExperiment4());
+        ex.addExperiment(new PerformExperiment3());
         ex.runTasks();
         ex.runReports();
         Encog.getInstance().shutdown();

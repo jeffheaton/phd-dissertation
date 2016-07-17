@@ -1,14 +1,7 @@
-package com.jeffheaton.dissertation.experiments.ex1to5;
+package com.jeffheaton.dissertation.experiments;
 
-import com.jeffheaton.dissertation.experiments.ex1.PerformExperiment1;
-import com.jeffheaton.dissertation.experiments.ex2.PerformExperiment2;
-import com.jeffheaton.dissertation.experiments.ex3.PerformExperiment3;
-import com.jeffheaton.dissertation.experiments.ex4.PerformExperiment4;
-import com.jeffheaton.dissertation.experiments.ex5.PerformExperiment5;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentRunner;
 import org.encog.Encog;
-import org.encog.util.Format;
-import org.encog.util.Stopwatch;
 
 /**
  * Created by jeffh on 7/5/2016.

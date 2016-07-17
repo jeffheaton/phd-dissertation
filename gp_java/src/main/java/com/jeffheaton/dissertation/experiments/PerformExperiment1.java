@@ -1,6 +1,5 @@
-package com.jeffheaton.dissertation.experiments.ex1;
+package com.jeffheaton.dissertation.experiments;
 
-import com.jeffheaton.dissertation.experiments.AbstractExperiment;
 import com.jeffheaton.dissertation.experiments.data.DatasetInfo;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.*;

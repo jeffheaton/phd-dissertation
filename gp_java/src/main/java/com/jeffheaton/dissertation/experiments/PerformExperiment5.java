@@ -1,11 +1,8 @@
-package com.jeffheaton.dissertation.experiments.ex5;
+package com.jeffheaton.dissertation.experiments;
 
-import com.jeffheaton.dissertation.experiments.AbstractExperiment;
 import com.jeffheaton.dissertation.experiments.data.DatasetInfo;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
-import com.jeffheaton.dissertation.experiments.ex2.PerformExperiment2;
 import com.jeffheaton.dissertation.experiments.manager.*;
-import com.jeffheaton.dissertation.experiments.report.GenerateAggregateReport;
 import com.jeffheaton.dissertation.experiments.report.GenerateSimpleReport;
 import org.encog.Encog;
 
