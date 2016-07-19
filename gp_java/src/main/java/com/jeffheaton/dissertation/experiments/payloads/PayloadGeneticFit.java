@@ -70,10 +70,10 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         line.append(best.size());
         line.append(",Species Count:");
         line.append(pop.getSpecies().size());
-        line.append(",best: ");
-        line.append(best.dumpAsCommonExpression());
         line.append(", Stagnant: ");
         line.append(earlyStop.getStagnantIterations());
+        line.append(",best: ");
+        line.append(best.dumpAsCommonExpression());
         task.log(line.toString());
     }
 
@@ -118,7 +118,6 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         this.best.clear();
 
         for(int i=0;i<this.n;i++) {
-            task.log("GP: Fit " + (i+1) + "/" + this.n);
             fitOne(i+1, task, context,trainingSet,validationSet);
         }
 
@@ -183,7 +182,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         NormalizedError error = new NormalizedError(validationSet);
         double normalizedError = error.calculateNormalizedMean(validationSet,(MLRegression) genetic.getBestGenome());
 
-        if( Double.isNaN(normalizedError) && Double.isInfinite(normalizedError)) {
+        if( !Double.isNaN(normalizedError) && !Double.isInfinite(normalizedError)) {
             this.accumulatedError += normalizedError;
             this.accumulatedRuns += 1;
             this.rawError += genetic.getError();

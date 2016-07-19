@@ -72,6 +72,8 @@ public class PayloadImportance extends AbstractExperimentPayload {
 
     @Override
     public PayloadReport run(ExperimentTask task) {
+        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
+
         Stopwatch sw = new Stopwatch();
         sw.start();
         MLDataSet dataset = ExperimentDatasets.getInstance().loadDatasetNeural(
@@ -94,10 +96,8 @@ public class PayloadImportance extends AbstractExperimentPayload {
 
         if (task.getModelType().isRegression()) {
             network.addLayer(new BasicLayer(new ActivationLinear(), false, trainingSet.getIdealSize()));
-            ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         } else {
             network.addLayer(new BasicLayer(new ActivationSoftMax(), false, trainingSet.getIdealSize()));
-            ErrorCalculation.setMode(ErrorCalculationMode.HOT_LOGLOSS);
         }
         network.getStructure().finalizeStructure();
         (new XaiverRandomizer()).randomize(network);
