@@ -1,7 +1,5 @@
 package com.jeffheaton.dissertation.features.ex1_gp_feature_rank;
 
-import com.jeffheaton.dissertation.util.importance.FeatureRank;
-import com.jeffheaton.dissertation.util.importance.NeuralFeatureImportanceCalc;
 import org.encog.Encog;
 import org.encog.EncogError;
 import org.encog.engine.network.activation.ActivationLinear;
@@ -19,6 +17,8 @@ import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.ml.ea.exception.EARuntimeError;
 import org.encog.ml.ea.genome.Genome;
 import org.encog.ml.ea.population.Population;
+import org.encog.ml.importance.FeatureRank;
+import org.encog.ml.importance.NeuralFeatureImportanceCalc;
 import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.ml.train.strategy.end.EndIterationsStrategy;
