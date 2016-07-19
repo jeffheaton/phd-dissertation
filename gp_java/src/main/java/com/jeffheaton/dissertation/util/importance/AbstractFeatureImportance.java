@@ -9,13 +9,23 @@ import org.encog.ml.data.MLDataSet;
 import java.util.*;
 
 /**
- * Created by jeffh on 6/29/2016.
+ * Provides basic functionality for a feature ranking algorithm.
  */
 public abstract class AbstractFeatureImportance implements FeatureImportance {
 
+    /**
+     * The model that is going to be ranked.
+     */
     private MLRegression model;
+
+    /**
+     * The features that were ranked.
+     */
     private final List<FeatureRank> features = new ArrayList<>();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void init(MLRegression theModel, String[] theFeatureNames) {
         this.model = theModel;
@@ -25,9 +35,11 @@ public abstract class AbstractFeatureImportance implements FeatureImportance {
                 this.features.add(new FeatureRank("f" + i));
             }
         } else {
-            if (theFeatureNames.length != this.model.getInputCount()) {
-                throw new EncogError("Neural network inputs(" + this.model.getInputCount() + ") and feature name count("
-                        + theFeatureNames.length + ") do not match.");
+            if( model!=null ) {
+                if (theFeatureNames.length != this.model.getInputCount()) {
+                    throw new EncogError("Neural network inputs(" + this.model.getInputCount() + ") and feature name count("
+                            + theFeatureNames.length + ") do not match.");
+                }
             }
 
             for (String name : theFeatureNames) {
@@ -36,11 +48,17 @@ public abstract class AbstractFeatureImportance implements FeatureImportance {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<FeatureRank> getFeatures() {
         return this.features;
     }
 
+    /**
+     * @return The features sorted by importance.
+     */
     public List<FeatureRank> getFeaturesSorted() {
         ArrayList<FeatureRank> result = new ArrayList<>();
         result.addAll(this.features);
@@ -53,6 +71,9 @@ public abstract class AbstractFeatureImportance implements FeatureImportance {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
@@ -66,6 +87,9 @@ public abstract class AbstractFeatureImportance implements FeatureImportance {
         return result.toString();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public MLRegression getModel() {
         return this.model;

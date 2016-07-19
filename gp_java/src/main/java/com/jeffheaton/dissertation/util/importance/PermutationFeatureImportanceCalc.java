@@ -18,12 +18,27 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Created by jeff on 6/17/16.
+ * Permutation feature encoding can be used to determine the importance of features for any type of regression or
+ * classification model, with any compatible dataset.  This method works by evaluating the performance of the model
+ * when each of the input's corrisponding data is scrambled.  Features that are more important will result in worse
+ * errors when their data are scrambled.
+ *
+ * Source:
+ * Breiman, L. (2001). Random forests. Machine learning, 45(1), 5-32.
  */
 public class PermutationFeatureImportanceCalc extends AbstractFeatureImportance {
 
+    /**
+     * Random number generator.
+     */
     private GenerateRandom rnd = new MersenneTwisterGenerateRandom();
 
+    /**
+     * Generate a dataset where one of the columns is scrambled/permuted.
+     * @param source The source dataset.
+     * @param column The column to scramble.
+     * @return The resulting dataset.
+     */
     private MLDataSet generatePermutation(MLDataSet source, int column) {
         MLDataSet result = new BasicMLDataSet();
         for(MLDataPair item:source) {
@@ -48,11 +63,18 @@ public class PermutationFeatureImportanceCalc extends AbstractFeatureImportance 
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void performRanking() {
         throw new EncogError("This algorithm requires a dataset to measure performance against, please call performRanking with a dataset.");
     }
 
+    /**
+     * {@inheritDoc}
+     * @param theDataset
+     */
     @Override
     public void performRanking(MLDataSet theDataset) {
 
@@ -72,10 +94,17 @@ public class PermutationFeatureImportanceCalc extends AbstractFeatureImportance 
         }
     }
 
+    /**
+     * @return The random number generator.
+     */
     public GenerateRandom getRnd() {
         return rnd;
     }
 
+    /**
+     * Set the random number generator.
+     * @param rnd The random number generator.
+     */
     public void setRnd(GenerateRandom rnd) {
         this.rnd = rnd;
     }

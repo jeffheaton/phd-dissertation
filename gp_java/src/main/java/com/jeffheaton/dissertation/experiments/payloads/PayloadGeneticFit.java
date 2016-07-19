@@ -47,7 +47,8 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
     private int n = 1;
     private FunctionFactory factory;
     private double rawError;
-    private double normalizedError;
+    private double accumulatedError;
+    private int accumulatedRuns;
     private int totalIterations;
 
     private void verboseStatusGeneticProgram(int current, ExperimentTask task, TrainEA genetic, EncogProgram best, EarlyStoppingStrategy earlyStop, PrgPopulation pop) {
@@ -112,7 +113,8 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         factory.addExtension(StandardExtensions.EXTENSION_POWER);
 
         this.totalIterations = 0;
-        this.rawError = this.normalizedError = 0;
+        this.rawError = this.accumulatedError = 0;
+        this.accumulatedRuns = 0;
         this.best.clear();
 
         for(int i=0;i<this.n;i++) {
@@ -181,8 +183,11 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         NormalizedError error = new NormalizedError(validationSet);
         double normalizedError = error.calculateNormalizedMean(validationSet,(MLRegression) genetic.getBestGenome());
 
-        this.normalizedError += normalizedError;
-        this.rawError += genetic.getError();
+        if( Double.isNaN(normalizedError) && Double.isInfinite(normalizedError)) {
+            this.accumulatedError += normalizedError;
+            this.accumulatedRuns += 1;
+            this.rawError += genetic.getError();
+        }
         EncogProgram prg = (EncogProgram) genetic.getBestGenome();
         //prg.setPopulation(null);
         this.best.add(prg);
@@ -203,10 +208,10 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
     }
 
     public double getNormalizedError() {
-        return this.normalizedError/this.n;
+        return this.accumulatedError/this.accumulatedRuns;
     }
 
     public double getRawError() {
-        return this.rawError/this.n;
+        return this.rawError/this.accumulatedRuns;
     }
 }

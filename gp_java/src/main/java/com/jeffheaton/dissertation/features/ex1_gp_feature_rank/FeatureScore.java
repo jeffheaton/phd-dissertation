@@ -171,7 +171,7 @@ public class FeatureScore implements CalculateScore {
 
         NeuralFeatureImportanceCalc fi = new NeuralFeatureImportanceCalc();
         fi.init(network,null);
-        fi.calculateFeatureImportance();
+        fi.performRanking();
 
         int count = Math.min(fi.getFeatures().size(),genomes.size());// might not be needed
         for(int i=0;i<count;i++) {

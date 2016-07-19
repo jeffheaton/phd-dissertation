@@ -1,10 +1,7 @@
 package com.jeffheaton.dissertation.experiments.misc;
 
 import com.jeffheaton.dissertation.util.*;
-import com.jeffheaton.dissertation.util.importance.FeatureImportance;
-import com.jeffheaton.dissertation.util.importance.FeatureRank;
-import com.jeffheaton.dissertation.util.importance.NeuralFeatureImportanceCalc;
-import com.jeffheaton.dissertation.util.importance.PermutationFeatureImportanceCalc;
+import com.jeffheaton.dissertation.util.importance.*;
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationLinear;
 import org.encog.engine.network.activation.ActivationReLU;
@@ -14,11 +11,8 @@ import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
-import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
-import org.encog.neural.networks.training.propagation.back.Backpropagation;
-import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
 import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
@@ -90,6 +84,17 @@ public class ExperimentNeuralFile {
         fi = new NeuralFeatureImportanceCalc();
         fi.init(network,quick.nameOutputVectorFields());
         fi.performRanking(validationSet);
+
+        for (FeatureRank ranking : fi.getFeaturesSorted()) {
+            System.out.println(ranking.toString());
+        }
+        System.out.println(fi.toString());
+
+        System.out.println();
+        System.out.println("Feature importance (covariance, without neural network)");
+        fi = new CorrelationFeatureImportanceCalc();
+        fi.init(null,quick.nameOutputVectorFields());
+        fi.performRanking(trainingSet);
 
         for (FeatureRank ranking : fi.getFeaturesSorted()) {
             System.out.println(ranking.toString());

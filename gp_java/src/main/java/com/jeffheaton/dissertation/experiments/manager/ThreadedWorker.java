@@ -24,6 +24,7 @@ public class ThreadedWorker implements Runnable {
 
                 if (task != null) {
                     task.setOwner(this.runner);
+                    task.clearLog();
                     try {
                         task.run();
                         this.runner.getManager().reportDone(task, runner.getMaxWait());

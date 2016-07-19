@@ -9,14 +9,20 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Created by Jeff on 3/31/2016.
+ * A feature ranking algorithm based on the weights of a neural network.  This algorithm can only be used for neural
+ * networks, and it cannot calculate importance relative to a new dataset.
+ *
+ * Sources:
+ * Garson, D. G. (1991). Interpreting neural network connection weights.
+ * Goh, A. (1995). Back-propagation neural networks for modeling complex systems. Artificial Intelligence in
+ * Engineering, 9(3), 143-151.
+ *
  */
 public class NeuralFeatureImportanceCalc extends AbstractFeatureImportance {
 
-    public void calculateFeatureImportance() {
-
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void performRanking() {
         // Reset rankings
@@ -54,6 +60,9 @@ public class NeuralFeatureImportanceCalc extends AbstractFeatureImportance {
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void performRanking(MLDataSet theDataset) {
         performRanking();

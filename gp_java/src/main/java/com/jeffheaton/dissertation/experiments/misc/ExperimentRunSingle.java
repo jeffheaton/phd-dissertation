@@ -19,6 +19,7 @@ public class ExperimentRunSingle {
                 "gp-r:diff-y0",
                 "diff-x0,diff-x1",
                 0);
+        task.clearLog();
         task.run();*/
 
         /*ExperimentTask task = new ExperimentTask(
@@ -27,6 +28,7 @@ public class ExperimentRunSingle {
                 "gp-r:ratio_diff-y0",
                 "ratio_diff-x0,ratio_diff-x1,ratio_diff-x2,ratio_diff-x3",
                 0);
+        task.clearLog();
         task.run();*/
 
         /*ExperimentTask task = new ExperimentTask(
@@ -35,6 +37,7 @@ public class ExperimentRunSingle {
                 "neural-c:species",
                 null,
                 0);
+        task.clearLog();
         task.run();*/
 
         /*ExperimentTask task = new ExperimentTask(
@@ -43,6 +46,7 @@ public class ExperimentRunSingle {
                 "neural-r:mpg",
                 null,
                 0);
+        task.clearLog();
         task.run();*/
 
         ExperimentTask task = new ExperimentTask(
@@ -51,6 +55,7 @@ public class ExperimentRunSingle {
                 "patterns-r:rings",
                 null,
                 0);
+        task.clearLog();
         task.run();
 
         Encog.getInstance().shutdown();

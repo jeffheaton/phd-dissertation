@@ -6,6 +6,7 @@ import org.encog.EncogError;
 import org.encog.util.csv.CSVFormat;
 
 import java.io.*;
+import java.util.Date;
 
 /**
  * Created by jeff on 5/16/16.
@@ -136,6 +137,16 @@ public class ExperimentTask implements Runnable {
         } catch(IOException ex) {
             throw new EncogError(ex);
         }
+    }
+
+    public void clearLog() {
+        if( this.logFilename==null ) {
+            this.logFilename = new File(DissertationConfig.getInstance().getPath(this.name),getKey()+".log");
+        }
+
+        this.logFilename.delete();
+
+        log("Starting: " + (new Date().toString()));
     }
 
     public boolean isQueued() {
