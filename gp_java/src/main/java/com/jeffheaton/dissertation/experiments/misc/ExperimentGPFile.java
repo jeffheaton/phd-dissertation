@@ -57,7 +57,7 @@ public class ExperimentGPFile {
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
-        for(int i=0;i<quick.getPredictors().size();i++) {
+        for(int i=0;i<quick.findPredictors().size();i++) {
             context.defineVariable(""+('a'+i));
         }
 
@@ -87,8 +87,8 @@ public class ExperimentGPFile {
         genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
         genetic.addOperation(0.25, new SubtreeMutation(context,4));
         genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
-        genetic.getRules().addRewriteRule(new RewriteConstants());
-        genetic.getRules().addRewriteRule(new RewriteAlgebraic());
+        pop.getRules().addRewriteRule(new RewriteConstants());
+        pop.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
 
         EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 500, 0.01);

@@ -16,7 +16,7 @@ public class ArrayUtils {
         String[] list = str.split(",");
         for(String s:list) {
             if(s.length()>0) {
-                result.add(str);
+                result.add(s);
             }
         }
 

@@ -20,7 +20,7 @@ public class QuickEncodeDataset {
     public String[] nameOutputVectorFields() {
         String[] result = new String[encodedColumnsNeededX()];
         int idx = 0;
-        for (QuickField field : this.predictors) {
+        for (QuickField field : findPredictors()) {
             int needed = field.encodeColumnsNeeded();
 
             if (needed == 1) {
@@ -35,9 +35,10 @@ public class QuickEncodeDataset {
     }
 
     public String[] getFieldNames() {
-        String[] result = new String[getPredictors().size()];
+        List<QuickField> p = findPredictors();
+        String[] result = new String[p.size()];
         int idx = 0;
-        for (QuickEncodeDataset.QuickField field : getPredictors()) {
+        for (QuickEncodeDataset.QuickField field : p) {
             result[idx++] = field.getName();
         }
         return result;
@@ -412,7 +413,6 @@ public class QuickEncodeDataset {
     private CSVFormat format;
     private ObtainInputStream streamSource;
     private QuickField targetField;
-    private final List<QuickField> predictors = new ArrayList<>();
     private final List<QuickField> fields = new ArrayList<>();
     private int count;
     private boolean singleFieldCatagorical;
@@ -468,13 +468,15 @@ public class QuickEncodeDataset {
         findPredictors();
     }
 
-    private void findPredictors() {
-        this.predictors.clear();
+    public List<QuickField> findPredictors() {
+        List<QuickField> result = new ArrayList<>();
+
         for (QuickField field : this.fields) {
             if (field != this.targetField && field.getEncodeType() != QuickFieldEncode.Ignore) {
-                this.predictors.add(field);
+                result.add(field);
             }
         }
+        return result;
     }
 
     public int getCount() {
@@ -492,7 +494,7 @@ public class QuickEncodeDataset {
 
     public int encodedColumnsNeededX() {
         int result = 0;
-        for (QuickField field : this.predictors) {
+        for (QuickField field : findPredictors()) {
             result += field.encodeColumnsNeeded();
         }
         return result;
@@ -508,17 +510,17 @@ public class QuickEncodeDataset {
             throw new EncogError("Target field can't be set to an encoding of ignore.");
         }
 
-        findPredictors();
-
         InputStream stream = this.streamSource.obtain();
         ReadCSV csv = new ReadCSV(stream, headers, format);
         BasicMLDataSet result = new BasicMLDataSet();
         double[] xVector = new double[encodedColumnsNeededX()];
         double[] yVector = new double[encodedColumnsNeededY()];
 
+        List<QuickField> p = findPredictors();
+
         while (csv.next()) {
             int idx = 0;
-            for (QuickField field : this.predictors) {
+            for (QuickField field : p) {
                 idx = field.encode(idx, csv.get(field.getIndex()), xVector);
             }
             this.targetField.encode(0, csv.get(this.targetField.getIndex()), yVector);
@@ -564,10 +566,6 @@ public class QuickEncodeDataset {
             }
             findPredictors();
         }
-    }
-
-    public List<QuickField> getPredictors() {
-        return this.predictors;
     }
 
     public List<QuickField> getFields() {
