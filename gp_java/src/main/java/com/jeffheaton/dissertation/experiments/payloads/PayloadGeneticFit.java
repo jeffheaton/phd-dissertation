@@ -178,12 +178,17 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         genetic.finishTraining();
 
         this.totalIterations += genetic.getIteration();
+        double resultError;
 
-        NormalizedError error = new NormalizedError(validationSet);
-        double normalizedError = error.calculateNormalizedMean(validationSet,(MLRegression) genetic.getBestGenome());
+        if( task.getModelType().getError().equalsIgnoreCase("nrmse")) {
+            NormalizedError error = new NormalizedError(validationSet);
+            resultError = error.calculateNormalizedMean(validationSet,(MLRegression) genetic.getBestGenome());
+        } else {
+            resultError = earlyStop.getValidationError();
+        }
 
-        if( !Double.isNaN(normalizedError) && !Double.isInfinite(normalizedError)) {
-            this.accumulatedError += normalizedError;
+        if( !Double.isNaN(resultError) && !Double.isInfinite(resultError)) {
+            this.accumulatedError += resultError;
             this.accumulatedRuns += 1;
             this.rawError += genetic.getError();
         }

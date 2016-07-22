@@ -460,14 +460,17 @@ public class QuickEncodeDataset {
             }
         }
         csv.close();
-        findPredictors();
 
+        for (QuickField field : this.fields) {
+            field.finalizePass2();
+        }
+
+        findPredictors();
     }
 
     private void findPredictors() {
         this.predictors.clear();
         for (QuickField field : this.fields) {
-            field.finalizePass2();
             if (field != this.targetField && field.getEncodeType() != QuickFieldEncode.Ignore) {
                 this.predictors.add(field);
             }
@@ -504,6 +507,8 @@ public class QuickEncodeDataset {
         if (this.targetField.getEncodeType() == QuickFieldEncode.Ignore) {
             throw new EncogError("Target field can't be set to an encoding of ignore.");
         }
+
+        findPredictors();
 
         InputStream stream = this.streamSource.obtain();
         ReadCSV csv = new ReadCSV(stream, headers, format);
@@ -545,24 +550,20 @@ public class QuickEncodeDataset {
 
     public void forcePredictors(String thePredictorColumns) {
         if (thePredictorColumns != null) {
-            // we've been provided a list of predictors to use, ignore others
             List<String> used = Arrays.asList(thePredictorColumns.split(","));
-            for (QuickField field : this.fields) {
-                if (field != this.targetField && !used.contains(field.getName())) {
-                    field.setEncodeType(QuickFieldEncode.Ignore);
-                }
-            }
+            forcePredictors(used);
         }
-        findPredictors();
     }
 
     public void forcePredictors(List<String> thePredictorColumns) {
-        for (QuickField field : this.fields) {
-            if (field != this.targetField && !thePredictorColumns.contains(field.getName())) {
-                field.setEncodeType(QuickFieldEncode.Ignore);
+        if( thePredictorColumns!=null && thePredictorColumns.size()>0 ) {
+            for (QuickField field : this.fields) {
+                if (field != this.targetField && !thePredictorColumns.contains(field.getName())) {
+                    field.setEncodeType(QuickFieldEncode.Ignore);
+                }
             }
+            findPredictors();
         }
-        findPredictors();
     }
 
     public List<QuickField> getPredictors() {

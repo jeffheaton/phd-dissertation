@@ -15,8 +15,11 @@ public class ArrayUtils {
         List<String> result = new ArrayList<String>();
         String[] list = str.split(",");
         for(String s:list) {
-            result.add(str);
+            if(s.length()>0) {
+                result.add(str);
+            }
         }
+
         return result;
     }
 

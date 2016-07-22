@@ -13,10 +13,11 @@ public class ParseModelType {
     private final String name;
     private final String type;
     private final String target;
+    private final String error;
 
     public ParseModelType(String str) {
         try {
-            String regexp = "([A-Za-z]+)-+([A-Za-z]+):+([0-9A-Za-z-_]+)";
+            String regexp = "^([A-Za-z]+)-+([A-Za-z]+):+([0-9A-Za-z-_]+)\\|([A-Za-z]+)";
 
             Pattern pattern = Pattern.compile(regexp);
             Matcher matcher = pattern.matcher(str);
@@ -24,6 +25,7 @@ public class ParseModelType {
             this.name = matcher.group(1);
             this.type = matcher.group(2);
             this.target = matcher.group(3);
+            this.error = matcher.group(4)==null?"nrmse":matcher.group(4);
         } catch(IllegalStateException ex) {
             throw new EncogError("Invalid model type: " + str, ex);
         }
@@ -58,4 +60,18 @@ public class ParseModelType {
     public boolean isPatterns() { return this.name.toLowerCase().equals("patterns"); }
 
     public boolean isImportance() { return this.name.toLowerCase().equals("importance"); }
+
+    public String getError() { return this.error; }
+
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        result.append(getName());
+        result.append("-");
+        result.append(getType());
+        result.append(":");
+        result.append("target");
+        result.append("|");
+        result.append(getError());
+        return result.toString();
+    }
 }

@@ -51,12 +51,15 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "abalone.csv",
-                "patterns-r:rings",
-                null,
+                "feature_eng.csv",
+                "gp-r:coef_ratio-y0|rmse",
+                "coef_ratio-x0,coef_ratio-x1",
                 0);
         task.clearLog();
         task.run();
+
+
+
 
         Encog.getInstance().shutdown();
 

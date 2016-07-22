@@ -2,6 +2,7 @@ package com.jeffheaton.dissertation.experiments.data;
 
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.experiments.payloads.PayloadGeneticFit;
+import com.jeffheaton.dissertation.util.ArrayUtils;
 import com.jeffheaton.dissertation.util.ObtainFallbackStream;
 import com.jeffheaton.dissertation.util.ObtainInputStream;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
@@ -26,8 +27,8 @@ public class ExperimentDatasets {
             boolean regression = reader.get(0).trim().equalsIgnoreCase("r");
             String name = reader.get(1).trim();
             String target = reader.get(2).trim();
-            List<String> predictors = Arrays.asList(reader.get(3).trim().split("\\s*,\\s*"));
-            List<String> experiments = Arrays.asList(reader.get(4).trim().split("\\s*,\\s*"));
+            List<String> predictors = ArrayUtils.string2list(reader.get(3).trim());
+            List<String> experiments = ArrayUtils.string2list(reader.get(4).trim());
             DatasetInfo info = new DatasetInfo(regression, name, target, predictors, experiments);
             datasets.add(info);
         }
