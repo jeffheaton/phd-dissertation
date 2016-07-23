@@ -51,8 +51,8 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "abalone.csv",
-                "patterns-r:rings",
+                "auto-mpg.csv",
+                "importance-r:mpg",
                 null,
                 0);
         task.clearLog();

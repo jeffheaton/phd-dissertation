@@ -139,7 +139,7 @@ public class PayloadImportance extends AbstractExperimentPayload {
             System.out.println("Feature importance (permutation)");
             FeatureImportance fi = new PermutationFeatureImportanceCalc(); //new NeuralFeatureImportanceCalc();
             fi.init(network,null);
-            fi.performRanking(validationSet);
+            fi.performRanking(trainingSet);
 
             for (FeatureRank ranking : fi.getFeaturesSorted()) {
                 System.out.println(ranking.toString());
