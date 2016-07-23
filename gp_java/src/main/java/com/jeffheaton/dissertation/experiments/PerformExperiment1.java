@@ -34,8 +34,8 @@ public class PerformExperiment1 implements AbstractExperiment {
                 pred.append(str);
             }
 
-            manager.addTaskCycles(getName(),"feature_eng.csv","neural-r:"+info.getTarget(),pred.toString(),5);
-            manager.addTaskCycles(getName(),"feature_eng.csv","gp-r:"+info.getTarget(),pred.toString(),5);
+            manager.addTaskCycles(getName(),"feature_eng.csv","neural-r:"+info.getTarget()+"|rmse",pred.toString(),5);
+            manager.addTaskCycles(getName(),"feature_eng.csv","gp-r:"+info.getTarget()+"|rmse",pred.toString(),5);
         }
     }
 

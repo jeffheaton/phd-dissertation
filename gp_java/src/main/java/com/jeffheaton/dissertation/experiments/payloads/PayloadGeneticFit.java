@@ -141,8 +141,8 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         genetic.addOperation(0.25, new ConstMutation(context, 0.5, 1.0));
         genetic.addOperation(0.25, new SubtreeMutation(context, 4));
         genetic.addScoreAdjuster(new ComplexityAdjustedScore(10, 20, 50, 100.0));
-        genetic.getRules().addRewriteRule(new RewriteConstants());
-        genetic.getRules().addRewriteRule(new RewriteAlgebraic());
+        pop.getRules().addRewriteRule(new RewriteConstants());
+        pop.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
         genetic.setThreadCount(1);
 
@@ -178,12 +178,17 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         genetic.finishTraining();
 
         this.totalIterations += genetic.getIteration();
+        double resultError;
 
-        NormalizedError error = new NormalizedError(validationSet);
-        double normalizedError = error.calculateNormalizedMean(validationSet,(MLRegression) genetic.getBestGenome());
+        if( task.getModelType().getError().equalsIgnoreCase("nrmse")) {
+            NormalizedError error = new NormalizedError(validationSet);
+            resultError = error.calculateNormalizedMean(validationSet,(MLRegression) genetic.getBestGenome());
+        } else {
+            resultError = earlyStop.getValidationError();
+        }
 
-        if( !Double.isNaN(normalizedError) && !Double.isInfinite(normalizedError)) {
-            this.accumulatedError += normalizedError;
+        if( !Double.isNaN(resultError) && !Double.isInfinite(resultError)) {
+            this.accumulatedError += resultError;
             this.accumulatedRuns += 1;
             this.rawError += genetic.getError();
         }

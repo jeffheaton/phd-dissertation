@@ -51,12 +51,15 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "auto-mpg.csv",
-                "importance-r:mpg",
-                null,
+                "feature_eng.csv",
+                "gp-r:coef_ratio-y0|rmse",
+                "coef_ratio-x0,coef_ratio-x1",
                 0);
         task.clearLog();
         task.run();
+
+
+
 
         Encog.getInstance().shutdown();
 

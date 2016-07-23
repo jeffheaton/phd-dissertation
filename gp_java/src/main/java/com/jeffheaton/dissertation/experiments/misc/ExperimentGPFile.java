@@ -42,12 +42,20 @@ public class ExperimentGPFile {
     }
 
     private void process() {
-        ErrorCalculation.setMode(ErrorCalculationMode.NRMSE_RANGE);
+        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
-        ObtainInputStream source = new ObtainFallbackStream("feature_eng.csv");
-        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
-        quick.analyze(source,"diff-y0", true, CSVFormat.EG_FORMAT);
-        quick.forcePredictors("diff-x0,diff-x1");
+        //String filename = "auto-mpg.csv";
+        //String target = "mpg";
+        //String predictors = null;
+
+        String filename = "feature_eng.csv";
+        String target = "ratio-y0";
+        String predictors = "ratio-x0,ratio-x1";
+
+        ObtainInputStream source = new ObtainFallbackStream(filename);
+        QuickEncodeDataset quick = new QuickEncodeDataset(true,false);
+        quick.analyze(source,target, true, CSVFormat.EG_FORMAT);
+        quick.forcePredictors(predictors);
         MLDataSet dataset = quick.generateDataset();
         Transform.interpolate(dataset);
 
@@ -57,8 +65,8 @@ public class ExperimentGPFile {
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
-        for(int i=0;i<quick.getPredictors().size();i++) {
-            context.defineVariable(""+('a'+i));
+        for (String field: quick.getFieldNames()) {
+            context.defineVariable(field);
         }
 
         //StandardExtensions.createNumericOperators(context);
@@ -87,14 +95,16 @@ public class ExperimentGPFile {
         genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
         genetic.addOperation(0.25, new SubtreeMutation(context,4));
         genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
-        genetic.getRules().addRewriteRule(new RewriteConstants());
-        genetic.getRules().addRewriteRule(new RewriteAlgebraic());
+        pop.getRules().addRewriteRule(new RewriteConstants());
+        pop.getRules().addRewriteRule(new RewriteAlgebraic());
         genetic.setSpeciation(new PrgSpeciation());
 
         EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 500, 0.01);
         genetic.addStrategy(earlyStop);
 
         (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
+
+        pop.dumpMembers(100);
 
         genetic.setShouldIgnoreExceptions(false);
 

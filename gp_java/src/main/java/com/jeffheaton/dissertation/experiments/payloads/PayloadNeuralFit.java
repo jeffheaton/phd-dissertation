@@ -115,17 +115,23 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         } while (!train.isTrainingDone());
         train.finishTraining();
 
-        NormalizedError error = new NormalizedError(validationSet);
         MLRegression bestNetwork = earlyStop.getBestModel()==null?network:earlyStop.getBestModel();
-        double normalizedError = error.calculateNormalizedRange(validationSet,bestNetwork);
+        double resultError;
+
+        if( task.getModelType().getError().equalsIgnoreCase("nrmse")) {
+            NormalizedError error = new NormalizedError(validationSet);
+            resultError = error.calculateNormalizedRange(validationSet, bestNetwork);
+        } else {
+            resultError = earlyStop.getValidationError();
+        }
 
         sw.stop();
 
-        task.log("Normalized error: " + normalizedError);
+        task.log("Result: " + resultError);
 
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
-                normalizedError, earlyStop.getValidationError(), 0, 0,
+                resultError, earlyStop.getValidationError(), 0, 0,
                 train.getIteration(), "");
     }
 }

@@ -20,7 +20,7 @@ public class QuickEncodeDataset {
     public String[] nameOutputVectorFields() {
         String[] result = new String[encodedColumnsNeededX()];
         int idx = 0;
-        for (QuickField field : this.predictors) {
+        for (QuickField field : findPredictors()) {
             int needed = field.encodeColumnsNeeded();
 
             if (needed == 1) {
@@ -35,9 +35,10 @@ public class QuickEncodeDataset {
     }
 
     public String[] getFieldNames() {
-        String[] result = new String[getPredictors().size()];
+        List<QuickField> p = findPredictors();
+        String[] result = new String[p.size()];
         int idx = 0;
-        for (QuickEncodeDataset.QuickField field : getPredictors()) {
+        for (QuickEncodeDataset.QuickField field : p) {
             result[idx++] = field.getName();
         }
         return result;
@@ -412,7 +413,6 @@ public class QuickEncodeDataset {
     private CSVFormat format;
     private ObtainInputStream streamSource;
     private QuickField targetField;
-    private final List<QuickField> predictors = new ArrayList<>();
     private final List<QuickField> fields = new ArrayList<>();
     private int count;
     private boolean singleFieldCatagorical;
@@ -460,18 +460,23 @@ public class QuickEncodeDataset {
             }
         }
         csv.close();
-        findPredictors();
 
-    }
-
-    private void findPredictors() {
-        this.predictors.clear();
         for (QuickField field : this.fields) {
             field.finalizePass2();
+        }
+
+        findPredictors();
+    }
+
+    public List<QuickField> findPredictors() {
+        List<QuickField> result = new ArrayList<>();
+
+        for (QuickField field : this.fields) {
             if (field != this.targetField && field.getEncodeType() != QuickFieldEncode.Ignore) {
-                this.predictors.add(field);
+                result.add(field);
             }
         }
+        return result;
     }
 
     public int getCount() {
@@ -489,7 +494,7 @@ public class QuickEncodeDataset {
 
     public int encodedColumnsNeededX() {
         int result = 0;
-        for (QuickField field : this.predictors) {
+        for (QuickField field : findPredictors()) {
             result += field.encodeColumnsNeeded();
         }
         return result;
@@ -511,9 +516,11 @@ public class QuickEncodeDataset {
         double[] xVector = new double[encodedColumnsNeededX()];
         double[] yVector = new double[encodedColumnsNeededY()];
 
+        List<QuickField> p = findPredictors();
+
         while (csv.next()) {
             int idx = 0;
-            for (QuickField field : this.predictors) {
+            for (QuickField field : p) {
                 idx = field.encode(idx, csv.get(field.getIndex()), xVector);
             }
             this.targetField.encode(0, csv.get(this.targetField.getIndex()), yVector);
@@ -545,28 +552,20 @@ public class QuickEncodeDataset {
 
     public void forcePredictors(String thePredictorColumns) {
         if (thePredictorColumns != null) {
-            // we've been provided a list of predictors to use, ignore others
             List<String> used = Arrays.asList(thePredictorColumns.split(","));
-            for (QuickField field : this.fields) {
-                if (field != this.targetField && !used.contains(field.getName())) {
-                    field.setEncodeType(QuickFieldEncode.Ignore);
-                }
-            }
+            forcePredictors(used);
         }
-        findPredictors();
     }
 
     public void forcePredictors(List<String> thePredictorColumns) {
-        for (QuickField field : this.fields) {
-            if (field != this.targetField && !thePredictorColumns.contains(field.getName())) {
-                field.setEncodeType(QuickFieldEncode.Ignore);
+        if( thePredictorColumns!=null && thePredictorColumns.size()>0 ) {
+            for (QuickField field : this.fields) {
+                if (field != this.targetField && !thePredictorColumns.contains(field.getName())) {
+                    field.setEncodeType(QuickFieldEncode.Ignore);
+                }
             }
+            findPredictors();
         }
-        findPredictors();
-    }
-
-    public List<QuickField> getPredictors() {
-        return this.predictors;
     }
 
     public List<QuickField> getFields() {

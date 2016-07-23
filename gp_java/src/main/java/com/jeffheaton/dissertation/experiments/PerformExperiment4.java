@@ -15,7 +15,7 @@ import java.util.List;
 public class PerformExperiment4 implements AbstractExperiment {
     public void addDataSet(TaskQueueManager manager, DatasetInfo info) {
         String type = info.isRegression() ? "r":"c";
-        manager.addTask(getName(),info.getName(),"patterns-"+type+":"+info.getTarget(),null,1);
+        manager.addTask(getName(),info.getName(),"patterns-"+type+":"+info.getTarget()+"|nrmse",null,1);
     }
 
     @Override

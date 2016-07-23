@@ -21,9 +21,9 @@ public class PerformExperiment2 implements AbstractExperiment {
 
     public void addDataSet(TaskQueueManager manager, DatasetInfo info) {
         String type = info.isRegression() ? "r":"c";
-        manager.addTaskCycles(getName(),info.getName(),"neural-"+type+":"+info.getTarget(),null,5);
+        manager.addTaskCycles(getName(),info.getName(),"neural-"+type+":"+info.getTarget()+"|nrmse",null,5);
         if( info.isRegression() || info.getTargetElements()<3 ) {
-            manager.addTaskCycles(getName(), info.getName(), "gp-r:" + info.getTarget(), null, 5);
+            manager.addTaskCycles(getName(), info.getName(), "gp-r:" + info.getTarget()+"|nrmse", null, 5);
         }
     }
 
