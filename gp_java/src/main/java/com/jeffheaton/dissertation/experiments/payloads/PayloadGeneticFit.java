@@ -143,6 +143,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         genetic.addScoreAdjuster(new ComplexityAdjustedScore(10, 20, 50, 100.0));
         pop.getRules().addRewriteRule(new RewriteConstants());
         pop.getRules().addRewriteRule(new RewriteAlgebraic());
+        pop.getRules().addConstraintRule(new SimpleGPConstraint());
         genetic.setSpeciation(new PrgSpeciation());
         genetic.setThreadCount(1);
 

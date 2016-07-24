@@ -6,6 +6,8 @@ import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
+import org.encog.ml.ea.genome.Genome;
+import org.encog.ml.ea.rules.ConstraintRule;
 import org.encog.ml.ea.score.adjust.ComplexityAdjustedScore;
 import org.encog.ml.ea.train.basic.TrainEA;
 import org.encog.ml.fitness.MultiObjectiveFitness;
@@ -27,6 +29,7 @@ import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.parse.expression.latex.RenderLatexExpression;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
+import org.encog.util.simple.EncogUtility;
 
 import java.io.InputStream;
 import java.util.Random;
@@ -48,9 +51,13 @@ public class ExperimentGPFile {
         //String target = "mpg";
         //String predictors = null;
 
+        //String filename = "feature_eng.csv";
+        //String target = "ratio-y0";
+        //String predictors = "ratio-x0,ratio-x1";
+
         String filename = "feature_eng.csv";
-        String target = "ratio-y0";
-        String predictors = "ratio-x0,ratio-x1";
+        String target = "ratio_diff-y0";
+        String predictors = "ratio_diff-x0,ratio_diff-x1,ratio_diff-x2,ratio_diff-x3";
 
         ObtainInputStream source = new ObtainFallbackStream(filename);
         QuickEncodeDataset quick = new QuickEncodeDataset(true,false);
@@ -65,8 +72,11 @@ public class ExperimentGPFile {
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = new EncogProgramContext();
+        int idx = 0;
         for (String field: quick.getFieldNames()) {
-            context.defineVariable(field);
+            char ch = (char)('a'+idx);
+            idx++;
+            context.defineVariable(""+ch);
         }
 
         //StandardExtensions.createNumericOperators(context);
@@ -78,12 +88,11 @@ public class ExperimentGPFile {
         factory.addExtension(StandardExtensions.EXTENSION_ADD);
         factory.addExtension(StandardExtensions.EXTENSION_SUB);
         factory.addExtension(StandardExtensions.EXTENSION_MUL);
-        factory.addExtension(StandardExtensions.EXTENSION_DIV);
+        factory.addExtension(StandardExtensions.EXTENSION_PDIV);
         factory.addExtension(StandardExtensions.EXTENSION_POWER);
 
 
-
-        PrgPopulation pop = new PrgPopulation(context,1000);
+        PrgPopulation pop = new PrgPopulation(context,100);
 
         MultiObjectiveFitness score = new MultiObjectiveFitness();
         score.addObjective(1.0, new TrainingSetScore(trainingSet));
@@ -94,9 +103,11 @@ public class ExperimentGPFile {
         genetic.addOperation(0.5, new SubtreeCrossover());
         genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
         genetic.addOperation(0.25, new SubtreeMutation(context,4));
+        //genetic.addOperation(0.75, new SubtreeMutation(context,5));
         genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
         pop.getRules().addRewriteRule(new RewriteConstants());
         pop.getRules().addRewriteRule(new RewriteAlgebraic());
+        pop.getRules().addConstraintRule(new SimpleGPConstraint());
         genetic.setSpeciation(new PrgSpeciation());
 
         EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 500, 0.01);
@@ -104,7 +115,11 @@ public class ExperimentGPFile {
 
         (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
 
-        pop.dumpMembers(100);
+        EncogProgram prg = new EncogProgram("a/(c-d)");
+        prg.setPopulation(pop);
+        System.out.println("Error: " + EncogUtility.calculateRegressionError(prg,validationSet));
+        //pop.getSpecies().get(0).add(prg);
+        //pop.dumpMembers(100);
 
         genetic.setShouldIgnoreExceptions(false);
 

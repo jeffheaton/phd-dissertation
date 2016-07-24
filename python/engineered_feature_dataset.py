@@ -40,7 +40,7 @@ def generate_dataset(rows):
             df[col_name] = (2 * np.random.random(rows)) - 1
         y_columns.append("{}-y0".format(f[NAME]))
 
-    idx = 1
+    idx = 0
     generated_columns = []
 
     for f in GENERATED_FEATURES:
@@ -49,6 +49,7 @@ def generate_dataset(rows):
         arg_count = len(inspect.signature(f[FN]).parameters)
         a = [df.iloc[:, idx + x] for x in range(arg_count)]
         df[col_name] = f[FN](*a)
+        idx+=arg_count
     return df, predictor_columns, generated_columns
 
 
