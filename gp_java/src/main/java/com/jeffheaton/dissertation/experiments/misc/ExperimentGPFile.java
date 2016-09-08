@@ -67,7 +67,7 @@ public class ExperimentGPFile {
         Transform.interpolate(dataset);
 
         // split
-        MLDataSet[] split = Transform.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
+        MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 

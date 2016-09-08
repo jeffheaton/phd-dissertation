@@ -26,6 +26,7 @@ import org.encog.neural.networks.training.propagation.sgd.update.AdaGradUpdate;
 import org.encog.util.EngineArray;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
+import org.encog.util.simple.EncogUtility;
 
 /**
  * Created by jeff on 6/12/16.
@@ -64,7 +65,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
 
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
-        org.encog.ml.data.MLDataSet[] split = Transform.splitTrainValidate(dataset, rnd, 0.75);
+        org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd, 0.75);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 

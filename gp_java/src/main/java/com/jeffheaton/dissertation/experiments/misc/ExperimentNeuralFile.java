@@ -16,6 +16,7 @@ import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
+import org.encog.util.simple.EncogUtility;
 
 
 public class ExperimentNeuralFile {
@@ -31,7 +32,7 @@ public class ExperimentNeuralFile {
         Transform.zscore(dataset);
 
         // split
-        MLDataSet[] split = Transform.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
+        MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 

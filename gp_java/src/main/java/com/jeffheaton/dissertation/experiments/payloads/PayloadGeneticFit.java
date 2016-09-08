@@ -33,6 +33,7 @@ import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.util.EngineArray;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
+import org.encog.util.simple.EncogUtility;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +96,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         sw.start();
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
-        org.encog.ml.data.MLDataSet[] split = Transform.splitTrainValidate(dataset, rnd, 0.75);
+        org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd, 0.75);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 

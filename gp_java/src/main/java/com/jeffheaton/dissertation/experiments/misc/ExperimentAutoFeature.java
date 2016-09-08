@@ -10,6 +10,7 @@ import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
 import org.encog.util.csv.CSVFormat;
+import org.encog.util.simple.EncogUtility;
 
 import java.io.File;
 
@@ -29,7 +30,7 @@ public class ExperimentAutoFeature {
         Transform.zscore(dataset);
 
         // split
-        MLDataSet[] split = Transform.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
+        MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 

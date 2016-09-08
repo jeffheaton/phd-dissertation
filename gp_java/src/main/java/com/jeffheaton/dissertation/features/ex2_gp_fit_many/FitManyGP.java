@@ -27,6 +27,7 @@ import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.parse.expression.latex.RenderLatexExpression;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
+import org.encog.util.simple.EncogUtility;
 
 import java.io.InputStream;
 import java.util.Random;
@@ -54,7 +55,7 @@ public class FitManyGP {
         Transform.interpolate(dataset);
 
         // split
-        MLDataSet[] split = Transform.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
+        MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
         this.trainingSet = split[0];
         this.validationSet = split[1];
 
