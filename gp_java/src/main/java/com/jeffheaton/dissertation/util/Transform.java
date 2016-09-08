@@ -95,7 +95,7 @@ public class Transform {
                 mean[i]+=d;
             }
         }
-        
+
         // calculate means
         for(int i=0;i<mean.length;i++) {
             mean[i]/=dataset.size();
@@ -103,7 +103,7 @@ public class Transform {
 
         // pass 2: standard dev
         double[] sdev = new double[dataset.getInputSize()];
-        
+
         for(MLDataPair pair: dataset) {
             // Input
             for(int i=0;i<mean.length;i++) {

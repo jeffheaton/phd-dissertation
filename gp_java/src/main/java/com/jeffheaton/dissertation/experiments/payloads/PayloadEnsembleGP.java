@@ -3,7 +3,6 @@ package com.jeffheaton.dissertation.experiments.payloads;
 import com.jeffheaton.dissertation.experiments.data.DataCacheElement;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
-import com.jeffheaton.dissertation.util.ArrayUtils;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.EncogError;
 import org.encog.mathutil.error.ErrorCalculation;
@@ -16,9 +15,9 @@ import org.encog.ml.data.basic.BasicMLDataPair;
 import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.ml.ea.exception.EARuntimeError;
 import org.encog.ml.prg.EncogProgram;
+import org.encog.util.EngineArray;
 import org.encog.util.Stopwatch;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,8 +34,10 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         sw.start();
 
-        DataCacheElement cacheNeural = ExperimentDatasets.getInstance().loadDatasetNeural(task.getDatasetFilename(),task.getModelType().getTarget(), ArrayUtils.string2list(task.getPredictors()));
-        DataCacheElement cacheGP = ExperimentDatasets.getInstance().loadDatasetGP(task.getDatasetFilename(),task.getModelType().getTarget(), ArrayUtils.string2list(task.getPredictors()));
+        DataCacheElement cacheNeural = ExperimentDatasets.getInstance().loadDatasetNeural(task.getDatasetFilename(),task.getModelType().getTarget(),
+                EngineArray.string2list(task.getPredictors()));
+        DataCacheElement cacheGP = ExperimentDatasets.getInstance().loadDatasetGP(task.getDatasetFilename(),task.getModelType().getTarget(),
+                EngineArray.string2list(task.getPredictors()));
 
         QuickEncodeDataset quickNeural = cacheNeural.getQuick();
         QuickEncodeDataset quickGP = cacheGP.getQuick();

@@ -9,6 +9,7 @@ import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.engine.network.activation.ActivationSoftMax;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
+import org.encog.mathutil.error.NormalizedError;
 import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.mathutil.randomize.generate.GenerateRandom;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
@@ -22,6 +23,7 @@ import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
 import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
 import org.encog.neural.networks.training.propagation.sgd.update.AdaGradUpdate;
+import org.encog.util.EngineArray;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
 
@@ -58,7 +60,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         MLDataSet dataset = ExperimentDatasets.getInstance().loadDatasetNeural(
                 task.getDatasetFilename(),
                 task.getModelType().getTarget(),
-                ArrayUtils.string2list(task.getPredictors())).getData();
+                EngineArray.string2list(task.getPredictors())).getData();
 
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);

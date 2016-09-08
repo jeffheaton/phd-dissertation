@@ -4,18 +4,12 @@ import com.jeffheaton.dissertation.experiments.data.DataCacheElement;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.features.FindPatternsGP;
-import com.jeffheaton.dissertation.util.ArrayUtils;
-import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.EncogError;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
-import org.encog.ml.data.MLData;
-import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
-import org.encog.ml.data.basic.BasicMLData;
-import org.encog.ml.data.basic.BasicMLDataPair;
-import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.ml.prg.EncogProgram;
+import org.encog.util.EngineArray;
 import org.encog.util.Stopwatch;
 
 import java.util.List;
@@ -30,7 +24,7 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
     public PayloadReport run(ExperimentTask task) {
         DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetGP(task.getDatasetFilename(),
                 task.getModelType().getTarget(),
-                ArrayUtils.string2list(task.getPredictors()));
+                EngineArray.string2list(task.getPredictors()));
 
         MLDataSet dataset = cache.getData();
 

@@ -7,6 +7,7 @@ import com.jeffheaton.dissertation.util.*;
 import org.encog.EncogError;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
+import org.encog.mathutil.error.NormalizedError;
 import org.encog.mathutil.randomize.generate.GenerateRandom;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.MLRegression;
@@ -29,6 +30,7 @@ import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.training.TrainingSetScore;
+import org.encog.util.EngineArray;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
 
@@ -80,7 +82,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
     @Override
     public PayloadReport run(ExperimentTask task) {
         DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetGP(task.getDatasetFilename(),task.getModelType().getTarget(),
-                ArrayUtils.string2list(task.getPredictors()));
+                EngineArray.string2list(task.getPredictors()));
         QuickEncodeDataset quick = cache.getQuick();
         MLDataSet dataset = cache.getData();
 
