@@ -25,11 +25,9 @@ public class ExperimentNeuralFile {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
         ObtainInputStream source = new ObtainFallbackStream("auto-mpg.csv");
-        QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
+        QuickEncodeDataset quick = new QuickEncodeDataset(false,true);
         quick.analyze(source, "mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();
-        Transform.interpolate(dataset);
-        Transform.zscore(dataset);
 
         // split
         MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);

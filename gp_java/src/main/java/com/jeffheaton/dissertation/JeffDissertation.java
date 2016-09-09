@@ -8,14 +8,11 @@ import com.jeffheaton.dissertation.experiments.PerformExperiment4;
 import com.jeffheaton.dissertation.experiments.PerformExperiment5;
 import com.jeffheaton.dissertation.experiments.misc.ExperimentAutoFeature;
 import com.jeffheaton.dissertation.experiments.misc.ExperimentGPFile;
-import com.jeffheaton.dissertation.experiments.misc.ExperimentNeuralXOR;
 import com.jeffheaton.dissertation.experiments.misc.ExperimentSimpleGP;
 
 public class JeffDissertation {
     public static void main(String[] args) {
-        if( args[0].equalsIgnoreCase("neural-xor") ) {
-            (new ExperimentNeuralXOR()).main(null);
-        } else if( args[0].equalsIgnoreCase("simple-gp")) {
+        if( args[0].equalsIgnoreCase("simple-gp")) {
             (new ExperimentSimpleGP()).main(null);
         } else if( args[0].equalsIgnoreCase("feature-search")) {
             (new ExperimentAutoFeature()).main(null);

@@ -6,8 +6,6 @@ import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
-import org.encog.ml.ea.genome.Genome;
-import org.encog.ml.ea.rules.ConstraintRule;
 import org.encog.ml.ea.score.adjust.ComplexityAdjustedScore;
 import org.encog.ml.ea.train.basic.TrainEA;
 import org.encog.ml.fitness.MultiObjectiveFitness;
@@ -64,7 +62,6 @@ public class ExperimentGPFile {
         quick.analyze(source,target, true, CSVFormat.EG_FORMAT);
         quick.forcePredictors(predictors);
         MLDataSet dataset = quick.generateDataset();
-        Transform.interpolate(dataset);
 
         // split
         MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);

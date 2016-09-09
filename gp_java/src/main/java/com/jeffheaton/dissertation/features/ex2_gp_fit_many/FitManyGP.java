@@ -52,7 +52,6 @@ public class FitManyGP {
         QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
         quick.analyze(source,"mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();
-        Transform.interpolate(dataset);
 
         // split
         MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
