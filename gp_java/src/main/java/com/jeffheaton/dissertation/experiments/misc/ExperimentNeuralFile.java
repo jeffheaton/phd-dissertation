@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.misc;
 
+import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.util.*;
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationLinear;
@@ -14,6 +15,8 @@ import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
+import org.encog.persist.source.ObtainFallbackStream;
+import org.encog.persist.source.ObtainInputStream;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
@@ -24,7 +27,9 @@ public class ExperimentNeuralFile {
     public void runNeural() {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
-        ObtainInputStream source = new ObtainFallbackStream("auto-mpg.csv");
+        ObtainInputStream source = new ObtainFallbackStream(
+                DissertationConfig.getInstance().getDataPath().toString(),
+                "auto-mpg.csv");
         QuickEncodeDataset quick = new QuickEncodeDataset(false,true);
         quick.analyze(source, "mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();

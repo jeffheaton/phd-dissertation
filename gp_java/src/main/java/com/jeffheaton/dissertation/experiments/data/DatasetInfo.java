@@ -1,11 +1,11 @@
 package com.jeffheaton.dissertation.experiments.data;
 
-import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
+import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.payloads.PayloadGeneticFit;
-import com.jeffheaton.dissertation.util.ObtainFallbackStream;
-import com.jeffheaton.dissertation.util.ObtainInputStream;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.EncogError;
+import org.encog.persist.source.ObtainFallbackStream;
+import org.encog.persist.source.ObtainInputStream;
 import org.encog.util.csv.CSVFormat;
 
 import java.util.*;
@@ -66,7 +66,9 @@ public class DatasetInfo {
             return this.cache.get(key);
         }
 
-        ObtainInputStream source = new ObtainFallbackStream(this.name);
+        ObtainInputStream source = new ObtainFallbackStream(
+                DissertationConfig.getInstance().getDataPath().toString(),
+                this.name);
         QuickEncodeDataset quick = new QuickEncodeDataset(false,true);
         quick.analyze(source, target, true, CSVFormat.EG_FORMAT);
 
@@ -92,7 +94,9 @@ public class DatasetInfo {
         }
 
 
-        ObtainInputStream source = new ObtainFallbackStream(getName());
+        ObtainInputStream source = new ObtainFallbackStream(
+                DissertationConfig.getInstance().getDataPath().toString(),
+                getName());
         QuickEncodeDataset quick = new QuickEncodeDataset(true,false);
         quick.analyze(source, target, true, CSVFormat.EG_FORMAT);
 

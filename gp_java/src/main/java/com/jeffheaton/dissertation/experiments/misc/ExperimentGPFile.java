@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.misc;
 
+import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.util.*;
 import org.encog.Encog;
 import org.encog.mathutil.error.ErrorCalculation;
@@ -25,6 +26,8 @@ import org.encog.ml.prg.train.rewrite.RewriteConstants;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.parse.expression.latex.RenderLatexExpression;
+import org.encog.persist.source.ObtainFallbackStream;
+import org.encog.persist.source.ObtainInputStream;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
@@ -57,7 +60,9 @@ public class ExperimentGPFile {
         String target = "ratio_diff-y0";
         String predictors = "ratio_diff-x0,ratio_diff-x1,ratio_diff-x2,ratio_diff-x3";
 
-        ObtainInputStream source = new ObtainFallbackStream(filename);
+        ObtainInputStream source = new ObtainFallbackStream(
+                DissertationConfig.getInstance().getDataPath().toString(),
+                filename);
         QuickEncodeDataset quick = new QuickEncodeDataset(true,false);
         quick.analyze(source,target, true, CSVFormat.EG_FORMAT);
         quick.forcePredictors(predictors);

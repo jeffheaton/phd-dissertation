@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.features.ex2_gp_fit_many;
 
+import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.util.*;
 import org.encog.Encog;
 import org.encog.mathutil.error.ErrorCalculation;
@@ -25,6 +26,8 @@ import org.encog.ml.prg.train.rewrite.RewriteConstants;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.parse.expression.latex.RenderLatexExpression;
+import org.encog.persist.source.ObtainInputStream;
+import org.encog.persist.source.ObtainResourceInputStream;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
@@ -48,7 +51,8 @@ public class FitManyGP {
     }
 
     private void loadData() {
-        ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
+        ObtainInputStream source = new ObtainResourceInputStream(
+                "/auto-mpg.csv");
         QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
         quick.analyze(source,"mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();

@@ -1,14 +1,13 @@
 package com.jeffheaton.dissertation.experiments.misc;
 
 import com.jeffheaton.dissertation.features.ex1_gp_feature_rank.AutoEngineerFeatures;
-import com.jeffheaton.dissertation.util.ObtainInputStream;
-import com.jeffheaton.dissertation.util.ObtainResourceInputStream;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
-import com.jeffheaton.dissertation.util.Transform;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
+import org.encog.persist.source.ObtainInputStream;
+import org.encog.persist.source.ObtainResourceInputStream;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
 

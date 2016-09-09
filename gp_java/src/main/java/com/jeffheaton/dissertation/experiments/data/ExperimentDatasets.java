@@ -1,8 +1,9 @@
 package com.jeffheaton.dissertation.experiments.data;
 
-import com.jeffheaton.dissertation.util.ObtainFallbackStream;
-import com.jeffheaton.dissertation.util.ObtainInputStream;
+import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
+import org.encog.persist.source.ObtainFallbackStream;
+import org.encog.persist.source.ObtainInputStream;
 import org.encog.util.EngineArray;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.csv.ReadCSV;
@@ -17,7 +18,8 @@ public class ExperimentDatasets {
     private List<DatasetInfo> datasets = new ArrayList<>();
 
     private ExperimentDatasets() {
-        ObtainInputStream source = new ObtainFallbackStream("datasets.csv");
+        ObtainInputStream source = new ObtainFallbackStream(DissertationConfig.getInstance().getDataPath().toString(),
+                "datasets.csv");
         ReadCSV reader = new ReadCSV(source.obtain(), true, CSVFormat.DECIMAL_POINT);
         while (reader.next()) {
             boolean regression = reader.get(0).trim().equalsIgnoreCase("r");
