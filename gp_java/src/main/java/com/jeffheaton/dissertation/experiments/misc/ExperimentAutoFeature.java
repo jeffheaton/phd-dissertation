@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.misc;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.features.ex1_gp_feature_rank.AutoEngineerFeatures;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.mathutil.error.ErrorCalculation;
@@ -21,7 +22,7 @@ public class ExperimentAutoFeature {
     public static void main(String[] args) {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
-        ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv");
+        ObtainInputStream source = new ObtainResourceInputStream("/auto-mpg.csv", JeffDissertation.class);
         QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
         quick.analyze(source,"mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();

@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.misc;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.util.*;
 import org.encog.Encog;
@@ -29,7 +30,7 @@ public class ExperimentNeuralFile {
 
         ObtainInputStream source = new ObtainFallbackStream(
                 DissertationConfig.getInstance().getDataPath().toString(),
-                "auto-mpg.csv");
+                "auto-mpg.csv", JeffDissertation.class);
         QuickEncodeDataset quick = new QuickEncodeDataset(false,true);
         quick.analyze(source, "mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();

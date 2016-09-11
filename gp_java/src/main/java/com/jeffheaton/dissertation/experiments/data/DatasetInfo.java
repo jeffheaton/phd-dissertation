@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.data;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.payloads.PayloadGeneticFit;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
@@ -68,7 +69,7 @@ public class DatasetInfo {
 
         ObtainInputStream source = new ObtainFallbackStream(
                 DissertationConfig.getInstance().getDataPath().toString(),
-                this.name);
+                this.name, JeffDissertation.class);
         QuickEncodeDataset quick = new QuickEncodeDataset(false,true);
         quick.analyze(source, target, true, CSVFormat.EG_FORMAT);
 
@@ -96,7 +97,7 @@ public class DatasetInfo {
 
         ObtainInputStream source = new ObtainFallbackStream(
                 DissertationConfig.getInstance().getDataPath().toString(),
-                getName());
+                getName(), JeffDissertation.class);
         QuickEncodeDataset quick = new QuickEncodeDataset(true,false);
         quick.analyze(source, target, true, CSVFormat.EG_FORMAT);
 

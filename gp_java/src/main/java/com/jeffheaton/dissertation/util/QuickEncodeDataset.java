@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.util;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import org.encog.EncogError;
 import org.encog.ml.data.MLData;
@@ -594,7 +595,7 @@ public class QuickEncodeDataset {
 
     public static void main(String[] args) {
         ObtainInputStream source = new ObtainFallbackStream(DissertationConfig.getInstance().getDataPath().toString(),
-                "auto-mpg.csv");
+                "auto-mpg.csv", JeffDissertation.class);
         QuickEncodeDataset quick = new QuickEncodeDataset(false, false);
         quick.analyze(source, "mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();

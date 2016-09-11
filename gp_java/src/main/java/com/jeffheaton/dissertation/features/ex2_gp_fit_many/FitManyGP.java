@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.features.ex2_gp_fit_many;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.util.*;
 import org.encog.Encog;
@@ -52,7 +53,7 @@ public class FitManyGP {
 
     private void loadData() {
         ObtainInputStream source = new ObtainResourceInputStream(
-                "/auto-mpg.csv");
+                "/auto-mpg.csv", JeffDissertation.class);
         QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
         quick.analyze(source,"mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();

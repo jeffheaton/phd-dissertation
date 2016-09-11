@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.misc;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.util.*;
 import org.encog.Encog;
@@ -62,7 +63,7 @@ public class ExperimentGPFile {
 
         ObtainInputStream source = new ObtainFallbackStream(
                 DissertationConfig.getInstance().getDataPath().toString(),
-                filename);
+                filename, JeffDissertation.class);
         QuickEncodeDataset quick = new QuickEncodeDataset(true,false);
         quick.analyze(source,target, true, CSVFormat.EG_FORMAT);
         quick.forcePredictors(predictors);
