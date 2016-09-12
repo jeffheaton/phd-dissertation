@@ -31,6 +31,7 @@ import org.encog.parse.expression.latex.RenderLatexExpression;
 import org.encog.persist.source.ObtainFallbackStream;
 import org.encog.persist.source.ObtainInputStream;
 import org.encog.util.Format;
+import org.encog.util.Stopwatch;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
 
@@ -54,6 +55,9 @@ public class ExperimentGPFile {
     }
 
     private void process() {
+        Stopwatch sw = new Stopwatch();
+        sw.start();
+
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
         //String filename = "auto-mpg.csv";
@@ -76,10 +80,15 @@ public class ExperimentGPFile {
         quick.forcePredictors(predictors);
         MLDataSet dataset = quick.generateDataset();
 
+        // downsample
+        //MLDataSet[] sample = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.25);
+        //dataset = sample[0];
+
         // split
         MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
+        System.out.println(split[0].size());
 
         EncogProgramContext context = new EncogProgramContext();
         int idx = 0;
@@ -120,10 +129,10 @@ public class ExperimentGPFile {
         pop.getRules().addConstraintRule(new SimpleGPConstraint());
         genetic.setSpeciation(new PrgSpeciation());
 
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 500, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 500, 2000, 0.01);
         genetic.addStrategy(earlyStop);
 
-        (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
+        (new RampedHalfAndHalf(context,1, 20)).generate(new Random(), pop);
 
         /*evaluate(context,pop,validationSet,"(a-b)/(c-d)");
         evaluate(context,pop,validationSet,"a/(c-d)");
@@ -139,13 +148,18 @@ public class ExperimentGPFile {
 
         try {
 
+            Stopwatch updateSW = new Stopwatch();
+            updateSW.start();
             do {
                 genetic.iteration();
-                best = (EncogProgram) genetic.getBestGenome();
-                System.out.println(genetic.getIteration() + ", Error: "
-                        + Format.formatDouble(best.getScore(),6) + ",Validation Score: " + earlyStop.getValidationError()
-                        + ",Best Genome Size:" +best.size()
-                        + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
+                if( updateSW.getElapsedMilliseconds() > 15000 ) {
+                    updateSW.reset();
+                    best = (EncogProgram) genetic.getBestGenome();
+                    System.out.println(genetic.getIteration() + ", Error: "
+                            + Format.formatDouble(best.getScore(), 6) + ",Validation Score: " + earlyStop.getValidationError()
+                            + ",Best Genome Size:" + best.size()
+                            + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
+                }
             } while(!genetic.isTrainingDone());
 
             //EncogUtility.evaluate(best, trainingData);
@@ -169,6 +183,8 @@ public class ExperimentGPFile {
             Encog.getInstance().shutdown();
         }
 
+        sw.stop();
+        System.out.println("Total runtime: " + Format.formatTimeSpan((int)(sw.getElapsedMilliseconds()/1000)));
 
     }
 }
