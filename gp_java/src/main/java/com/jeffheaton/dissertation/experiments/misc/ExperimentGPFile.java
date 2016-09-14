@@ -10,6 +10,7 @@ import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.ea.population.Population;
 import org.encog.ml.ea.score.adjust.ComplexityAdjustedScore;
+import org.encog.ml.ea.species.SingleSpeciation;
 import org.encog.ml.ea.train.basic.TrainEA;
 import org.encog.ml.fitness.MultiObjectiveFitness;
 import org.encog.ml.prg.EncogProgram;
@@ -27,6 +28,7 @@ import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.training.TrainingSetScore;
+import org.encog.neural.networks.training.propagation.sgd.BatchDataSet;
 import org.encog.parse.expression.latex.RenderLatexExpression;
 import org.encog.persist.source.ObtainFallbackStream;
 import org.encog.persist.source.ObtainInputStream;
@@ -49,9 +51,9 @@ public class ExperimentGPFile {
     }
 
     private void evaluate(EncogProgramContext context, Population pop, MLDataSet validationSet, String expression) {
-        EncogProgram prg = new EncogProgram(context, expression);
+        /*EncogProgram prg = new EncogProgram(context, expression);
         pop.getSpecies().get(0).add(prg);
-        System.out.println(expression + " : Error: " + EncogUtility.calculateRegressionError(prg,validationSet));
+        System.out.println(expression + " : Error: " + EncogUtility.calculateRegressionError(prg,validationSet));*/
     }
 
     private void process() {
@@ -90,6 +92,10 @@ public class ExperimentGPFile {
         MLDataSet validationSet = split[1];
         System.out.println(split[0].size());
 
+        //BatchDataSet batchTraining = new BatchDataSet(trainingSet, new MersenneTwisterGenerateRandom());
+        //batchTraining.setBatchSize(512);
+        //trainingSet = batchTraining;
+
         EncogProgramContext context = new EncogProgramContext();
         int idx = 0;
         for (String field: quick.getFieldNames()) {
@@ -102,13 +108,20 @@ public class ExperimentGPFile {
 
         FunctionFactory factory = context.getFunctions();
         factory.addExtension(StandardExtensions.EXTENSION_VAR_SUPPORT);
-        factory.addExtension(StandardExtensions.EXTENSION_CONST_SUPPORT);
+        //factory.addExtension(StandardExtensions.EXTENSION_CONST_SUPPORT);
         factory.addExtension(StandardExtensions.EXTENSION_NEG);
         factory.addExtension(StandardExtensions.EXTENSION_ADD);
         factory.addExtension(StandardExtensions.EXTENSION_SUB);
         factory.addExtension(StandardExtensions.EXTENSION_MUL);
         factory.addExtension(StandardExtensions.EXTENSION_DIV);
         factory.addExtension(StandardExtensions.EXTENSION_POWER);
+
+        factory.addExtension(StandardExtensions.EXTENSION_CONST_HALF);
+        factory.addExtension(StandardExtensions.EXTENSION_CONST_ONE);
+        factory.addExtension(StandardExtensions.EXTENSION_CONST_TEN);
+        factory.addExtension(StandardExtensions.EXTENSION_CONST_TENTH);
+        factory.addExtension(StandardExtensions.EXTENSION_CONST_ZERO);
+        factory.addExtension(StandardExtensions.EXTENSION_CONST_TWO);
 
 
         PrgPopulation pop = new PrgPopulation(context,100);
@@ -119,17 +132,16 @@ public class ExperimentGPFile {
         TrainEA genetic = new TrainEA(pop, score);
         //genetic.setValidationMode(true);
         genetic.setCODEC(new PrgCODEC());
-        genetic.addOperation(0.5, new SubtreeCrossover());
-        genetic.addOperation(0.1, new ConstMutation(context,0.5,1.0));
-        genetic.addOperation(0.4, new SubtreeMutation(context,3));
-        //genetic.addOperation(0.75, new SubtreeMutation(context,5));
+        genetic.addOperation(0.75, new SubtreeCrossover());
+        //genetic.addOperation(0.1, new ConstMutation(context,0.5,1.0));
+        genetic.addOperation(0.25, new SubtreeMutation(context,4));
         //genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
-        pop.getRules().addRewriteRule(new RewriteConstants());
-        pop.getRules().addRewriteRule(new RewriteAlgebraic());
+        //pop.getRules().addRewriteRule(new RewriteConstants());
+        //pop.getRules().addRewriteRule(new RewriteAlgebraic());
         pop.getRules().addConstraintRule(new SimpleGPConstraint());
-        genetic.setSpeciation(new PrgSpeciation());
+        genetic.setSpeciation(new SingleSpeciation());
 
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 500, 2000, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 500000, 2000, 0.01);
         genetic.addStrategy(earlyStop);
 
         (new RampedHalfAndHalf(context,1, 20)).generate(new Random(), pop);
@@ -152,6 +164,7 @@ public class ExperimentGPFile {
             updateSW.start();
             do {
                 genetic.iteration();
+                //batchTraining.advance();
                 if( updateSW.getElapsedMilliseconds() > 15000 ) {
                     updateSW.reset();
                     best = (EncogProgram) genetic.getBestGenome();
