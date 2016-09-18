@@ -66,7 +66,7 @@ def evalSymbReg(individual, points):
     # Evaluate the mean squared error between the expression
     # and the real function : x**4 + x**3 + x**2 + x
     sqerrors = ((func(x) - x**4 - x**3 - x**2 - x)**2 for x in points)
-    return math.fsum(sqerrors) / len(points),
+    return math.sqrt(math.fsum(sqerrors) / len(points)),
 
 stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
 stats_size = tools.Statistics(len)

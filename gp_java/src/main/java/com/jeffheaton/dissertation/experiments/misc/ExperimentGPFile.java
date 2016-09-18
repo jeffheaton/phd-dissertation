@@ -28,12 +28,10 @@ import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.training.TrainingSetScore;
-import org.encog.neural.networks.training.propagation.sgd.BatchDataSet;
 import org.encog.parse.expression.latex.RenderLatexExpression;
 import org.encog.persist.source.ObtainFallbackStream;
 import org.encog.persist.source.ObtainInputStream;
 import org.encog.util.Format;
-import org.encog.util.Stopwatch;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
 
@@ -51,15 +49,12 @@ public class ExperimentGPFile {
     }
 
     private void evaluate(EncogProgramContext context, Population pop, MLDataSet validationSet, String expression) {
-        /*EncogProgram prg = new EncogProgram(context, expression);
+        EncogProgram prg = new EncogProgram(context, expression);
         pop.getSpecies().get(0).add(prg);
-        System.out.println(expression + " : Error: " + EncogUtility.calculateRegressionError(prg,validationSet));*/
+        System.out.println(expression + " : Error: " + EncogUtility.calculateRegressionError(prg,validationSet));
     }
 
     private void process() {
-        Stopwatch sw = new Stopwatch();
-        sw.start();
-
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
         //String filename = "auto-mpg.csv";
@@ -82,19 +77,10 @@ public class ExperimentGPFile {
         quick.forcePredictors(predictors);
         MLDataSet dataset = quick.generateDataset();
 
-        // downsample
-        //MLDataSet[] sample = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.25);
-        //dataset = sample[0];
-
         // split
         MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
-        System.out.println(split[0].size());
-
-        //BatchDataSet batchTraining = new BatchDataSet(trainingSet, new MersenneTwisterGenerateRandom());
-        //batchTraining.setBatchSize(512);
-        //trainingSet = batchTraining;
 
         EncogProgramContext context = new EncogProgramContext();
         int idx = 0;
@@ -109,19 +95,13 @@ public class ExperimentGPFile {
         FunctionFactory factory = context.getFunctions();
         factory.addExtension(StandardExtensions.EXTENSION_VAR_SUPPORT);
         //factory.addExtension(StandardExtensions.EXTENSION_CONST_SUPPORT);
+        factory.addExtension(StandardExtensions.EXTENSION_CONST_COMMON_POOL);
         factory.addExtension(StandardExtensions.EXTENSION_NEG);
         factory.addExtension(StandardExtensions.EXTENSION_ADD);
         factory.addExtension(StandardExtensions.EXTENSION_SUB);
         factory.addExtension(StandardExtensions.EXTENSION_MUL);
         factory.addExtension(StandardExtensions.EXTENSION_DIV);
         factory.addExtension(StandardExtensions.EXTENSION_POWER);
-
-        factory.addExtension(StandardExtensions.EXTENSION_CONST_HALF);
-        factory.addExtension(StandardExtensions.EXTENSION_CONST_ONE);
-        factory.addExtension(StandardExtensions.EXTENSION_CONST_TEN);
-        factory.addExtension(StandardExtensions.EXTENSION_CONST_TENTH);
-        factory.addExtension(StandardExtensions.EXTENSION_CONST_ZERO);
-        factory.addExtension(StandardExtensions.EXTENSION_CONST_TWO);
 
 
         PrgPopulation pop = new PrgPopulation(context,100);
@@ -132,19 +112,23 @@ public class ExperimentGPFile {
         TrainEA genetic = new TrainEA(pop, score);
         //genetic.setValidationMode(true);
         genetic.setCODEC(new PrgCODEC());
-        genetic.addOperation(0.75, new SubtreeCrossover());
+        genetic.addOperation(0.75, new SubtreeCrossover(2));
         //genetic.addOperation(0.1, new ConstMutation(context,0.5,1.0));
-        genetic.addOperation(0.25, new SubtreeMutation(context,4));
-        //genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
+        genetic.addOperation(0.25, new SubtreeMutation(context,3));
+        //genetic.addOperation(0.75, new SubtreeMutation(context,5));
+        //genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,50,10,50.0));
         //pop.getRules().addRewriteRule(new RewriteConstants());
         //pop.getRules().addRewriteRule(new RewriteAlgebraic());
         pop.getRules().addConstraintRule(new SimpleGPConstraint());
-        genetic.setSpeciation(new SingleSpeciation());
+        genetic.setSpeciation(new PrgSpeciation());
 
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 500000, 2000, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 500, 0.01);
         genetic.addStrategy(earlyStop);
 
-        (new RampedHalfAndHalf(context,1, 20)).generate(new Random(), pop);
+
+        RampedHalfAndHalf gen = (new RampedHalfAndHalf(context,1, 6));
+        gen.setThreadCount(1);
+        gen.generate(new Random(), pop);
 
         /*evaluate(context,pop,validationSet,"(a-b)/(c-d)");
         evaluate(context,pop,validationSet,"a/(c-d)");
@@ -155,24 +139,19 @@ public class ExperimentGPFile {
         evaluate(context,pop,validationSet,"b/d");*/
 
         genetic.setShouldIgnoreExceptions(false);
+        genetic.setSpeciation(new SingleSpeciation());
 
         EncogProgram best = null;
 
         try {
 
-            Stopwatch updateSW = new Stopwatch();
-            updateSW.start();
             do {
                 genetic.iteration();
-                //batchTraining.advance();
-                if( updateSW.getElapsedMilliseconds() > 15000 ) {
-                    updateSW.reset();
-                    best = (EncogProgram) genetic.getBestGenome();
-                    System.out.println(genetic.getIteration() + ", Error: "
-                            + Format.formatDouble(best.getScore(), 6) + ",Validation Score: " + earlyStop.getValidationError()
-                            + ",Best Genome Size:" + best.size()
-                            + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
-                }
+                best = (EncogProgram) genetic.getBestGenome();
+                System.out.println(genetic.getIteration() + ", Error: "
+                        + Format.formatDouble(best.getScore(),6) + ",Validation Score: " + earlyStop.getValidationError()
+                        + ",Best Genome Size:" +best.size()
+                        + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
             } while(!genetic.isTrainingDone());
 
             //EncogUtility.evaluate(best, trainingData);
@@ -196,8 +175,6 @@ public class ExperimentGPFile {
             Encog.getInstance().shutdown();
         }
 
-        sw.stop();
-        System.out.println("Total runtime: " + Format.formatTimeSpan((int)(sw.getElapsedMilliseconds()/1000)));
 
     }
 }
