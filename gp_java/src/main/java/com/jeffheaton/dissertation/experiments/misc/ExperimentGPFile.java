@@ -94,6 +94,7 @@ public class ExperimentGPFile {
         FunctionFactory factory = context.getFunctions();
         factory.addExtension(StandardExtensions.EXTENSION_VAR_SUPPORT);
         factory.addExtension(StandardExtensions.EXTENSION_CONST_SUPPORT);
+
         factory.addExtension(StandardExtensions.EXTENSION_NEG);
         factory.addExtension(StandardExtensions.EXTENSION_ADD);
         factory.addExtension(StandardExtensions.EXTENSION_SUB);
@@ -110,6 +111,7 @@ public class ExperimentGPFile {
         TrainEA genetic = new TrainEA(pop, score);
         //genetic.setValidationMode(true);
         genetic.setCODEC(new PrgCODEC());
+<<<<<<< HEAD
         genetic.addOperation(0.5, new SubtreeCrossover());
         genetic.addOperation(0.1, new ConstMutation(context,0.5,1.0));
         genetic.addOperation(0.4, new SubtreeMutation(context,3));
@@ -117,13 +119,29 @@ public class ExperimentGPFile {
         //genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
         pop.getRules().addRewriteRule(new RewriteConstants());
         pop.getRules().addRewriteRule(new RewriteAlgebraic());
+=======
+        genetic.addOperation(0.75, new SubtreeCrossover(2));
+        //genetic.addOperation(0.1, new ConstMutation(context,0.5,1.0));
+        genetic.addOperation(0.25, new SubtreeMutation(context,3));
+        //genetic.addOperation(0.75, new SubtreeMutation(context,5));
+        //genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,50,10,50.0));
+        //pop.getRules().addRewriteRule(new RewriteConstants());
+        //pop.getRules().addRewriteRule(new RewriteAlgebraic());
+>>>>>>> ae846a4e9c1091fd4fbab9e649f06cbbb7951c52
         pop.getRules().addConstraintRule(new SimpleGPConstraint());
         genetic.setSpeciation(new PrgSpeciation());
 
         EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 500, 0.01);
         genetic.addStrategy(earlyStop);
 
+<<<<<<< HEAD
         (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
+=======
+
+        RampedHalfAndHalf gen = (new RampedHalfAndHalf(context,1, 6));
+        gen.setThreadCount(1);
+        gen.generate(new Random(), pop);
+>>>>>>> ae846a4e9c1091fd4fbab9e649f06cbbb7951c52
 
         /*evaluate(context,pop,validationSet,"(a-b)/(c-d)");
         evaluate(context,pop,validationSet,"a/(c-d)");
@@ -134,6 +152,7 @@ public class ExperimentGPFile {
         evaluate(context,pop,validationSet,"b/d");*/
 
         genetic.setShouldIgnoreExceptions(false);
+        genetic.setSpeciation(new SingleSpeciation());
 
         EncogProgram best = null;
 
