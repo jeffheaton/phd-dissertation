@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.misc;
 
+import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.util.SimpleGPConstraint;
 import org.encog.Encog;
 import org.encog.mathutil.error.ErrorCalculation;
@@ -10,6 +11,8 @@ import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.data.basic.BasicMLData;
 import org.encog.ml.data.basic.BasicMLDataSet;
+import org.encog.ml.ea.score.adjust.ComplexityAdjustedScore;
+import org.encog.ml.ea.species.SingleSpeciation;
 import org.encog.ml.ea.train.basic.TrainEA;
 import org.encog.ml.fitness.MultiObjectiveFitness;
 import org.encog.ml.prg.EncogProgram;
@@ -31,6 +34,9 @@ import org.encog.neural.networks.training.propagation.sgd.BatchDataSet;
 import org.encog.parse.expression.latex.RenderLatexExpression;
 import org.encog.util.Format;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -89,11 +95,14 @@ public class ExperimentExpressions {
         }
     }
 
-    private void train() {
+    private List<String> train(int speciesCount) {
+
         for (int idx=0; idx< this.inputCount; idx++ ) {
             char ch = (char)('a'+idx);
             context.defineVariable(""+ch);
         }
+
+        List<String> results = new ArrayList<String>();
 
         PrgPopulation pop = new PrgPopulation(context,100);
 
@@ -108,11 +117,18 @@ public class ExperimentExpressions {
         genetic.addOperation(0.1, new ConstMutation(context,0.5,1.0));
         genetic.addOperation(0.4, new SubtreeMutation(context,3));
         //genetic.addOperation(0.75, new SubtreeMutation(context,5));
-        //genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
+        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10,20,10,50.0));
         pop.getRules().addRewriteRule(new RewriteConstants());
         pop.getRules().addRewriteRule(new RewriteAlgebraic());
         pop.getRules().addConstraintRule(new SimpleGPConstraint());
-        genetic.setSpeciation(new PrgSpeciation());
+
+        if(speciesCount!=1) {
+            PrgSpeciation sp = new PrgSpeciation();
+            sp.setMaxNumberOfSpecies(speciesCount);
+            genetic.setSpeciation(sp);
+        } else {
+            genetic.setSpeciation(new SingleSpeciation());
+        }
 
         EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(this.validationSet, 5, 500, 0.01);
         genetic.addStrategy(earlyStop);
@@ -122,16 +138,24 @@ public class ExperimentExpressions {
         genetic.setShouldIgnoreExceptions(false);
 
         EncogProgram best = null;
+        String lastBest = "";
 
         try {
 
             do {
                 genetic.iteration();
                 best = (EncogProgram) genetic.getBestGenome();
-                System.out.println(genetic.getIteration() + ", Error: "
+                String bestStr = best.dumpAsCommonExpression();
+                String current = (genetic.getIteration() + ", Error: "
                         + Format.formatDouble(best.getScore(),6) + ",Validation Score: " + earlyStop.getValidationError()
                         + ",Best Genome Size:" +best.size()
-                        + ",Species Count:" + pop.getSpecies().size() + ",best: " + best.dumpAsCommonExpression());
+                        + ",Species Count:" + pop.getSpecies().size() + ",best: " + bestStr);
+
+                if( !lastBest.equals(bestStr)) {
+                    lastBest = bestStr;
+                    System.out.println(current);
+                    results.add(current);
+                }
             } while(!genetic.isTrainingDone());
 
             //EncogUtility.evaluate(best, trainingData);
@@ -148,25 +172,62 @@ public class ExperimentExpressions {
             String str = latex.render(bestProgram);
             System.out.println("Latex: " + str);
 
+
+            if( best.getScore()<1.0) {
+                appendResults(results);
+            }
+
         } catch (Throwable t) {
             t.printStackTrace();
         } finally {
             genetic.finishTraining();
             Encog.getInstance().shutdown();
         }
+
+
+
+        return results;
     }
 
-    public void experiment(String expression) {
+    public void appendResults(List<String> results) {
+        try {
+            String path = DissertationConfig.getInstance().getProjectPath().toString();
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(
+                    new File(path,"expressions.txt"), true)));
+            for(String line: results) {
+                out.println(line);
+            }
+            out.close();
+        } catch (IOException e) {
+            //exception handling left as an exercise for the reader
+        }
+    }
+
+    public void experiment(String expression, int speciesCount) {
         defineContext();
         generateDataset(expression);
-        train();
+        train(speciesCount);
+    }
+
+    public static void experimentLoop() {
+        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
+
+        for(;;) {
+            System.out.println("****");
+            ExperimentExpressions prg = new ExperimentExpressions();
+            prg.experiment("(a-b)/(c-d)", 30);
+        }
+    }
+
+    public static void experimentSingle(String expression, int speciesCount) {
+        ExperimentExpressions prg = new ExperimentExpressions();
+        prg.experiment(expression, speciesCount);
     }
 
     public static void main(String[] args) {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
-        ExperimentExpressions prg = new ExperimentExpressions();
-        //prg.experiment("-2^2");
-        prg.experiment("(a-b)/(c-d)");
+        //ExperimentExpressions.experimentLoop();
+        ExperimentExpressions.experimentSingle("(a-b)/(c-d)", 30);
     }
 
 }
