@@ -15,9 +15,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by jeff on 5/16/16.
- */
 public class FileBasedTaskManager implements TaskQueueManager {
 
     public final static String FILE_LOCK = "lock.lck";

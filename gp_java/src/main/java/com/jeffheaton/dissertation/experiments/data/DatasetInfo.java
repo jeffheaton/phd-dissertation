@@ -11,9 +11,6 @@ import org.encog.util.csv.CSVFormat;
 
 import java.util.*;
 
-/**
- * Created by jeff on 7/4/16.
- */
 public class DatasetInfo {
 
     private final boolean regression;

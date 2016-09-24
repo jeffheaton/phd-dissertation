@@ -13,9 +13,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Created by jeff on 6/7/16.
- */
 public class ReportHolder {
     private List<String[]> data = new ArrayList<>();
     private String[] headers;

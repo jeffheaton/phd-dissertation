@@ -2,9 +2,6 @@ package com.jeffheaton.dissertation.experiments.manager;
 
 import java.util.List;
 
-/**
- * Created by jeff on 5/16/16.
- */
 public interface TaskQueueManager {
     ExperimentTask addTask(String name, String dataset, String model, String predictors, int cycle);
     void removeTask(String key);

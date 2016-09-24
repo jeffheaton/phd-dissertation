@@ -11,9 +11,6 @@ import org.encog.util.csv.ReadCSV;
 
 import java.util.*;
 
-/**
- * Created by jeff on 7/4/16.
- */
 public class ExperimentDatasets {
 
     private List<DatasetInfo> datasets = new ArrayList<>();

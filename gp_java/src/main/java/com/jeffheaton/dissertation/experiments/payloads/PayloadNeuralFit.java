@@ -28,9 +28,6 @@ import org.encog.util.Format;
 import org.encog.util.Stopwatch;
 import org.encog.util.simple.EncogUtility;
 
-/**
- * Created by jeff on 6/12/16.
- */
 public class PayloadNeuralFit extends AbstractExperimentPayload {
 
     public static final int MINI_BATCH_SIZE = 50;

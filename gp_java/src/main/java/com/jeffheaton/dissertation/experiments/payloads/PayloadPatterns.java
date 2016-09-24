@@ -14,9 +14,6 @@ import org.encog.util.Stopwatch;
 
 import java.util.List;
 
-/**
- * Created by jeff on 6/25/16.
- */
 public class PayloadPatterns extends AbstractExperimentPayload  {
     public static int N = 100;
 

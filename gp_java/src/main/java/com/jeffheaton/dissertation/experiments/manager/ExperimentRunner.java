@@ -10,9 +10,6 @@ import org.encog.util.Stopwatch;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by jeffh on 7/8/2016.
- */
 public class ExperimentRunner {
     private Stopwatch sw;
     private List<AbstractExperiment> experimentList = new ArrayList<>();

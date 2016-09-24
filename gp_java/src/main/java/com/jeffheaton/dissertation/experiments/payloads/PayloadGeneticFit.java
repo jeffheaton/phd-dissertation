@@ -39,9 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Created by jeff on 6/12/16.
- */
 public class PayloadGeneticFit extends AbstractExperimentPayload {
 
     public static String GP_CLASS_ERROR = "GP cannot be used with multiple outputs (classification with more than 2 values)";

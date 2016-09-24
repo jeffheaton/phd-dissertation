@@ -14,9 +14,6 @@ import org.encog.util.Format;
 
 import java.util.*;
 
-/**
- * Created by jeffh on 6/25/2016.
- */
 public class FindPatternsGP {
 
     static public class FoundPattern implements Comparable<FoundPattern> {

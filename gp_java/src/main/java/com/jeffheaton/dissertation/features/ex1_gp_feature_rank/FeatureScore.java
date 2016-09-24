@@ -30,9 +30,6 @@ import org.encog.util.Format;
 
 import java.util.List;
 
-/**
- * Created by Jeff on 3/31/2016.
- */
 public class FeatureScore implements CalculateScore {
 
     private final Population population;

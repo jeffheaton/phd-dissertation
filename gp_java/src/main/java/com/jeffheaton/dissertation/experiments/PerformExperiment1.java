@@ -9,9 +9,6 @@ import org.encog.Encog;
 import java.io.File;
 import java.util.List;
 
-/**
- * Created by jeff on 5/10/16.
- */
 public class PerformExperiment1 implements AbstractExperiment {
 
     @Override

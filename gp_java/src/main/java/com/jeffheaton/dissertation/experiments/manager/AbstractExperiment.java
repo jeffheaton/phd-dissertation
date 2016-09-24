@@ -10,9 +10,6 @@ import org.encog.util.Stopwatch;
 
 import java.io.File;
 
-/**
- * Created by jeff on 6/19/16.
- */
 public abstract interface AbstractExperiment {
     String getName();
     void registerTasks(TaskQueueManager manager);

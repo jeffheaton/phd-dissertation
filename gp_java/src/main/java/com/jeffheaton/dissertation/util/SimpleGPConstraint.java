@@ -9,9 +9,6 @@ import org.encog.ml.tree.TreeNode;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by jeff on 7/23/16.
- */
 public class SimpleGPConstraint implements ConstraintRule {
     /**
      * Is this genome valid?

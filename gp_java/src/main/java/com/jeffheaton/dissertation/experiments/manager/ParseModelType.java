@@ -5,9 +5,6 @@ import org.encog.EncogError;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by jeff on 6/7/16.
- */
 public class ParseModelType {
 
     private final String name;

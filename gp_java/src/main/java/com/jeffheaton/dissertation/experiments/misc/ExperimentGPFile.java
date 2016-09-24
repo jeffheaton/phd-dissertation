@@ -37,9 +37,6 @@ import org.encog.util.simple.EncogUtility;
 import java.io.InputStream;
 import java.util.Random;
 
-/**
- * Created by jeff on 4/11/16.
- */
 public class ExperimentGPFile {
     public static void main(String[] args) {
         InputStream is;

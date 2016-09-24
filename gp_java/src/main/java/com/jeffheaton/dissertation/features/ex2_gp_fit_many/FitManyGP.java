@@ -36,9 +36,6 @@ import org.encog.util.simple.EncogUtility;
 import java.io.InputStream;
 import java.util.Random;
 
-/**
- * Created by jeff on 4/16/16.
- */
 public class FitManyGP {
 
     private boolean verboseGP = false;

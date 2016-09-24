@@ -3,9 +3,6 @@ package com.jeffheaton.dissertation.experiments.data;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.ml.data.MLDataSet;
 
-/**
- * Created by jeffh on 7/8/2016.
- */
 public class DataCacheElement {
 
     private QuickEncodeDataset quick;

@@ -14,9 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by jeff on 5/28/16.
- */
 public class GenerateAggregateReport {
     private TaskQueueManager manager;
     private Map<String, ReportItem> reportItems = new HashMap<>();

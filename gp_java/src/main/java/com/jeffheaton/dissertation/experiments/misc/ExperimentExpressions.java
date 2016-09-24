@@ -39,9 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Created by jeff on 9/11/16.
- */
 public class ExperimentExpressions {
     public static final int COUNT = 1000;
     public static final double HIGH = 1;

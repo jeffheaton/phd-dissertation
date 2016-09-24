@@ -30,9 +30,6 @@ import org.encog.util.Format;
 import java.io.*;
 import java.util.*;
 
-/**
- * Created by Jeff on 3/31/2016.
- */
 public class AutoEngineerFeatures {
     private int geneticIterations = 1000;
     private File logFeatureDir;

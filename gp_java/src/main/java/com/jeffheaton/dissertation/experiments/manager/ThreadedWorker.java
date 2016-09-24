@@ -1,8 +1,5 @@
 package com.jeffheaton.dissertation.experiments.manager;
 
-/**
- * Created by jeff on 5/26/16.
- */
 public class ThreadedWorker implements Runnable {
 
     private ThreadedRunner runner;

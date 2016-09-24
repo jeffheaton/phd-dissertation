@@ -16,9 +16,6 @@ import org.encog.util.csv.ReadCSV;
 import java.io.InputStream;
 import java.util.*;
 
-/**
- * Created by jeff on 4/11/16.
- */
 public class QuickEncodeDataset {
 
     public String[] nameOutputVectorFields() {

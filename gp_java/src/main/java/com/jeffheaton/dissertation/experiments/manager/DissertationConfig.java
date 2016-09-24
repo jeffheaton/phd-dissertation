@@ -8,9 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-/**
- * Created by Jeff on 6/6/2016.
- */
 public final class DissertationConfig {
     public static final String PROPERTIES_FILE = ".dissertation_jheaton";
     private static DissertationConfig instance;

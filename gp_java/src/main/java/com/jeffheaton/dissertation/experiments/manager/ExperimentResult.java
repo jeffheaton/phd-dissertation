@@ -5,9 +5,6 @@ import org.encog.util.Format;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by jeff on 5/11/16.
- */
 public class ExperimentResult {
     private final String name;
     private final List<Double> results = new ArrayList<>();

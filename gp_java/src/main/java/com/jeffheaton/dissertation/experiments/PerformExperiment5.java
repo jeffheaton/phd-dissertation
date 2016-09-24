@@ -9,9 +9,6 @@ import org.encog.Encog;
 import java.io.File;
 import java.util.List;
 
-/**
- * Created by jeff on 6/25/16.
- */
 public class PerformExperiment5  implements AbstractExperiment {
     public void addDataSet(TaskQueueManager manager, DatasetInfo info) {
         String type = info.isRegression() ? "r":"c";

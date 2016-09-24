@@ -7,9 +7,6 @@ import org.encog.engine.network.activation.ActivationSoftMax;
 
 import java.util.Arrays;
 
-/**
- * Created by Jeff on 6/8/2016.
- */
 public class ExperimentRunSingle {
 
     public static void main(String[] args) {

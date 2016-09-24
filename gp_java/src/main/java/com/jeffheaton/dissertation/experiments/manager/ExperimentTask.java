@@ -8,9 +8,6 @@ import org.encog.util.csv.CSVFormat;
 import java.io.*;
 import java.util.Date;
 
-/**
- * Created by jeff on 5/16/16.
- */
 public class ExperimentTask implements Runnable {
 
     private final String name;
