@@ -79,3 +79,17 @@ task(runExperiment3, group: 'commands', description: 'Run experiment 3',
     classpath = sourceSets.main.runtimeClasspath
     args = ["experiment-3"]
 }
+
+task(runExperiment4, group: 'commands', description: 'Run experiment 4',
+        dependsOn: 'classes', type: JavaExec) {
+    main = 'com.jeffheaton.dissertation.JeffDissertation'
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["experiment-4"]
+}
+
+task(runExperiment5, group: 'commands', description: 'Run experiment 5',
+        dependsOn: 'classes', type: JavaExec) {
+    main = 'com.jeffheaton.dissertation.JeffDissertation'
+    classpath = sourceSets.main.runtimeClasspath
+    args = ["experiment-5"]
+}
