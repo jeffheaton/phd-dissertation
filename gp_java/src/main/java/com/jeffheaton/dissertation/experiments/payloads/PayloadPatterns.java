@@ -3,7 +3,7 @@ package com.jeffheaton.dissertation.experiments.payloads;
 import com.jeffheaton.dissertation.experiments.data.DataCacheElement;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
-import com.jeffheaton.dissertation.features.FindPatternsGP;
+import com.jeffheaton.dissertation.util.FindPatternsGP;
 import org.encog.EncogError;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;

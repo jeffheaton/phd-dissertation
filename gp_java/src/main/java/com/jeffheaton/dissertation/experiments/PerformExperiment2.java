@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Experiment 2: For the dissertation algorithm to be effective, engineered features from this algorithm must enhance
+ * Experiment 2: For the dissertation algorithm to be effective, engineered autofeatures from this algorithm must enhance
  * neural network accuracy.  To measure this performance, a number of public and synthetic data sets will evaluate it.
  * It is necessary to collect a baseline RMSE or log loss of a deep neural network with that data set that
  * receives no help from the dissertation algorithm.  The neural network topology, or hyper-parameters, will
