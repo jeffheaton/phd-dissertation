@@ -21,6 +21,7 @@ import org.encog.persist.source.ObtainInputStream;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
+import org.encog.ml.importance.PerturbationFeatureImportanceCalc;
 
 
 public class ExperimentNeuralFile {
@@ -75,7 +76,7 @@ public class ExperimentNeuralFile {
 
         System.out.println();
         System.out.println("Feature importance (permutation)");
-        FeatureImportance fi = new PermutationFeatureImportanceCalc(); //new NeuralFeatureImportanceCalc();
+        FeatureImportance fi = new PerturbationFeatureImportanceCalc(); //new NeuralFeatureImportanceCalc();
         fi.init(network,quick.nameOutputVectorFields());
         fi.performRanking(validationSet);
 

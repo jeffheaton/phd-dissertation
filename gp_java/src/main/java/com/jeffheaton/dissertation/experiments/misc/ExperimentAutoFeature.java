@@ -36,7 +36,7 @@ public class ExperimentAutoFeature {
 
 
         AutoEngineerFeatures auto = new AutoEngineerFeatures(trainingSet, validationSet);
-        auto.setLogFeatureDir(new File("/Users/jeff/test/autofeatures"));
+        auto.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         auto.run();
     }
 }

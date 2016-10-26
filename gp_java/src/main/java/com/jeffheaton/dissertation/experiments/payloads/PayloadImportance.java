@@ -16,7 +16,7 @@ import org.encog.ml.data.MLDataSet;
 import org.encog.ml.importance.FeatureImportance;
 import org.encog.ml.importance.FeatureRank;
 import org.encog.ml.importance.NeuralFeatureImportanceCalc;
-import org.encog.ml.importance.PermutationFeatureImportanceCalc;
+import org.encog.ml.importance.PerturbationFeatureImportanceCalc;
 import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.BasicNetwork;
@@ -50,7 +50,7 @@ public class PayloadImportance extends AbstractExperimentPayload {
     }
 
     private void calculateImportance(BasicNetwork network, MLDataSet validationSet) {
-        String currentPermRanking = calculateImportanceType(network,validationSet,new PermutationFeatureImportanceCalc());
+        String currentPermRanking = calculateImportanceType(network,validationSet,new PerturbationFeatureImportanceCalc());
         String currentWeightRanking = calculateImportanceType(network,validationSet,new NeuralFeatureImportanceCalc());
 
         if( currentPermRanking.equals(this.permRanking) ) {
@@ -136,7 +136,7 @@ public class PayloadImportance extends AbstractExperimentPayload {
 
         if(isVerbose()) {
             System.out.println("Feature importance (permutation)");
-            FeatureImportance fi = new PermutationFeatureImportanceCalc(); //new NeuralFeatureImportanceCalc();
+            FeatureImportance fi = new PerturbationFeatureImportanceCalc(); //new NeuralFeatureImportanceCalc();
             fi.init(network,null);
             fi.performRanking(trainingSet);
 

@@ -18,28 +18,35 @@ import org.encog.ml.ea.exception.EARuntimeError;
 import org.encog.ml.ea.genome.Genome;
 import org.encog.ml.ea.population.Population;
 import org.encog.ml.importance.FeatureRank;
-import org.encog.ml.importance.NeuralFeatureImportanceCalc;
+import org.encog.ml.importance.PerturbationFeatureImportanceCalc;
 import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.ml.train.strategy.end.EndIterationsStrategy;
-import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
+import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
+import org.encog.neural.networks.training.propagation.sgd.update.AdaGradUpdate;
+import org.encog.neural.networks.training.propagation.sgd.update.AdamUpdate;
 import org.encog.util.Format;
 
 import java.util.List;
 
 public class FeatureScore implements CalculateScore {
-
+    public static final int MINI_BATCH_SIZE = 50;
+    public static final double LEARNING_RATE = 1e-2;
+    public static final double L1 = 0;
+    public static final double L2 = 1e-8;
     private final Population population;
     private final BasicNetwork network;
     private MLDataSet trainingData;
     private MLDataSet validationData;
     private boolean init;
     private int hiddenCount;
-    private double momentum = 0.9;
     private int maxIterations;
+    private boolean shouldNeuralReport = false;
+    private double bestValidationError;
+
 
     public FeatureScore(MLDataSet theTrainingData, MLDataSet theValidationData, Population thePopulation, int theHiddenCount, int theMaxIterations) {
         this.trainingData = theTrainingData;
@@ -68,12 +75,11 @@ public class FeatureScore implements CalculateScore {
     }
 
     private MLDataSet encodeDataset(List<Genome> genomes, MLDataSet dataset) {
+        int inputSize = this.network.getInputCount();
         MLDataSet engineeredDataset = new BasicMLDataSet();
 
         for(MLDataPair pair: dataset) {
-            int networkIdx = 0;
-
-            MLData engineeredInput = new BasicMLData(this.network.getInputCount());
+            MLData engineeredInput = new BasicMLData(inputSize);
             MLData engineeredIdeal = new BasicMLData(this.network.getOutputCount());
             MLDataPair engineeredPair = new BasicMLDataPair(engineeredInput,engineeredIdeal);
 
@@ -83,15 +89,19 @@ public class FeatureScore implements CalculateScore {
             }
 
             // Create input
-            for(Genome genome: genomes) {
-                MLRegression phen = (MLRegression) genome;
-                try {
-                    MLData output = phen.compute(pair.getInput());
-                    engineeredInput.setData(networkIdx++,output.getData(0));
-                } catch(EARuntimeError ex) {
-                    engineeredInput.setData(networkIdx++,0);
-                }
+            for(int i=0;i<inputSize;i++) {
+                double d = 0.0;
 
+                if( i< genomes.size() ) {
+                    MLRegression phen = (MLRegression) genomes.get(i);
+                    try {
+                        MLData output = phen.compute(pair.getInput());
+                        d = output.getData(0);
+                    } catch (EARuntimeError ex) {
+                        d = 0.0;
+                    }
+                }
+                engineeredInput.setData(i, d);
             }
 
             cleanVector(engineeredPair.getInput());
@@ -103,34 +113,39 @@ public class FeatureScore implements CalculateScore {
     }
 
     private void reportNeuralTrain(MLTrain train, EarlyStoppingStrategy earlyStop) {
-        System.out.println("Epoch #" + train.getIteration() + " Train Error:" + Format.formatDouble(train.getError(), 6)
-                + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
-                ", Stagnant: " + earlyStop.getStagnantIterations());
+        if( this.shouldNeuralReport ) {
+            System.out.println("Epoch #" + train.getIteration() + " Train Error:" + Format.formatDouble(train.getError(), 6)
+                    + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
+                    ", Stagnant: " + earlyStop.getStagnantIterations());
+        }
     }
 
     public void calculateScores() {
         List<Genome> genomes = this.population.flatten();
 
-
         // Create a new training set, with the new engineered autofeatures
         MLDataSet engineeredTrainingSet = encodeDataset(genomes, this.trainingData);
         MLDataSet engineeredValidationSet = encodeDataset(genomes, this.trainingData);
 
-
-
         boolean done = false;
-        double learningRate = 0.1;
-        boolean first = true;
 
         while(!done) {
             randomizeNetwork();
 
             // Train a neural network with engineered dataset
-            final Backpropagation train = new Backpropagation(network, engineeredTrainingSet, learningRate, this.momentum);
+            StochasticGradientDescent train = new StochasticGradientDescent(network, engineeredTrainingSet);
+            train.setUpdateRule(new AdamUpdate());
+            train.setBatchSize(MINI_BATCH_SIZE);
+            train.setL1(L1);
+            train.setL2(L2);
+            train.setLearningRate(LEARNING_RATE);
+
+
+            //final Backpropagation train = new Backpropagation(network, engineeredTrainingSet, learningRate, this.momentum);
 
             //final ResilientPropagation train = new ResilientPropagation(network, engineeredDataset);
-            train.setErrorFunction(new CrossEntropyErrorFunction());
-            train.setNesterovUpdate(true);
+            //train.setErrorFunction(new CrossEntropyErrorFunction());
+            //train.setNesterovUpdate(true);
 
             EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(engineeredValidationSet);
             train.addStrategy(earlyStop);
@@ -141,34 +156,24 @@ public class FeatureScore implements CalculateScore {
             do {
                 train.iteration();
                 if( (train.getIteration()%500) == 0) {
-                    if( first ) {
-                        System.out.println("Using learning rate: " + learningRate);
-                        first = false;
-                    }
                     reportNeuralTrain(train,earlyStop);
                 }
             }
             while (!train.isTrainingDone() && !Double.isInfinite(train.getError()) && !Double.isNaN(train.getError()) );
             train.finishTraining();
+            this.bestValidationError = earlyStop.getBestValidationError();
 
-            if( !Double.isInfinite(train.getError()) && !Double.isNaN(train.getError())) {
+            if( !Double.isInfinite(train.getError()) && !Double.isNaN(train.getError()) ) {
                 done = true;
                 reportNeuralTrain(train,earlyStop);
-            } else {
-                if( learningRate<= Encog.DEFAULT_DOUBLE_EQUAL ) {
-                    System.out.println("Learning rate too low!");
-                    done = true;
-                } else {
-                    learningRate /= 10;
-                }
             }
         }
 
         // Evaluate feature importance
 
-        NeuralFeatureImportanceCalc fi = new NeuralFeatureImportanceCalc();
+        PerturbationFeatureImportanceCalc fi = new PerturbationFeatureImportanceCalc();
         fi.init(network,null);
-        fi.performRanking();
+        fi.performRanking(engineeredValidationSet);
 
         int count = Math.min(fi.getFeatures().size(),genomes.size());// might not be needed
         for(int i=0;i<count;i++) {
@@ -200,5 +205,13 @@ public class FeatureScore implements CalculateScore {
     @Override
     public boolean requireSingleThreaded() {
         return false;
+    }
+
+    public double getBestValidationError() {
+        return bestValidationError;
+    }
+
+    public void setBestValidationError(double bestValidationError) {
+        this.bestValidationError = bestValidationError;
     }
 }

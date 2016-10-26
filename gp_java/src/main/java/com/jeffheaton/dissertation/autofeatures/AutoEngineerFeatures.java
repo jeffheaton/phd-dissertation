@@ -37,7 +37,8 @@ public class AutoEngineerFeatures {
     private MLDataSet validationSet;
     private int populationSize = 100;
     private int hiddenCount = 50;
-    private int maxIterations = 50;
+    private int maxIterations = 5000;
+    private double error;
 
     public AutoEngineerFeatures(MLDataSet theTrainingSet, MLDataSet theValidationSet)
     {
@@ -95,7 +96,7 @@ public class AutoEngineerFeatures {
                     dumpFeatures(genetic);
                 }
                 genetic.iteration();
-                System.out.println("Genetic iteration #" + genetic.getIteration() + ", population size: " + pop.size());
+                System.out.println("Genetic iteration #" + genetic.getIteration() + ", error=" + score.getBestValidationError() + ", population size: " + pop.size());
             }
 
 
@@ -208,5 +209,13 @@ public class AutoEngineerFeatures {
 
     public void setLogFeatureDir(File logFeatureDir) {
         this.logFeatureDir = logFeatureDir;
+    }
+
+    public double getError() {
+        return error;
+    }
+
+    public void setError(double error) {
+        this.error = error;
     }
 }
