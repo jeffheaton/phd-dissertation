@@ -110,7 +110,7 @@ public class PayloadImportance extends AbstractExperimentPayload {
         train.setL2(PayloadNeuralFit.L2);
         train.setLearningRate(PayloadNeuralFit.LEARNING_RATE);
 
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, PayloadNeuralFit.STAGNANT_NEURAL, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, PayloadNeuralFit.STAGNANT_NEURAL);
         earlyStop.setSaveBest(true);
         train.addStrategy(earlyStop);
 

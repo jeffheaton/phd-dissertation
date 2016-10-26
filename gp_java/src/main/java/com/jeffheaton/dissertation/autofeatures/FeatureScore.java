@@ -33,6 +33,7 @@ import org.encog.util.Format;
 import java.util.List;
 
 public class FeatureScore implements CalculateScore {
+    public static final int STAGNANT_STEPS = 500;
     public static final int MINI_BATCH_SIZE = 50;
     public static final double LEARNING_RATE = 1e-2;
     public static final double L1 = 0;
@@ -147,7 +148,7 @@ public class FeatureScore implements CalculateScore {
             //train.setErrorFunction(new CrossEntropyErrorFunction());
             //train.setNesterovUpdate(true);
 
-            EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(engineeredValidationSet);
+            EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(engineeredValidationSet,5,STAGNANT_STEPS);
             train.addStrategy(earlyStop);
             if( maxIterations>0 ) {
                 train.addStrategy(new EndIterationsStrategy(maxIterations));

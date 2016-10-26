@@ -127,7 +127,7 @@ public class ExperimentExpressions {
             genetic.setSpeciation(new SingleSpeciation());
         }
 
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(this.validationSet, 5, 500, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(this.validationSet, 5, 500);
         genetic.addStrategy(earlyStop);
 
         (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);

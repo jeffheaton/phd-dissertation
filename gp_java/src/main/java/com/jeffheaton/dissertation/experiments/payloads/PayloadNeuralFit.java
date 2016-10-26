@@ -92,7 +92,7 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         train.setL2(L2);
         train.setLearningRate(LEARNING_RATE);
 
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, STAGNANT_NEURAL, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, STAGNANT_NEURAL);
         earlyStop.setSaveBest(true);
         train.addStrategy(earlyStop);
 

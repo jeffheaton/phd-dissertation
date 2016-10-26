@@ -147,7 +147,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         genetic.setSpeciation(new PrgSpeciation());
         genetic.setThreadCount(1);
 
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 50, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 50);
         genetic.addStrategy(earlyStop);
 
         (new RampedHalfAndHalf(context, 1, 6)).generate(new Random(), pop);

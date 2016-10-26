@@ -16,6 +16,7 @@ import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
+import org.encog.neural.networks.training.propagation.sgd.update.AdamUpdate;
 import org.encog.persist.source.ObtainFallbackStream;
 import org.encog.persist.source.ObtainInputStream;
 import org.encog.util.Format;
@@ -25,6 +26,12 @@ import org.encog.ml.importance.PerturbationFeatureImportanceCalc;
 
 
 public class ExperimentNeuralFile {
+    public static final int STAGNANT_STEPS = 500;
+    public static final int MINI_BATCH_SIZE = 32;
+    public static final double LEARNING_RATE = 1e-2;
+    public static final double L1 = 0;
+    public static final double L2 = 1e-8;
+
 
     public void runNeural() {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
@@ -53,13 +60,15 @@ public class ExperimentNeuralFile {
         //seedInput(network);
 
         // train the neural network
-        final StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet);
-        //train.setErrorFunction(new CrossEntropyErrorFunction());
-        //train.setNesterovUpdate(true);
-        train.setLearningRate(0.1);
-        train.setL2(1e-7);
+        StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet);
+        train.setUpdateRule(new AdamUpdate());
+        train.setBatchSize(MINI_BATCH_SIZE);
+        train.setL1(L1);
+        train.setL2(L2);
+        train.setLearningRate(LEARNING_RATE);
 
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet,5,STAGNANT_STEPS);
+        earlyStop.setSaveBest(true);
         train.addStrategy(earlyStop);
 
         int epoch = 1;
@@ -73,6 +82,9 @@ public class ExperimentNeuralFile {
             epoch++;
         } while(!train.isTrainingDone());
         train.finishTraining();
+
+        network = (BasicNetwork) earlyStop.getBestModel();
+        System.out.println("Best score: " + earlyStop.getBestValidationError());
 
         System.out.println();
         System.out.println("Feature importance (permutation)");

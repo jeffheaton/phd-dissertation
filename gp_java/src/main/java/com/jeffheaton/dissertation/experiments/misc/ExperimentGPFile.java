@@ -119,7 +119,7 @@ public class ExperimentGPFile {
         pop.getRules().addConstraintRule(new SimpleGPConstraint());
         genetic.setSpeciation(new PrgSpeciation());
 
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 500, 0.01);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 500);
         genetic.addStrategy(earlyStop);
 
         (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
