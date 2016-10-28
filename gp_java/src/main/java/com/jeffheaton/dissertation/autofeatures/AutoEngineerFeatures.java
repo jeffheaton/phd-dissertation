@@ -39,6 +39,8 @@ public class AutoEngineerFeatures {
     private int hiddenCount = 50;
     private int maxIterations = 5000;
     private double error;
+    private TrainEA genetic;
+    private FeatureScore score;
 
     public AutoEngineerFeatures(MLDataSet theTrainingSet, MLDataSet theValidationSet)
     {
@@ -46,7 +48,7 @@ public class AutoEngineerFeatures {
         this.validationSet = theValidationSet;
     }
 
-    public void run() {
+    private void init() {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
         EncogProgramContext context = new EncogProgramContext();
@@ -70,41 +72,41 @@ public class AutoEngineerFeatures {
 
         PrgPopulation pop = new PrgPopulation(context,this.populationSize);
 
-        FeatureScore score = new FeatureScore(this.trainingSet, this.validationSet,pop, this.hiddenCount, this.maxIterations);
+        this.score = new FeatureScore(this.trainingSet, this.validationSet,pop, this.hiddenCount, this.maxIterations);
 
 
-        TrainEA genetic = new TrainEA(pop, score);
+        this.genetic = new TrainEA(pop, this.score);
         //genetic.setValidationMode(true);
-        genetic.setCODEC(new PrgCODEC());
-        genetic.addOperation(0.5, new SubtreeCrossover());
-        genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
-        genetic.addOperation(0.25, new SubtreeMutation(context,4));
-        genetic.addScoreAdjuster(new ComplexityAdjustedScore(5,10,10,500.0));
+        this.genetic.setCODEC(new PrgCODEC());
+        this.genetic.addOperation(0.5, new SubtreeCrossover());
+        this.genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
+        this.genetic.addOperation(0.25, new SubtreeMutation(context,4));
+        this.genetic.addScoreAdjuster(new ComplexityAdjustedScore(5,10,10,500.0));
         pop.getRules().addRewriteRule(new RewriteConstants());
         //genetic.getRules().addRewriteRule(new RewriteAlgebraic());
-        genetic.setSpeciation(new PrgSpeciation());
-        genetic.setEliteRate(0.5);
+        this.genetic.setSpeciation(new PrgSpeciation());
+        this.genetic.setEliteRate(0.5);
 
         (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
 
-        genetic.setShouldIgnoreExceptions(true);
+        this.genetic.setShouldIgnoreExceptions(true);
 
-        try {
-            for (int i = 0; i < geneticIterations; i++) {
-                score.calculateScores();
-                if( this.logFeatureDir != null ) {
-                    dumpFeatures(genetic);
-                }
-                genetic.iteration();
-                System.out.println("Genetic iteration #" + genetic.getIteration() + ", error=" + score.getBestValidationError() + ", population size: " + pop.size());
+    }
+
+    public void iteration() {
+
+        if( this.genetic == null ) {
+            init();
+        }
+
+        for (int i = 0; i < geneticIterations; i++) {
+            score.calculateScores();
+            if( this.logFeatureDir != null ) {
+                dumpFeatures(genetic);
             }
-
-
-        } catch (Throwable t) {
-            t.printStackTrace();
-        } finally {
-            genetic.finishTraining();
-            Encog.getInstance().shutdown();
+            this.genetic.iteration();
+            System.out.println("Genetic iteration #" + genetic.getIteration() + ", error="
+                    + score.getBestValidationError() + ", population size: " + 0);
         }
     }
 

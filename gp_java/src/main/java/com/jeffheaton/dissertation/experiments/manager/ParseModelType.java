@@ -58,6 +58,8 @@ public class ParseModelType {
 
     public boolean isImportance() { return this.name.toLowerCase().equals("importance"); }
 
+    public boolean isAutoFeature() { return this.name.toLowerCase().equals("autofeature"); }
+
     public String getError() { return this.error; }
 
     public String toString() {

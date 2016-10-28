@@ -1,6 +1,6 @@
 type,name,y,x,experiments
 r,abalone.csv,rings,,"experiment-2,experiment-3,experiment-4,experiment-5"
-r,auto-mpg.csv,mpg,,"experiment-2,experiment-3,experiment-4,experiment-5"
+r,auto-mpg.csv,mpg,,"experiment-2,experiment-3,experiment-4,experiment-5,experiment-6"
 r,bupa.csv,selector,,"experiment-2,experiment-3,experiment-4,experiment-5"
 c,covtype.csv,cover_type,,"experiment-2,experiment-3,experiment-4,experiment-5"
 r,crx.csv,a16,,"experiment-2,experiment-3,experiment-4,experiment-5"

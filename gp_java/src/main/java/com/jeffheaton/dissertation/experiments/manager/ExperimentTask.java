@@ -79,6 +79,8 @@ public class ExperimentTask implements Runnable {
             payload = new PayloadPatterns();
         } else if (this.modelType.isImportance() ) {
             payload = new PayloadImportance();
+        } else if (this.modelType.isAutoFeature() ) {
+            payload = new PayloadAutoFeature();
         } else {
             throw new EncogError("Unknown algorithm: " + this.algorithm);
         }
