@@ -5,6 +5,7 @@ import org.encog.Encog;
 import org.encog.EncogError;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
+import org.encog.ml.MLMethod;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
@@ -24,21 +25,21 @@ import org.encog.ml.prg.opp.SubtreeMutation;
 import org.encog.ml.prg.species.PrgSpeciation;
 import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
+import org.encog.ml.train.BasicTraining;
 import org.encog.ml.tree.TreeNode;
+import org.encog.neural.networks.training.propagation.TrainingContinuation;
 import org.encog.util.Format;
 
 import java.io.*;
 import java.util.*;
 
-public class AutoEngineerFeatures {
-    private int geneticIterations = 1000;
+public class AutoEngineerFeatures extends BasicTraining {
     private File logFeatureDir;
     private MLDataSet trainingSet;
     private MLDataSet validationSet;
     private int populationSize = 100;
     private int hiddenCount = 50;
     private int maxIterations = 5000;
-    private double error;
     private TrainEA genetic;
     private FeatureScore score;
 
@@ -49,8 +50,6 @@ public class AutoEngineerFeatures {
     }
 
     private void init() {
-        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
-
         EncogProgramContext context = new EncogProgramContext();
 
         for(int i=1;i<=this.trainingSet.getInputSize();i++) {
@@ -94,20 +93,20 @@ public class AutoEngineerFeatures {
     }
 
     public void iteration() {
+        super.preIteration();
 
         if( this.genetic == null ) {
             init();
         }
 
-        for (int i = 0; i < geneticIterations; i++) {
-            score.calculateScores();
-            if( this.logFeatureDir != null ) {
-                dumpFeatures(genetic);
-            }
-            this.genetic.iteration();
-            System.out.println("Genetic iteration #" + genetic.getIteration() + ", error="
-                    + score.getBestValidationError() + ", population size: " + 0);
+        score.calculateScores();
+        if( this.logFeatureDir != null ) {
+            dumpFeatures(genetic);
         }
+        this.genetic.iteration();
+        setError(score.getBestValidationError());
+
+        super.postIteration();
     }
 
     private void traverse(EncogProgram prg, TreeNode node, Set<String> variables) {
@@ -213,11 +212,41 @@ public class AutoEngineerFeatures {
         this.logFeatureDir = logFeatureDir;
     }
 
-    public double getError() {
-        return error;
+    /**
+     * @return True if the training can be paused, and later continued.
+     */
+    @Override
+    public boolean canContinue() {
+        return false;
     }
 
-    public void setError(double error) {
-        this.error = error;
+    /**
+     * Pause the training to continue later.
+     *
+     * @return A training continuation object.
+     */
+    @Override
+    public TrainingContinuation pause() {
+        return null;
+    }
+
+    /**
+     * Resume training.
+     *
+     * @param state The training continuation object to use to continue.
+     */
+    @Override
+    public void resume(TrainingContinuation state) {
+
+    }
+
+    /**
+     * Get the current best machine learning method from the training.
+     *
+     * @return The best machine learning method.
+     */
+    @Override
+    public MLMethod getMethod() {
+        return null;
     }
 }
