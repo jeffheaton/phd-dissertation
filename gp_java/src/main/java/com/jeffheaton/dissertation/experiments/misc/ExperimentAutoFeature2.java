@@ -2,6 +2,7 @@ package com.jeffheaton.dissertation.experiments.misc;
 
 import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.autofeatures.AutoEngineerFeatures;
+import com.jeffheaton.dissertation.autofeatures.AutoFeatureGP;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
@@ -11,6 +12,7 @@ import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
+import org.encog.ml.train.strategy.end.EndIterationsStrategy;
 import org.encog.ml.train.strategy.end.StoppingStrategy;
 import org.encog.persist.source.ObtainFallbackStream;
 import org.encog.persist.source.ObtainInputStream;
@@ -21,11 +23,12 @@ import org.encog.util.simple.EncogUtility;
 
 import java.io.File;
 
-public class ExperimentAutoFeature {
+public class ExperimentAutoFeature2 {
 
     public static int STAGNANT_AUTO = 50;
 
     private static void status(MLTrain train, StoppingStrategy earlyStop) {
+        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
         StringBuilder line = new StringBuilder();
 
         line.append("Epoch #");
@@ -48,17 +51,11 @@ public class ExperimentAutoFeature {
         quick.analyze(source,"mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();
 
-        // split
-        MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
-        MLDataSet trainingSet = split[0];
-        MLDataSet validationSet = split[1];
-
-
-        AutoEngineerFeatures train = new AutoEngineerFeatures(trainingSet, validationSet);
+        AutoFeatureGP train = new AutoFeatureGP(dataset);
         train.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
-        train.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         StoppingStrategy stop = new StoppingStrategy(STAGNANT_AUTO);
         train.addStrategy(stop);
+        train.addStrategy(new EndIterationsStrategy(5));
 
         do {
             train.iteration();

@@ -110,6 +110,8 @@ public class FeatureScore implements CalculateScore {
             // add to dataset
             engineeredDataset.add(engineeredPair);
         }
+
+        Transform.zscore(engineeredDataset);
         return engineeredDataset;
     }
 
@@ -200,7 +202,7 @@ public class FeatureScore implements CalculateScore {
 
     @Override
     public boolean shouldMinimize() {
-        return false;
+        return true;
     }
 
     @Override

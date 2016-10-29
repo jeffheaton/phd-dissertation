@@ -34,7 +34,6 @@ import java.io.*;
 import java.util.*;
 
 public class AutoEngineerFeatures extends BasicTraining {
-    private File logFeatureDir;
     private MLDataSet trainingSet;
     private MLDataSet validationSet;
     private int populationSize = 100;
@@ -42,11 +41,13 @@ public class AutoEngineerFeatures extends BasicTraining {
     private int maxIterations = 5000;
     private TrainEA genetic;
     private FeatureScore score;
+    private DumpFeatures dump;
 
     public AutoEngineerFeatures(MLDataSet theTrainingSet, MLDataSet theValidationSet)
     {
         this.trainingSet = theTrainingSet;
         this.validationSet = theValidationSet;
+        this.dump = new DumpFeatures(theTrainingSet);
     }
 
     private void init() {
@@ -100,116 +101,12 @@ public class AutoEngineerFeatures extends BasicTraining {
         }
 
         score.calculateScores();
-        if( this.logFeatureDir != null ) {
-            dumpFeatures(genetic);
-        }
+
         this.genetic.iteration();
         setError(score.getBestValidationError());
+        this.dump.dumpFeatures(getIteration(),this.genetic.getPopulation());
 
         super.postIteration();
-    }
-
-    private void traverse(EncogProgram prg, TreeNode node, Set<String> variables) {
-        for(TreeNode childNode : node.getChildNodes()) {
-            if( childNode instanceof ProgramNode ) {
-                ProgramNode prgNode = (ProgramNode) childNode;
-                if (prgNode.getTemplate() == StandardExtensions.EXTENSION_VAR_SUPPORT) {
-                    int varIndex = (int)prgNode.getData()[0].toIntValue();
-                    String varName = prg.getVariables().getVariableName(varIndex);
-                    variables.add(varName);
-                }
-            }
-            traverse(prg,childNode,variables);
-        }
-    }
-
-    private String findVariables(EncogProgram prg) {
-        Set<String> set = new TreeSet<>();
-        traverse(prg,prg.getRootNode(),set);
-        return set.toString();
-    }
-
-    private void calculateStats(EncogProgram prg, double[] stats) {
-        double max = Double.NEGATIVE_INFINITY;
-        double min = Double.POSITIVE_INFINITY;
-
-        double sum = 0;
-        for(MLDataPair pair: this.trainingSet) {
-            MLData output = prg.compute(pair.getInput());
-            double d = output.getData(0);
-            max = Math.max(d,max);
-            min = Math.min(d,min);
-            sum+=d;
-        }
-        double mean = sum / this.trainingSet.size();
-
-        sum = 0;
-        for(MLDataPair pair: this.trainingSet) {
-            MLData output = prg.compute(pair.getInput());
-            double d = output.getData(0);
-            double diff = mean - d;
-            sum+=diff*diff;
-        }
-        double sdev = Math.sqrt(sum);
-
-        stats[0] = min;
-        stats[1] = max;
-        stats[2] = mean;
-        stats[3] = sdev;
-
-    }
-
-    private void dumpFeatures(TrainEA genetic) {
-        CSVWriter writer = null;
-        try {
-            String filename = "autofeatures-" + genetic.getIteration() + ".csv";
-            writer = new CSVWriter(new FileWriter(new File(this.getLogFeatureDir(),filename)));
-
-            writer.writeNext( new String[] {"index","score", "birth","species","vars","min","max","mean","sdev","feature"} );
-
-            List<Genome> list = genetic.getPopulation().flatten();
-            int idx = 0;
-            double[] stats = new double[4];
-
-            for(Genome genome: list) {
-                EncogProgram prg = ((EncogProgram)genome);
-                calculateStats(prg, stats);
-
-                String[] line = {
-                        ""+idx,
-                        Format.formatDouble(genome.getScore(),4),
-                        ""+genome.getBirthGeneration(),
-                        ""+genetic.getPopulation().getSpecies().indexOf(genome.getSpecies()),
-                        findVariables(prg),
-                        Format.formatDouble(stats[0],4),
-                        Format.formatDouble(stats[1],4),
-                        Format.formatDouble(stats[2],4),
-                        Format.formatDouble(stats[3],4),
-                        prg.dumpAsCommonExpression()
-                };
-                writer.writeNext(line);
-                idx++;
-            }
-
-        } catch(IOException ex) {
-            throw new EncogError(ex);
-        } finally {
-            try {
-                writer.close();
-            } catch (IOException e) {
-                throw new EncogError(e);
-            }
-        }
-
-
-    }
-
-    public File getLogFeatureDir() {
-        return logFeatureDir;
-    }
-
-    public void setLogFeatureDir(File logFeatureDir) {
-        this.logFeatureDir = logFeatureDir;
     }
 
     /**
@@ -248,5 +145,17 @@ public class AutoEngineerFeatures extends BasicTraining {
     @Override
     public MLMethod getMethod() {
         return null;
+    }
+
+    public void setLogFeatureDir(File logFeatureDir) {
+        this.dump.setLogFeatureDir(logFeatureDir);
+    }
+
+    public File getLogFeatureDir() {
+        return this.dump.getLogFeatureDir();
+    }
+
+    public DumpFeatures getDumpFeatures() {
+        return dump;
     }
 }
