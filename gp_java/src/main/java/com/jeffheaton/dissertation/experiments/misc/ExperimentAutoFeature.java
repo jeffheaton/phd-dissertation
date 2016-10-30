@@ -75,32 +75,19 @@ public class ExperimentAutoFeature {
         MLDataSet validationSet = split[1];
 
 
-        AutoEngineerFeatures train = new AutoEngineerFeatures(trainingSet, validationSet);
-        train.setNames(quick.getFieldNames());
-        train.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
-        train.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
-        StoppingStrategy stop = new StoppingStrategy(STAGNANT_AUTO);
-        train.addStrategy(stop);
-
-        do {
-            train.iteration();
-
-            status(train, stop);
-
-            if (Double.isNaN(train.getError()) || Double.isInfinite(train.getError())) {
-                break;
-            }
-
-        } while (!train.isTrainingDone());
-        train.finishTraining();
+        AutoEngineerFeatures engineer = new AutoEngineerFeatures(trainingSet, validationSet);
+        engineer.setNames(quick.getFieldNames());
+        engineer.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
+        engineer.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
+        engineer.process();
 
         System.out.println("Engineered features:");
-        List<EncogProgram> engineeredFeatures = train.getFeatures(5);
+        List<EncogProgram> engineeredFeatures = engineer.getFeatures(5);
         for(EncogProgram prg: engineeredFeatures) {
             System.out.println(prg.getScore() + ":" + prg.dumpAsCommonExpression());
         }
 
-        MLDataSet augmentedDataset = train.augmentDataset(5,dataset);
+        MLDataSet augmentedDataset = engineer.augmentDataset(5,dataset);
 
         // Define the names of the columns of the augmented dataset.
         names = new String[augmentedDataset.getInputSize()];

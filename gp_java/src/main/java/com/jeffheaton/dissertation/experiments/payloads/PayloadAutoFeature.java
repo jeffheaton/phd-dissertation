@@ -1,9 +1,11 @@
 package com.jeffheaton.dissertation.experiments.payloads;
 
 import com.jeffheaton.dissertation.autofeatures.AutoEngineerFeatures;
+import com.jeffheaton.dissertation.experiments.data.DataCacheElement;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
+import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.mathutil.randomize.generate.GenerateRandom;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
@@ -24,11 +26,10 @@ public class PayloadAutoFeature extends AbstractExperimentPayload {
         Stopwatch sw = new Stopwatch();
         sw.start();
 
-        // get the dataset
-        MLDataSet dataset = ExperimentDatasets.getInstance().loadDatasetNeural(
-                task.getDatasetFilename(),
-                task.getModelType().getTarget(),
-                EngineArray.string2list(task.getPredictors())).getData();
+        DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetNeural(task.getDatasetFilename(),task.getModelType().getTarget(),
+                EngineArray.string2list(task.getPredictors()));
+        QuickEncodeDataset quick = cache.getQuick();
+        MLDataSet dataset = cache.getData();
 
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
@@ -36,16 +37,13 @@ public class PayloadAutoFeature extends AbstractExperimentPayload {
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 
-        AutoEngineerFeatures auto = new AutoEngineerFeatures(trainingSet, validationSet);
-        auto.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
+        AutoEngineerFeatures engineer = new AutoEngineerFeatures(trainingSet, validationSet);
+        engineer.setNames(quick.getFieldNames());
+        engineer.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
+        engineer.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
+        engineer.process();
 
-        for(int i=0;i<50;i++) {
-            auto.iteration();
-        }
-
-        sw.stop();
-
-        double resultError = auto.getError();
+        double resultError = 0;
         double resultValidation = 0;
         int steps = 1;
 

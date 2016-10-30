@@ -1,10 +1,6 @@
 package com.jeffheaton.dissertation.autofeatures;
 
-import au.com.bytecode.opencsv.CSVWriter;
-import org.encog.Encog;
 import org.encog.EncogError;
-import org.encog.mathutil.error.ErrorCalculation;
-import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.ml.MLMethod;
 import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLData;
@@ -20,7 +16,6 @@ import org.encog.ml.ea.train.basic.TrainEA;
 import org.encog.ml.prg.EncogProgram;
 import org.encog.ml.prg.EncogProgramContext;
 import org.encog.ml.prg.PrgCODEC;
-import org.encog.ml.prg.ProgramNode;
 import org.encog.ml.prg.extension.FunctionFactory;
 import org.encog.ml.prg.extension.StandardExtensions;
 import org.encog.ml.prg.generator.RampedHalfAndHalf;
@@ -38,7 +33,7 @@ import org.encog.util.Format;
 import java.io.*;
 import java.util.*;
 
-public class AutoEngineerFeatures extends BasicTraining {
+public class AutoEngineerFeatures {
     private MLDataSet trainingSet;
     private MLDataSet validationSet;
     private int populationSize = 100;
@@ -104,59 +99,16 @@ public class AutoEngineerFeatures extends BasicTraining {
 
     }
 
-    public void iteration() {
-        super.preIteration();
+    public void process() {
+        init();
 
-        if( this.genetic == null ) {
-            init();
+        for(int i=0;i<10;i++) {
+            this.dump.dumpFeatures(i, this.genetic.getPopulation());
+            score.calculateScores();
+            this.genetic.iteration();
         }
-
-        score.calculateScores();
-
-        this.genetic.iteration();
-        setError(score.getBestValidationError());
-        this.dump.dumpFeatures(getIteration(),this.genetic.getPopulation());
-
-        super.postIteration();
     }
 
-    /**
-     * @return True if the training can be paused, and later continued.
-     */
-    @Override
-    public boolean canContinue() {
-        return false;
-    }
-
-    /**
-     * Pause the training to continue later.
-     *
-     * @return A training continuation object.
-     */
-    @Override
-    public TrainingContinuation pause() {
-        return null;
-    }
-
-    /**
-     * Resume training.
-     *
-     * @param state The training continuation object to use to continue.
-     */
-    @Override
-    public void resume(TrainingContinuation state) {
-
-    }
-
-    /**
-     * Get the current best machine learning method from the training.
-     *
-     * @return The best machine learning method.
-     */
-    @Override
-    public MLMethod getMethod() {
-        return null;
-    }
 
     public void setLogFeatureDir(File logFeatureDir) {
         this.dump.setLogFeatureDir(logFeatureDir);
