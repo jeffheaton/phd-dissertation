@@ -2,6 +2,7 @@ package com.jeffheaton.dissertation.experiments.misc;
 
 import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.autofeatures.AutoEngineerFeatures;
+import com.jeffheaton.dissertation.autofeatures.Transform;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
@@ -14,6 +15,7 @@ import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.importance.FeatureImportance;
+import org.encog.ml.importance.FeatureRank;
 import org.encog.ml.importance.PerturbationFeatureImportanceCalc;
 import org.encog.ml.prg.EncogProgram;
 import org.encog.ml.train.MLTrain;
@@ -41,7 +43,7 @@ public class ExperimentAutoFeature {
     public static final double L1 = 0;
     public static final double L2 = 1e-8;
 
-    public static int STAGNANT_AUTO = 5;
+    public static int STAGNANT_AUTO = 50;
 
     private static String[] names;
 
@@ -65,7 +67,7 @@ public class ExperimentAutoFeature {
         QuickEncodeDataset quick = new QuickEncodeDataset(false,false);
         quick.analyze(source,"mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();
-        names = quick.nameOutputVectorFields();
+
 
         // split
         MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
@@ -98,10 +100,25 @@ public class ExperimentAutoFeature {
             System.out.println(prg.getScore() + ":" + prg.dumpAsCommonExpression());
         }
 
-        return train.augmentDataset(5,dataset);
+        MLDataSet augmentedDataset = train.augmentDataset(5,dataset);
+
+        // Define the names of the columns of the augmented dataset.
+        names = new String[augmentedDataset.getInputSize()];
+        String[] origNames = quick.getFieldNames();
+        int i=0;
+        for(; i<origNames.length;i++) {
+            names[i] = origNames[i];
+        }
+        int i2 = 1;
+        while(i<names.length) {
+            names[i++] = "FE #" + (i2++);
+        }
+        return augmentedDataset;
     }
 
     public static void trainAugmented(MLDataSet augmentedDataset) {
+        Transform.zscore(augmentedDataset);
+
         // split
         MLDataSet[] split = EncogUtility.splitTrainValidate(augmentedDataset,new MersenneTwisterGenerateRandom(42),0.75);
         MLDataSet trainingSet = split[0];
@@ -109,7 +126,7 @@ public class ExperimentAutoFeature {
 
         // create a neural network, without using a factory
         BasicNetwork network = new BasicNetwork();
-        network.addLayer(new BasicLayer(null,true,trainingSet.getInputSize()));
+        network.addLayer(new BasicLayer(null,true,augmentedDataset.getInputSize()));
         network.addLayer(new BasicLayer(new ActivationReLU(),true,500));
         //network.addLayer(new BasicLayer(new ActivationReLU(),true,50));
         //network.addLayer(new BasicLayer(new ActivationReLU(),true,15));
@@ -150,6 +167,11 @@ public class ExperimentAutoFeature {
         FeatureImportance fi = new PerturbationFeatureImportanceCalc(); //new NeuralFeatureImportanceCalc();
         fi.init(network,names);
         fi.performRanking(validationSet);
+
+        for (FeatureRank ranking : fi.getFeaturesSorted()) {
+            System.out.println(ranking.toString());
+        }
+        System.out.println(fi.toString());
     }
 
     public static void main(String[] args) {

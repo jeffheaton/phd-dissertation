@@ -215,8 +215,14 @@ public class AutoEngineerFeatures extends BasicTraining {
                 augmentedIdeal.setData(i, pair.getIdeal().getData(i));
             }
 
-            // Create input
-            for(int i=0;i<inputSize;i++) {
+            // Create input - Copy origional features
+            int idx = 0;
+            for(int i=0;i<pair.getInput().size();i++) {
+                augmentedInput.setData(idx++,pair.getInput().getData(i));
+            }
+
+            int i = 0;
+            while(idx<inputSize) {
                 double d = 0.0;
 
                 if( i< engineeredFeatures.size() ) {
@@ -228,7 +234,7 @@ public class AutoEngineerFeatures extends BasicTraining {
                         d = 0.0;
                     }
                 }
-                augmentedInput.setData(i, d);
+                augmentedInput.setData(idx++, d);
             }
 
             FeatureScore.cleanVector(augmentedPair.getInput());
