@@ -6,9 +6,14 @@ import org.encog.EncogError;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.ml.MLMethod;
+import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
+import org.encog.ml.data.basic.BasicMLData;
+import org.encog.ml.data.basic.BasicMLDataPair;
+import org.encog.ml.data.basic.BasicMLDataSet;
+import org.encog.ml.ea.exception.EARuntimeError;
 import org.encog.ml.ea.genome.Genome;
 import org.encog.ml.ea.score.adjust.ComplexityAdjustedScore;
 import org.encog.ml.ea.train.basic.TrainEA;
@@ -42,19 +47,25 @@ public class AutoEngineerFeatures extends BasicTraining {
     private TrainEA genetic;
     private FeatureScore score;
     private DumpFeatures dump;
+    private String[] names;
+    private EncogProgramContext context;
 
     public AutoEngineerFeatures(MLDataSet theTrainingSet, MLDataSet theValidationSet)
     {
         this.trainingSet = theTrainingSet;
         this.validationSet = theValidationSet;
         this.dump = new DumpFeatures(theTrainingSet);
+        this.names = new String[this.trainingSet.getInputSize()];
+        for(int i=1;i<=this.trainingSet.getInputSize();i++) {
+            this.names[i-1] = "x"+i;
+        }
+
     }
 
     private void init() {
-        EncogProgramContext context = new EncogProgramContext();
-
-        for(int i=1;i<=this.trainingSet.getInputSize();i++) {
-            context.defineVariable("x"+i);
+        this.context = new EncogProgramContext();
+        for(int i=0;i<this.trainingSet.getInputSize();i++) {
+            context.defineVariable(names[i]);
         }
 
         //StandardExtensions.createNumericOperators(context);
@@ -157,5 +168,73 @@ public class AutoEngineerFeatures extends BasicTraining {
 
     public DumpFeatures getDumpFeatures() {
         return dump;
+    }
+
+    public List<EncogProgram> getFeatures(int num) {
+        HashSet<String> foundAlready = new HashSet<>();
+        List<EncogProgram> result = new ArrayList<>();
+        List<Genome> l = this.genetic.getPopulation().flatten();
+        l.sort(this.genetic.getBestComparator());
+        int idx = l.size()-1;
+
+        while(idx>=0 && result.size()<num) {
+            EncogProgram prg = (EncogProgram)l.get(idx);
+            String str = prg.dumpAsCommonExpression();
+            if( prg.size()>1 && prg.getScore()>0 && !foundAlready.contains(str) ) {
+                result.add(prg);
+                foundAlready.add(str);
+            }
+            idx--;
+        }
+
+        return result;
+    }
+
+    public void setNames(String[] names) {
+        if( names.length != this.names.length) {
+            throw new EncogError("Invalid number of field names, expected " + this.names.length + ", but got " + names.length);
+        }
+
+        for(int i=0;i<names.length;i++) {
+            this.names[i] = names[i];
+        }
+    }
+
+    public MLDataSet augmentDataset(int num, MLDataSet dataset) {
+        List<EncogProgram> engineeredFeatures = getFeatures(num);
+        MLDataSet result = new BasicMLDataSet();
+        int inputSize = engineeredFeatures.size() + dataset.getInputSize();
+
+        for(MLDataPair pair: dataset) {
+            MLData augmentedInput = new BasicMLData(inputSize);
+            MLData augmentedIdeal = new BasicMLData(dataset.getIdealSize());
+            MLDataPair augmentedPair = new BasicMLDataPair(augmentedInput,augmentedIdeal);
+
+            // Copy ideal
+            for(int i=0;i<pair.getIdeal().size();i++){
+                augmentedIdeal.setData(i, pair.getIdeal().getData(i));
+            }
+
+            // Create input
+            for(int i=0;i<inputSize;i++) {
+                double d = 0.0;
+
+                if( i< engineeredFeatures.size() ) {
+                    MLRegression phen = engineeredFeatures.get(i);
+                    try {
+                        MLData output = phen.compute(pair.getInput());
+                        d = output.getData(0);
+                    } catch (EARuntimeError ex) {
+                        d = 0.0;
+                    }
+                }
+                augmentedInput.setData(i, d);
+            }
+
+            FeatureScore.cleanVector(augmentedPair.getInput());
+            result.add(augmentedPair);
+        }
+
+        return result;
     }
 }

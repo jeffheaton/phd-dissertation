@@ -5,10 +5,12 @@ import com.jeffheaton.dissertation.autofeatures.AutoEngineerFeatures;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
+import org.encog.Encog;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
+import org.encog.ml.prg.EncogProgram;
 import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.ml.train.strategy.end.StoppingStrategy;
@@ -20,10 +22,11 @@ import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
 
 import java.io.File;
+import java.util.List;
 
 public class ExperimentAutoFeature {
 
-    public static int STAGNANT_AUTO = 50;
+    public static int STAGNANT_AUTO = 5;
 
     private static void status(MLTrain train, StoppingStrategy earlyStop) {
         StringBuilder line = new StringBuilder();
@@ -55,6 +58,7 @@ public class ExperimentAutoFeature {
 
 
         AutoEngineerFeatures train = new AutoEngineerFeatures(trainingSet, validationSet);
+        train.setNames(quick.getFieldNames());
         train.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         train.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         StoppingStrategy stop = new StoppingStrategy(STAGNANT_AUTO);
@@ -71,5 +75,16 @@ public class ExperimentAutoFeature {
 
         } while (!train.isTrainingDone());
         train.finishTraining();
+
+        System.out.println("Engineered features:");
+        List<EncogProgram> engineeredFeatures = train.getFeatures(5);
+        for(EncogProgram prg: engineeredFeatures) {
+            System.out.println(prg.getScore() + ":" + prg.dumpAsCommonExpression());
+        }
+
+        MLDataSet augmentedDataset = train.augmentDataset(5,dataset);
+        System.out.println(augmentedDataset.size());
+
+        Encog.getInstance().shutdown();
     }
 }

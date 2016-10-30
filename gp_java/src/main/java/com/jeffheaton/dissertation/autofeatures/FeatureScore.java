@@ -66,7 +66,7 @@ public class FeatureScore implements CalculateScore {
         (new XaiverRandomizer(41)).randomize(network);
     }
 
-    private void cleanVector(MLData vec) {
+    public static void cleanVector(MLData vec) {
         for(int i = 0; i<vec.size(); i++ ) {
             double d = vec.getData(i);
             if( Double.isInfinite(d) || Double.isNaN(d) ) {

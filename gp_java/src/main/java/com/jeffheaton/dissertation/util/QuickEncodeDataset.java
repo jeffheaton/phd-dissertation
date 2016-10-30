@@ -37,10 +37,16 @@ public class QuickEncodeDataset {
 
     public String[] getFieldNames() {
         List<QuickField> p = findPredictors();
-        String[] result = new String[p.size()];
+        String[] result = new String[encodedColumnsNeededX()];
         int idx = 0;
         for (QuickEncodeDataset.QuickField field : p) {
-            result[idx++] = field.getName();
+            if( field.encodeColumnsNeeded()>1 ) {
+                for(int i=0;i<field.encodeColumnsNeeded();i++) {
+                    result[idx++] = field.getName()+i;
+                }
+            } else {
+                result[idx++] = field.getName();
+            }
         }
         return result;
     }
