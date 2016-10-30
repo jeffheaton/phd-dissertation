@@ -29,26 +29,28 @@ import org.encog.ml.train.BasicTraining;
 import org.encog.ml.tree.TreeNode;
 import org.encog.neural.networks.training.propagation.TrainingContinuation;
 import org.encog.util.Format;
+import org.encog.util.concurrency.MultiThreadable;
 
 import java.io.*;
 import java.util.*;
 
-public class AutoEngineerFeatures {
+public class AutoEngineerFeatures implements MultiThreadable {
+    public static final int GP_EPOCS = 50;
+
     private MLDataSet trainingSet;
-    private MLDataSet validationSet;
     private int populationSize = 100;
     private int hiddenCount = 50;
-    private int maxIterations = 5000;
+    private int maxIterations = 500;
     private TrainEA genetic;
     private FeatureScore score;
     private DumpFeatures dump;
     private String[] names;
     private EncogProgramContext context;
+    private int threadCount;
 
-    public AutoEngineerFeatures(MLDataSet theTrainingSet, MLDataSet theValidationSet)
+    public AutoEngineerFeatures(MLDataSet theTrainingSet)
     {
         this.trainingSet = theTrainingSet;
-        this.validationSet = theValidationSet;
         this.dump = new DumpFeatures(theTrainingSet);
         this.names = new String[this.trainingSet.getInputSize()];
         for(int i=1;i<=this.trainingSet.getInputSize();i++) {
@@ -78,10 +80,11 @@ public class AutoEngineerFeatures {
 
         PrgPopulation pop = new PrgPopulation(context,this.populationSize);
 
-        this.score = new FeatureScore(this.trainingSet, this.validationSet,pop, this.hiddenCount, this.maxIterations);
+        this.score = new FeatureScore(this, this.trainingSet, pop, this.hiddenCount, this.maxIterations);
 
 
         this.genetic = new TrainEA(pop, this.score);
+        this.genetic.setThreadCount(this.threadCount);
         //genetic.setValidationMode(true);
         this.genetic.setCODEC(new PrgCODEC());
         this.genetic.addOperation(0.5, new SubtreeCrossover());
@@ -102,7 +105,7 @@ public class AutoEngineerFeatures {
     public void process() {
         init();
 
-        for(int i=0;i<10;i++) {
+        for(int i=0;i<GP_EPOCS;i++) {
             this.dump.dumpFeatures(i, this.genetic.getPopulation());
             score.calculateScores();
             this.genetic.iteration();
@@ -194,5 +197,15 @@ public class AutoEngineerFeatures {
         }
 
         return result;
+    }
+
+    @Override
+    public int getThreadCount() {
+        return this.threadCount;
+    }
+
+    @Override
+    public void setThreadCount(int numThreads) {
+        this.threadCount = numThreads;
     }
 }

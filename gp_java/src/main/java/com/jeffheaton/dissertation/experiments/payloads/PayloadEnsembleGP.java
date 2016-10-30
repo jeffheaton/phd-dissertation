@@ -106,4 +106,14 @@ public class PayloadEnsembleGP extends AbstractExperimentPayload {
                 neuralFit.getResult(), neuralFit.getResultRaw(), neuralFit.getI1(), neuralFit.getI2(),
                 neuralFit.getIteration(), "");
     }
+
+    /**
+     * Not needed for this payload.
+     * @param task Not used.
+     * @return Not used.
+     */
+    @Override
+    public MLDataSet obtainCommonProcessing(ExperimentTask task) {
+        return null;
+    }
 }

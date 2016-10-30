@@ -4,13 +4,13 @@ import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.autofeatures.AutoEngineerFeatures;
 import com.jeffheaton.dissertation.autofeatures.Transform;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
-import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationLinear;
 import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
+import org.encog.mathutil.error.NormalizedError;
 import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
@@ -27,7 +27,6 @@ import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDesc
 import org.encog.neural.networks.training.propagation.sgd.update.AdamUpdate;
 import org.encog.persist.source.ObtainFallbackStream;
 import org.encog.persist.source.ObtainInputStream;
-import org.encog.persist.source.ObtainResourceInputStream;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
@@ -68,14 +67,7 @@ public class ExperimentAutoFeature {
         quick.analyze(source,"mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();
 
-
-        // split
-        MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
-        MLDataSet trainingSet = split[0];
-        MLDataSet validationSet = split[1];
-
-
-        AutoEngineerFeatures engineer = new AutoEngineerFeatures(trainingSet, validationSet);
+        AutoEngineerFeatures engineer = new AutoEngineerFeatures(dataset);
         engineer.setNames(quick.getFieldNames());
         engineer.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         engineer.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
@@ -147,7 +139,11 @@ public class ExperimentAutoFeature {
         train.finishTraining();
 
         network = (BasicNetwork) earlyStop.getBestModel();
-        System.out.println("Best score: " + earlyStop.getBestValidationError());
+        System.out.println("Best score (RMSE): " + earlyStop.getBestValidationError());
+
+        NormalizedError error = new NormalizedError(validationSet);
+        double normalizedError = error.calculateNormalizedRange(validationSet, network);
+        System.out.println("Best score (normalized): " + normalizedError);
 
         System.out.println();
         System.out.println("Feature importance (permutation)");

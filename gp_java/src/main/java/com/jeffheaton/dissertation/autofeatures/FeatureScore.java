@@ -47,11 +47,12 @@ public class FeatureScore implements CalculateScore {
     private int maxIterations;
     private boolean shouldNeuralReport = false;
     private double bestValidationError;
+    private AutoEngineerFeatures owner;
 
 
-    public FeatureScore(MLDataSet theTrainingData, MLDataSet theValidationData, Population thePopulation, int theHiddenCount, int theMaxIterations) {
+    public FeatureScore(AutoEngineerFeatures theOwner, MLDataSet theTrainingData, Population thePopulation, int theHiddenCount, int theMaxIterations) {
+        this.owner = theOwner;
         this.trainingData = theTrainingData;
-        this.validationData = theValidationData;
         this.population = thePopulation;
         this.network = new BasicNetwork();
         this.hiddenCount = theHiddenCount;
@@ -115,11 +116,9 @@ public class FeatureScore implements CalculateScore {
         return engineeredDataset;
     }
 
-    private void reportNeuralTrain(MLTrain train, EarlyStoppingStrategy earlyStop) {
+    private void reportNeuralTrain(MLTrain train) {
         if( this.shouldNeuralReport ) {
-            System.out.println("Epoch #" + train.getIteration() + " Train Error:" + Format.formatDouble(train.getError(), 6)
-                    + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
-                    ", Stagnant: " + earlyStop.getStagnantIterations());
+            System.out.println("Epoch #" + train.getIteration() + " Train Error:" + Format.formatDouble(train.getError(), 6));
         }
     }
 
@@ -128,7 +127,6 @@ public class FeatureScore implements CalculateScore {
 
         // Create a new training set, with the new engineered autofeatures
         MLDataSet engineeredTrainingSet = encodeDataset(genomes, this.trainingData);
-        MLDataSet engineeredValidationSet = encodeDataset(genomes, this.trainingData);
 
         boolean done = false;
 
@@ -150,25 +148,21 @@ public class FeatureScore implements CalculateScore {
             //train.setErrorFunction(new CrossEntropyErrorFunction());
             //train.setNesterovUpdate(true);
 
-            EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(engineeredValidationSet,5,STAGNANT_STEPS);
-            train.addStrategy(earlyStop);
-            if( maxIterations>0 ) {
-                train.addStrategy(new EndIterationsStrategy(maxIterations));
-            }
+            train.addStrategy(new EndIterationsStrategy(maxIterations));
 
             do {
                 train.iteration();
                 if( (train.getIteration()%500) == 0) {
-                    reportNeuralTrain(train,earlyStop);
+                    reportNeuralTrain(train);
                 }
             }
             while (!train.isTrainingDone() && !Double.isInfinite(train.getError()) && !Double.isNaN(train.getError()) );
             train.finishTraining();
-            this.bestValidationError = earlyStop.getBestValidationError();
+            this.bestValidationError = train.getError();
 
             if( !Double.isInfinite(train.getError()) && !Double.isNaN(train.getError()) ) {
                 done = true;
-                reportNeuralTrain(train,earlyStop);
+                reportNeuralTrain(train);
             }
         }
 
@@ -176,7 +170,7 @@ public class FeatureScore implements CalculateScore {
 
         PerturbationFeatureImportanceCalc fi = new PerturbationFeatureImportanceCalc();
         fi.init(network,null);
-        fi.performRanking(engineeredValidationSet);
+        fi.performRanking(engineeredTrainingSet);
 
         int count = Math.min(fi.getFeatures().size(),genomes.size());// might not be needed
         for(int i=0;i<count;i++) {

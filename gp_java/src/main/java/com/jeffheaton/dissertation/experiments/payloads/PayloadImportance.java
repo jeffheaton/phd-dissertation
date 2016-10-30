@@ -167,4 +167,14 @@ public class PayloadImportance extends AbstractExperimentPayload {
                 normalizedError, earlyStop.getValidationError(), this.networkRankingStable, this.permRankingStable,
                 train.getIteration(), "");
     }
+
+    /**
+     * Not needed for this payload.
+     * @param task Not used.
+     * @return Not used.
+     */
+    @Override
+    public MLDataSet obtainCommonProcessing(ExperimentTask task) {
+        return null;
+    }
 }
