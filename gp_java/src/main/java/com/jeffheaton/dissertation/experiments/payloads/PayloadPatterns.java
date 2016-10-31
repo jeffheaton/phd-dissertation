@@ -50,5 +50,15 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
                 N, util.reportString(5,N));
     }
 
+    /**
+     * Not needed for this payload.
+     * @param task Not used.
+     * @return Not used.
+     */
+    @Override
+    public MLDataSet obtainCommonProcessing(ExperimentTask task) {
+        return null;
+    }
+
 
 }

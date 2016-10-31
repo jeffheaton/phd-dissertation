@@ -98,4 +98,14 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
                 resultError, earlyStop.getValidationError(), 0, 0,
                 train.getIteration(), "");
     }
+
+    /**
+     * Not needed for this payload.
+     * @param task Not used.
+     * @return Not used.
+     */
+    @Override
+    public MLDataSet obtainCommonProcessing(ExperimentTask task) {
+        return null;
+    }
 }

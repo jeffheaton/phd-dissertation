@@ -8,6 +8,7 @@ import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.Encog;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
+import org.encog.mathutil.error.NormalizedError;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.importance.FeatureImportance;
@@ -51,15 +52,8 @@ public class ExperimentAutoFeature {
         quick.analyze(source,"mpg", true, CSVFormat.EG_FORMAT);
         MLDataSet dataset = quick.generateDataset();
 
+        AutoEngineerFeatures engineer = new AutoEngineerFeatures(dataset);
 
-        // split
-        MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(
-                JeffDissertation.RANDOM_SEED),JeffDissertation.TRAIN_VALIDATION_SPLIT);
-        MLDataSet trainingSet = split[0];
-        MLDataSet validationSet = split[1];
-
-
-        AutoEngineerFeatures engineer = new AutoEngineerFeatures(trainingSet, validationSet);
         engineer.setNames(quick.getFieldNames());
         engineer.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         engineer.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
@@ -118,7 +112,11 @@ public class ExperimentAutoFeature {
         train.finishTraining();
 
         network = (BasicNetwork) earlyStop.getBestModel();
-        System.out.println("Best score: " + earlyStop.getBestValidationError());
+        System.out.println("Best score (RMSE): " + earlyStop.getBestValidationError());
+
+        NormalizedError error = new NormalizedError(validationSet);
+        double normalizedError = error.calculateNormalizedRange(validationSet, network);
+        System.out.println("Best score (normalized): " + normalizedError);
 
         System.out.println();
         System.out.println("Feature importance (permutation)");

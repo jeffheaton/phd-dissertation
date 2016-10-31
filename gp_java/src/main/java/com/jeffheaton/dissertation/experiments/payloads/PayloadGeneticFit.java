@@ -119,6 +119,16 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
                 this.totalIterations,this.best.get(0).dumpAsCommonExpression());
     }
 
+    /**
+     * Not needed for this payload.
+     * @param task Not used.
+     * @return Not used.
+     */
+    @Override
+    public MLDataSet obtainCommonProcessing(ExperimentTask task) {
+        return null;
+    }
+
     private void fitOne(int current, ExperimentTask task, EncogProgramContext context, MLDataSet trainingSet, MLDataSet validationSet) {
 
         JeffDissertation.DissertationGeneticTraining d = JeffDissertation.factorGeneticProgramming(context,trainingSet,validationSet,JeffDissertation.POPULATION_SIZE);

@@ -34,11 +34,11 @@ public class FeatureScore implements CalculateScore {
     private int maxIterations;
     private boolean shouldNeuralReport = false;
     private double bestValidationError;
+    private AutoEngineerFeatures owner;
 
-
-    public FeatureScore(MLDataSet theTrainingData, MLDataSet theValidationData, Population thePopulation, int theMaxIterations) {
+    public FeatureScore(AutoEngineerFeatures theOwner, MLDataSet theTrainingData, Population thePopulation, int theMaxIterations) {
+        this.owner = theOwner;
         this.trainingData = theTrainingData;
-        this.validationData = theValidationData;
         this.population = thePopulation;
         this.network = JeffDissertation.factorNeuralNetwork(
                 this.population.getPopulationSize(),
@@ -100,11 +100,9 @@ public class FeatureScore implements CalculateScore {
         return engineeredDataset;
     }
 
-    private void reportNeuralTrain(MLTrain train, EarlyStoppingStrategy earlyStop) {
+    private void reportNeuralTrain(MLTrain train) {
         if( this.shouldNeuralReport ) {
-            System.out.println("Epoch #" + train.getIteration() + " Train Error:" + Format.formatDouble(train.getError(), 6)
-                    + ", Validation Error: " + Format.formatDouble(earlyStop.getValidationError(), 6) +
-                    ", Stagnant: " + earlyStop.getStagnantIterations());
+            System.out.println("Epoch #" + train.getIteration() + " Train Error:" + Format.formatDouble(train.getError(), 6));
         }
     }
 
@@ -129,19 +127,27 @@ public class FeatureScore implements CalculateScore {
                 train.addStrategy(new EndIterationsStrategy(maxIterations));
             }
 
+            //final Backpropagation train = new Backpropagation(network, engineeredTrainingSet, learningRate, this.momentum);
+
+            //final ResilientPropagation train = new ResilientPropagation(network, engineeredDataset);
+            //train.setErrorFunction(new CrossEntropyErrorFunction());
+            //train.setNesterovUpdate(true);
+
+            train.addStrategy(new EndIterationsStrategy(maxIterations));
+
             do {
                 train.iteration();
                 if( (train.getIteration()%500) == 0) {
-                    reportNeuralTrain(train,earlyStop);
+                    reportNeuralTrain(train);
                 }
             }
             while (!train.isTrainingDone() && !Double.isInfinite(train.getError()) && !Double.isNaN(train.getError()) );
             train.finishTraining();
-            this.bestValidationError = earlyStop.getBestValidationError();
+            this.bestValidationError = train.getError();
 
             if( !Double.isInfinite(train.getError()) && !Double.isNaN(train.getError()) ) {
                 done = true;
-                reportNeuralTrain(train,earlyStop);
+                reportNeuralTrain(train);
             }
         }
 

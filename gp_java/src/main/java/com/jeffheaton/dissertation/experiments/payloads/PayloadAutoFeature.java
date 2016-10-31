@@ -17,10 +17,7 @@ import org.encog.util.simple.EncogUtility;
 public class PayloadAutoFeature extends AbstractExperimentPayload {
 
     @Override
-    public PayloadReport run(ExperimentTask task) {
-        Stopwatch sw = new Stopwatch();
-        sw.start();
-
+    public MLDataSet obtainCommonProcessing(ExperimentTask task) {
         DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetNeural(task.getDatasetFilename(),task.getModelType().getTarget(),
                 EngineArray.string2list(task.getPredictors()));
         QuickEncodeDataset quick = cache.getQuick();
@@ -33,21 +30,32 @@ public class PayloadAutoFeature extends AbstractExperimentPayload {
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 
-        AutoEngineerFeatures engineer = new AutoEngineerFeatures(trainingSet, validationSet);
+        AutoEngineerFeatures engineer = new AutoEngineerFeatures(trainingSet);
+
         engineer.setNames(quick.getFieldNames());
         engineer.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         engineer.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         engineer.process();
+        return engineer.augmentDataset(5, cache.getData());
+    }
 
-        double resultError = 0;
-        double resultValidation = 0;
-        int steps = 1;
+    @Override
+    public PayloadReport run(ExperimentTask task) {
+        Stopwatch sw = new Stopwatch();
+        sw.start();
 
-        task.log("Result: " + resultError);
+        DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetNeural(task.getDatasetFilename(),task.getModelType().getTarget(),
+                EngineArray.string2list(task.getPredictors()));
+        MLDataSet augmentedDataset = cache.obtainCommonProcessing(task,this);
+
+        PayloadNeuralFit neuralPayload = new PayloadNeuralFit();
+        neuralPayload.setVerbose(isVerbose());
+        PayloadReport neuralFit = neuralPayload.run(task);
+        sw.stop();
 
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
-                resultError, resultValidation, 0, 0,
-                steps, "");
+                neuralFit.getResult(), neuralFit.getResultRaw(), 0, 0,
+                neuralFit.getIteration(), "");
     }
 }
