@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.payloads;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import org.encog.engine.network.activation.ActivationLinear;
@@ -105,12 +106,12 @@ public class PayloadImportance extends AbstractExperimentPayload {
         // train the neural network
         StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet);
         train.setUpdateRule(new AdaGradUpdate());
-        train.setBatchSize(PayloadNeuralFit.MINI_BATCH_SIZE);
-        train.setL1(PayloadNeuralFit.L1);
-        train.setL2(PayloadNeuralFit.L2);
-        train.setLearningRate(PayloadNeuralFit.LEARNING_RATE);
+        train.setBatchSize(JeffDissertation.MINI_BATCH_SIZE);
+        train.setL1(JeffDissertation.L1);
+        train.setL2(JeffDissertation.L2);
+        train.setLearningRate(JeffDissertation.LEARNING_RATE);
 
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, PayloadNeuralFit.STAGNANT_NEURAL);
+        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, JeffDissertation.STAGNANT_NEURAL);
         earlyStop.setSaveBest(true);
         train.addStrategy(earlyStop);
 

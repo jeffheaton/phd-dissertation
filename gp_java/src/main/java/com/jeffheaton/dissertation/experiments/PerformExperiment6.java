@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.experiments.data.DatasetInfo;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.*;
@@ -16,7 +17,8 @@ public class PerformExperiment6 implements AbstractExperiment {
 
     public void addDataSet(TaskQueueManager manager, DatasetInfo info) {
         String type = info.isRegression() ? "r":"c";
-        manager.addTaskCycles(getName(),info.getName(),"autofeature-"+type+":"+info.getTarget()+"|nrmse",null,5);
+        manager.addTaskCycles(getName(),info.getName(),"autofeature-"+type+":"+info.getTarget()+"|nrmse",null,
+                JeffDissertation.REPEAT_COUNT);
     }
 
     @Override

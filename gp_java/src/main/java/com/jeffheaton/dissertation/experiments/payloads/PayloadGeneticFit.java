@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.payloads;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.experiments.data.DataCacheElement;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
@@ -12,7 +13,9 @@ import org.encog.mathutil.randomize.generate.GenerateRandom;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLDataSet;
+import org.encog.ml.ea.population.Population;
 import org.encog.ml.ea.score.adjust.ComplexityAdjustedScore;
+import org.encog.ml.ea.train.EvolutionaryAlgorithm;
 import org.encog.ml.ea.train.basic.TrainEA;
 import org.encog.ml.fitness.MultiObjectiveFitness;
 import org.encog.ml.prg.EncogProgram;
@@ -28,6 +31,7 @@ import org.encog.ml.prg.species.PrgSpeciation;
 import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.prg.train.rewrite.RewriteAlgebraic;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
+import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.util.EngineArray;
@@ -42,7 +46,6 @@ import java.util.Random;
 public class PayloadGeneticFit extends AbstractExperimentPayload {
 
     public static String GP_CLASS_ERROR = "GP cannot be used with multiple outputs (classification with more than 2 values)";
-    public static final int POPULATION_SIZE = 100;
     private final List<EncogProgram> best = new ArrayList<>();
     private int n = 1;
     private FunctionFactory factory;
@@ -93,24 +96,12 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         sw.start();
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
-        org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd, 0.75);
+        org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd,
+                JeffDissertation.TRAIN_VALIDATION_SPLIT);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 
-        EncogProgramContext context = new EncogProgramContext();
-        for (String field: quick.getFieldNames()) {
-            context.defineVariable(field);
-        }
-
-        FunctionFactory factory = context.getFunctions();
-        factory.addExtension(StandardExtensions.EXTENSION_VAR_SUPPORT);
-        factory.addExtension(StandardExtensions.EXTENSION_CONST_SUPPORT);
-        factory.addExtension(StandardExtensions.EXTENSION_NEG);
-        factory.addExtension(StandardExtensions.EXTENSION_ADD);
-        factory.addExtension(StandardExtensions.EXTENSION_SUB);
-        factory.addExtension(StandardExtensions.EXTENSION_MUL);
-        factory.addExtension(StandardExtensions.EXTENSION_DIV);
-        factory.addExtension(StandardExtensions.EXTENSION_POWER);
+        EncogProgramContext context = JeffDissertation.factorGeneticContext(quick.getFieldNames());
 
         this.totalIterations = 0;
         this.rawError = this.accumulatedError = 0;
@@ -130,29 +121,10 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
 
     private void fitOne(int current, ExperimentTask task, EncogProgramContext context, MLDataSet trainingSet, MLDataSet validationSet) {
 
-        PrgPopulation pop = new PrgPopulation(context, POPULATION_SIZE);
-
-        MultiObjectiveFitness score = new MultiObjectiveFitness();
-        score.addObjective(1.0, new TrainingSetScore(trainingSet));
-
-        TrainEA genetic = new TrainEA(pop, score);
-        genetic.setCODEC(new PrgCODEC());
-        genetic.addOperation(0.5, new SubtreeCrossover());
-        genetic.addOperation(0.25, new ConstMutation(context, 0.5, 1.0));
-        genetic.addOperation(0.25, new SubtreeMutation(context, 4));
-        genetic.addScoreAdjuster(new ComplexityAdjustedScore(10, 20, 50, 100.0));
-        pop.getRules().addRewriteRule(new RewriteConstants());
-        pop.getRules().addRewriteRule(new RewriteAlgebraic());
-        pop.getRules().addConstraintRule(new SimpleGPConstraint());
-        genetic.setSpeciation(new PrgSpeciation());
-        genetic.setThreadCount(1);
-
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 5, 50);
-        genetic.addStrategy(earlyStop);
-
-        (new RampedHalfAndHalf(context, 1, 6)).generate(new Random(), pop);
-
-        genetic.setShouldIgnoreExceptions(false);
+        JeffDissertation.DissertationGeneticTraining d = JeffDissertation.factorGeneticProgramming(context,trainingSet,validationSet,JeffDissertation.POPULATION_SIZE);
+        PrgPopulation pop = d.getPopulation();
+        EarlyStoppingStrategy earlyStop = d.getEarlyStop();
+        TrainEA genetic = d.getTrain();
 
         long lastUpdate = System.currentTimeMillis();
         int populationFails = 0;

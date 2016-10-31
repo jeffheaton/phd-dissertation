@@ -37,7 +37,6 @@ public class AutoEngineerFeatures {
     private MLDataSet trainingSet;
     private MLDataSet validationSet;
     private int populationSize = 100;
-    private int hiddenCount = 50;
     private int maxIterations = 5000;
     private TrainEA genetic;
     private FeatureScore score;
@@ -78,7 +77,7 @@ public class AutoEngineerFeatures {
 
         PrgPopulation pop = new PrgPopulation(context,this.populationSize);
 
-        this.score = new FeatureScore(this.trainingSet, this.validationSet,pop, this.hiddenCount, this.maxIterations);
+        this.score = new FeatureScore(this.trainingSet, this.validationSet,pop, this.maxIterations);
 
 
         this.genetic = new TrainEA(pop, this.score);

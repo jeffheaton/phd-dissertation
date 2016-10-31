@@ -4,14 +4,10 @@ import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.autofeatures.AutoEngineerFeatures;
 import com.jeffheaton.dissertation.autofeatures.Transform;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
-import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.Encog;
-import org.encog.engine.network.activation.ActivationLinear;
-import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
-import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.importance.FeatureImportance;
@@ -22,28 +18,15 @@ import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.ml.train.strategy.end.StoppingStrategy;
 import org.encog.neural.networks.BasicNetwork;
-import org.encog.neural.networks.layers.BasicLayer;
-import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
-import org.encog.neural.networks.training.propagation.sgd.update.AdamUpdate;
 import org.encog.persist.source.ObtainFallbackStream;
 import org.encog.persist.source.ObtainInputStream;
-import org.encog.persist.source.ObtainResourceInputStream;
 import org.encog.util.Format;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
 
-import java.io.File;
 import java.util.List;
 
 public class ExperimentAutoFeature {
-
-    public static final int STAGNANT_STEPS = 500;
-    public static final int MINI_BATCH_SIZE = 32;
-    public static final double LEARNING_RATE = 1e-2;
-    public static final double L1 = 0;
-    public static final double L2 = 1e-8;
-
-    public static int STAGNANT_AUTO = 50;
 
     private static String[] names;
 
@@ -70,7 +53,8 @@ public class ExperimentAutoFeature {
 
 
         // split
-        MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(42),0.75);
+        MLDataSet[] split = EncogUtility.splitTrainValidate(dataset,new MersenneTwisterGenerateRandom(
+                JeffDissertation.RANDOM_SEED),JeffDissertation.TRAIN_VALIDATION_SPLIT);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 
@@ -112,27 +96,14 @@ public class ExperimentAutoFeature {
         MLDataSet validationSet = split[1];
 
         // create a neural network, without using a factory
-        BasicNetwork network = new BasicNetwork();
-        network.addLayer(new BasicLayer(null,true,augmentedDataset.getInputSize()));
-        network.addLayer(new BasicLayer(new ActivationReLU(),true,500));
-        //network.addLayer(new BasicLayer(new ActivationReLU(),true,50));
-        //network.addLayer(new BasicLayer(new ActivationReLU(),true,15));
-        network.addLayer(new BasicLayer(new ActivationLinear(),false,trainingSet.getIdealSize()));
-        network.getStructure().finalizeStructure();
-        (new XaiverRandomizer()).randomize(network);
-        //seedInput(network);
+        BasicNetwork network = JeffDissertation.factorNeuralNetwork(trainingSet.getInputSize(),
+                trainingSet.getIdealSize(), true);
 
         // train the neural network
-        StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet);
-        train.setUpdateRule(new AdamUpdate());
-        train.setBatchSize(MINI_BATCH_SIZE);
-        train.setL1(L1);
-        train.setL2(L2);
-        train.setLearningRate(LEARNING_RATE);
-
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet,5,STAGNANT_STEPS);
-        earlyStop.setSaveBest(true);
-        train.addStrategy(earlyStop);
+        JeffDissertation.DissertationNeuralTraining d = JeffDissertation.factorNeuralTrainer(
+                network,trainingSet,validationSet);
+        MLTrain train = d.getTrain();
+        EarlyStoppingStrategy earlyStop = d.getEarlyStop();
 
         int epoch = 1;
 

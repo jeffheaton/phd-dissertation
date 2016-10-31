@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.payloads;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.autofeatures.AutoEngineerFeatures;
 import com.jeffheaton.dissertation.experiments.data.DataCacheElement;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
@@ -15,12 +16,6 @@ import org.encog.util.simple.EncogUtility;
 
 public class PayloadAutoFeature extends AbstractExperimentPayload {
 
-    public static final int MINI_BATCH_SIZE = 50;
-    public static final double LEARNING_RATE = 1e-2;
-    public static final int STAGNANT_NEURAL = 50;
-    public static final double L1 = 0;
-    public static final double L2 = 1e-8;
-
     @Override
     public PayloadReport run(ExperimentTask task) {
         Stopwatch sw = new Stopwatch();
@@ -32,8 +27,9 @@ public class PayloadAutoFeature extends AbstractExperimentPayload {
         MLDataSet dataset = cache.getData();
 
         // split
-        GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
-        org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd, 0.75);
+        GenerateRandom rnd = new MersenneTwisterGenerateRandom(JeffDissertation.RANDOM_SEED);
+        org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd,
+                JeffDissertation.TRAIN_VALIDATION_SPLIT);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 

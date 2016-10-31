@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.experiments.data.DatasetInfo;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.*;
@@ -31,8 +32,10 @@ public class PerformExperiment1 implements AbstractExperiment {
                 pred.append(str);
             }
 
-            manager.addTaskCycles(getName(),"feature_eng.csv","neural-r:"+info.getTarget()+"|rmse",pred.toString(),5);
-            manager.addTaskCycles(getName(),"feature_eng.csv","gp-r:"+info.getTarget()+"|rmse",pred.toString(),5);
+            manager.addTaskCycles(getName(),"feature_eng.csv","neural-r:"+info.getTarget()+"|rmse",pred.toString(),
+                    JeffDissertation.REPEAT_COUNT);
+            manager.addTaskCycles(getName(),"feature_eng.csv","gp-r:"+info.getTarget()+"|rmse",pred.toString(),
+                    JeffDissertation.REPEAT_COUNT);
         }
     }
 

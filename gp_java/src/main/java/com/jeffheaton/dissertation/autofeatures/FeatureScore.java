@@ -1,9 +1,7 @@
 package com.jeffheaton.dissertation.autofeatures;
 
-import org.encog.Encog;
+import com.jeffheaton.dissertation.JeffDissertation;
 import org.encog.EncogError;
-import org.encog.engine.network.activation.ActivationLinear;
-import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.ml.CalculateScore;
 import org.encog.ml.MLMethod;
@@ -23,43 +21,30 @@ import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.ml.train.strategy.end.EndIterationsStrategy;
 import org.encog.neural.networks.BasicNetwork;
-import org.encog.neural.networks.layers.BasicLayer;
-import org.encog.neural.networks.training.propagation.back.Backpropagation;
-import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
-import org.encog.neural.networks.training.propagation.sgd.update.AdaGradUpdate;
-import org.encog.neural.networks.training.propagation.sgd.update.AdamUpdate;
 import org.encog.util.Format;
 
 import java.util.List;
 
 public class FeatureScore implements CalculateScore {
-    public static final int STAGNANT_STEPS = 500;
-    public static final int MINI_BATCH_SIZE = 50;
-    public static final double LEARNING_RATE = 1e-2;
-    public static final double L1 = 0;
-    public static final double L2 = 1e-8;
     private final Population population;
     private final BasicNetwork network;
     private MLDataSet trainingData;
     private MLDataSet validationData;
     private boolean init;
-    private int hiddenCount;
     private int maxIterations;
     private boolean shouldNeuralReport = false;
     private double bestValidationError;
 
 
-    public FeatureScore(MLDataSet theTrainingData, MLDataSet theValidationData, Population thePopulation, int theHiddenCount, int theMaxIterations) {
+    public FeatureScore(MLDataSet theTrainingData, MLDataSet theValidationData, Population thePopulation, int theMaxIterations) {
         this.trainingData = theTrainingData;
         this.validationData = theValidationData;
         this.population = thePopulation;
-        this.network = new BasicNetwork();
-        this.hiddenCount = theHiddenCount;
+        this.network = JeffDissertation.factorNeuralNetwork(
+                this.population.getPopulationSize(),
+                this.trainingData.getIdealSize(),
+                true);
         this.maxIterations = theMaxIterations;
-        network.addLayer(new BasicLayer(null,true,this.population.getPopulationSize()));
-        network.addLayer(new BasicLayer(new ActivationReLU(),true,this.hiddenCount));
-        network.addLayer(new BasicLayer(new ActivationLinear(),false,this.trainingData.getIdealSize()));
-        network.getStructure().finalizeStructure();
     }
 
     private void randomizeNetwork() {
@@ -128,7 +113,6 @@ public class FeatureScore implements CalculateScore {
 
         // Create a new training set, with the new engineered autofeatures
         MLDataSet engineeredTrainingSet = encodeDataset(genomes, this.trainingData);
-        MLDataSet engineeredValidationSet = encodeDataset(genomes, this.trainingData);
 
         boolean done = false;
 
@@ -136,22 +120,11 @@ public class FeatureScore implements CalculateScore {
             randomizeNetwork();
 
             // Train a neural network with engineered dataset
-            StochasticGradientDescent train = new StochasticGradientDescent(network, engineeredTrainingSet);
-            train.setUpdateRule(new AdamUpdate());
-            train.setBatchSize(MINI_BATCH_SIZE);
-            train.setL1(L1);
-            train.setL2(L2);
-            train.setLearningRate(LEARNING_RATE);
+            JeffDissertation.DissertationNeuralTraining d = JeffDissertation.factorNeuralTrainer(
+                    network,engineeredTrainingSet,null);
+            MLTrain train = d.getTrain();
+            EarlyStoppingStrategy earlyStop = d.getEarlyStop();
 
-
-            //final Backpropagation train = new Backpropagation(network, engineeredTrainingSet, learningRate, this.momentum);
-
-            //final ResilientPropagation train = new ResilientPropagation(network, engineeredDataset);
-            //train.setErrorFunction(new CrossEntropyErrorFunction());
-            //train.setNesterovUpdate(true);
-
-            EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(engineeredValidationSet,5,STAGNANT_STEPS);
-            train.addStrategy(earlyStop);
             if( maxIterations>0 ) {
                 train.addStrategy(new EndIterationsStrategy(maxIterations));
             }
@@ -176,7 +149,7 @@ public class FeatureScore implements CalculateScore {
 
         PerturbationFeatureImportanceCalc fi = new PerturbationFeatureImportanceCalc();
         fi.init(network,null);
-        fi.performRanking(engineeredValidationSet);
+        fi.performRanking(engineeredTrainingSet);
 
         int count = Math.min(fi.getFeatures().size(),genomes.size());// might not be needed
         for(int i=0;i<count;i++) {

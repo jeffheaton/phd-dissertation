@@ -1,40 +1,22 @@
 package com.jeffheaton.dissertation.experiments.payloads;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
-import com.jeffheaton.dissertation.experiments.manager.ThreadedRunner;
-import com.jeffheaton.dissertation.util.*;
-import org.encog.engine.network.activation.ActivationLinear;
-import org.encog.engine.network.activation.ActivationReLU;
-import org.encog.engine.network.activation.ActivationSoftMax;
-import org.encog.mathutil.error.ErrorCalculation;
-import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.error.NormalizedError;
-import org.encog.mathutil.randomize.XaiverRandomizer;
 import org.encog.mathutil.randomize.generate.GenerateRandom;
 import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
-import org.encog.neural.error.CrossEntropyErrorFunction;
 import org.encog.neural.networks.BasicNetwork;
-import org.encog.neural.networks.layers.BasicLayer;
-import org.encog.neural.networks.training.propagation.back.Backpropagation;
-import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
-import org.encog.neural.networks.training.propagation.sgd.update.AdaGradUpdate;
 import org.encog.util.EngineArray;
 import org.encog.util.Format;
 import org.encog.util.Stopwatch;
 import org.encog.util.simple.EncogUtility;
 
 public class PayloadNeuralFit extends AbstractExperimentPayload {
-
-    public static final int MINI_BATCH_SIZE = 50;
-    public static final double LEARNING_RATE = 1e-2;
-    public static final int STAGNANT_NEURAL = 50;
-    public static final double L1 = 0;
-    public static final double L2 = 1e-8;
 
     private void statusNeural(ExperimentTask task, MLTrain train, EarlyStoppingStrategy earlyStop) {
         StringBuilder line = new StringBuilder();
@@ -66,35 +48,17 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 
-        // create a neural network, without using a factory
-        BasicNetwork network = new BasicNetwork();
-        network.addLayer(new BasicLayer(null, true, trainingSet.getInputSize()));
-        network.addLayer(new BasicLayer(new ActivationReLU(), true, 200));
-        network.addLayer(new BasicLayer(new ActivationReLU(), true, 100));
-        network.addLayer(new BasicLayer(new ActivationReLU(), true, 25));
+        // Create neural network
+        BasicNetwork network = JeffDissertation.factorNeuralNetwork(
+                trainingSet.getInputSize(),
+                trainingSet.getIdealSize(),
+                task.getModelType().isRegression());
 
-        if (task.getModelType().isRegression()) {
-            network.addLayer(new BasicLayer(new ActivationLinear(), false, trainingSet.getIdealSize()));
-            //ErrorCalculation.setMode(ErrorCalculationMode.RMS);
-        } else {
-            network.addLayer(new BasicLayer(new ActivationSoftMax(), false, trainingSet.getIdealSize()));
-            //ErrorCalculation.setMode(ErrorCalculationMode.HOT_LOGLOSS);
-        }
-        network.getStructure().finalizeStructure();
-        (new XaiverRandomizer()).randomize(network);
-        //network.reset();
-
-        // train the neural networks
-        StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet);
-        train.setUpdateRule(new AdaGradUpdate());
-        train.setBatchSize(MINI_BATCH_SIZE);
-        train.setL1(L1);
-        train.setL2(L2);
-        train.setLearningRate(LEARNING_RATE);
-
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, STAGNANT_NEURAL);
-        earlyStop.setSaveBest(true);
-        train.addStrategy(earlyStop);
+        // Train neural network
+        JeffDissertation.DissertationNeuralTraining d = JeffDissertation.factorNeuralTrainer(
+                network,trainingSet,validationSet);
+        MLTrain train = d.getTrain();
+        EarlyStoppingStrategy earlyStop = d.getEarlyStop();
 
         long lastUpdate = System.currentTimeMillis();
 
