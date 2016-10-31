@@ -55,7 +55,7 @@ public class ExperimentAutoFeature {
         AutoEngineerFeatures engineer = new AutoEngineerFeatures(dataset);
 
         engineer.setNames(quick.getFieldNames());
-        engineer.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
+        //engineer.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         engineer.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         engineer.process();
 

@@ -50,7 +50,7 @@ public class JeffDissertation {
     public static final int MINI_BATCH_SIZE = 32;
     public static final int POPULATION_SIZE = 100;
     public static final Class UPDATE_RULE = AdamUpdate.class;
-    public static final double MINIMUM_IMPROVE = 0.001;
+    public static final double MINIMUM_IMPROVE = 0.1;
 
     public static class DissertationNeuralTraining {
         private final EarlyStoppingStrategy earlyStop;

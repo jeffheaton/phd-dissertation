@@ -49,8 +49,8 @@ public class ExperimentRunSingle {
         ExperimentTask task = new ExperimentTask(
                 "test",
                 "feature_eng.csv",
-                "gp-r:coef_ratio-y0|rmse",
-                "coef_ratio-x0,coef_ratio-x1",
+                "gp-r:ratio_poly-y0|rmse",
+                "ratio_poly-x0",
                 0);
         task.clearLog();
         task.run();
