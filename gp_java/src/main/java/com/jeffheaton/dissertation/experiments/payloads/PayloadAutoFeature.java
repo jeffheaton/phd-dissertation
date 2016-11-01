@@ -83,7 +83,7 @@ public class PayloadAutoFeature extends AbstractExperimentPayload implements Sta
             e.printStackTrace();
         }
 
-        Transform.zscore(augmentedSet);
+        //Transform.zscore(augmentedSet);
         return augmentedSet;
     }
 

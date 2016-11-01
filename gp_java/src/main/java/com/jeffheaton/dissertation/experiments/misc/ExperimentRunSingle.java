@@ -48,15 +48,12 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "feature_eng.csv",
-                "gp-r:ratio_poly-y0|rmse",
-                "ratio_poly-x0",
+                "crx.csv",
+                "autofeature-r:a16|nrmse",
+                null,
                 0);
         task.clearLog();
         task.run();
-
-
-
 
         Encog.getInstance().shutdown();
 

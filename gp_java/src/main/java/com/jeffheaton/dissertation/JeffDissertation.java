@@ -52,7 +52,7 @@ public class JeffDissertation {
     public static final int POPULATION_SIZE = 100;
     public static final Class UPDATE_RULE = AdamUpdate.class;
     public static final double MINIMUM_IMPROVE = 0.01;
-    public static final int EXP4_PATTERN_COUNT = 100;
+    public static final int EXP4_PATTERN_COUNT = 25;
 
     public static class DissertationNeuralTraining {
         private final EarlyStoppingStrategy earlyStop;

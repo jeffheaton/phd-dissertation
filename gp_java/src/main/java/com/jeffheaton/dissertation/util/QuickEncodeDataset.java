@@ -42,7 +42,7 @@ public class QuickEncodeDataset {
         for (QuickEncodeDataset.QuickField field : p) {
             if( field.encodeColumnsNeeded()>1 ) {
                 for(int i=0;i<field.encodeColumnsNeeded();i++) {
-                    result[idx++] = field.getName()+i;
+                    result[idx++] = field.getName()+"-"+i;
                 }
             } else {
                 result[idx++] = field.getName();
