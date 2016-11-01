@@ -48,7 +48,6 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
     public static String GP_CLASS_ERROR = "GP cannot be used with multiple outputs (classification with more than 2 values)";
     private final List<EncogProgram> best = new ArrayList<>();
     private int n = 1;
-    private FunctionFactory factory;
     private double rawError;
     private double accumulatedError;
     private int accumulatedRuns;

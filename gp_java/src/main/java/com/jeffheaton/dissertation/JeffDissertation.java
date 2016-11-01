@@ -142,9 +142,8 @@ public class JeffDissertation {
             earlyStop = new EarlyStoppingStrategy(validationSet, 5, JeffDissertation.STAGNANT_NEURAL);
             earlyStop.setSaveBest(true);
             earlyStop.setMinimumImprovement(JeffDissertation.MINIMUM_IMPROVE);
+            train.addStrategy(earlyStop);
         }
-
-        train.addStrategy(earlyStop);
 
         return new DissertationNeuralTraining(train,earlyStop);
     }

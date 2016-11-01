@@ -6,6 +6,7 @@ import com.jeffheaton.dissertation.autofeatures.Transform;
 import com.jeffheaton.dissertation.experiments.manager.DissertationConfig;
 import com.jeffheaton.dissertation.util.QuickEncodeDataset;
 import org.encog.Encog;
+import org.encog.StatusReportable;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.mathutil.error.ErrorCalculationMode;
 import org.encog.mathutil.error.NormalizedError;
@@ -27,11 +28,11 @@ import org.encog.util.simple.EncogUtility;
 
 import java.util.List;
 
-public class ExperimentAutoFeature {
+public class ExperimentAutoFeature implements StatusReportable {
 
-    private static String[] names;
+    private String[] names;
 
-    private static void status(MLTrain train, StoppingStrategy earlyStop) {
+    private void status(MLTrain train, StoppingStrategy earlyStop) {
         StringBuilder line = new StringBuilder();
 
         line.append("Epoch #");
@@ -43,7 +44,7 @@ public class ExperimentAutoFeature {
         System.out.println(line);
     }
 
-    public static MLDataSet engineerFeatures() {
+    public MLDataSet engineerFeatures() {
         ObtainInputStream source = new ObtainFallbackStream(
                 DissertationConfig.getInstance().getDataPath().toString(),
                 "auto-mpg.csv", JeffDissertation.class);
@@ -53,7 +54,7 @@ public class ExperimentAutoFeature {
         MLDataSet dataset = quick.generateDataset();
 
         AutoEngineerFeatures engineer = new AutoEngineerFeatures(dataset);
-
+        engineer.addListener(this);
         engineer.setNames(quick.getFieldNames());
         //engineer.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         engineer.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
@@ -81,7 +82,7 @@ public class ExperimentAutoFeature {
         return augmentedDataset;
     }
 
-    public static void trainAugmented(MLDataSet augmentedDataset) {
+    public void trainAugmented(MLDataSet augmentedDataset) {
         Transform.zscore(augmentedDataset);
 
         // split
@@ -130,11 +131,27 @@ public class ExperimentAutoFeature {
         System.out.println(fi.toString());
     }
 
-    public static void main(String[] args) {
-        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
+    public void run() {
         MLDataSet augmentedDataset = engineerFeatures();
         trainAugmented(augmentedDataset);
+    }
 
+    public static void main(String[] args) {
+        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
+        ExperimentAutoFeature prg = new ExperimentAutoFeature();
+        prg.run();
         Encog.getInstance().shutdown();
+    }
+
+    /**
+     * Report on current status.
+     *
+     * @param total   The total amount of units to process.
+     * @param current The current unit being processed.
+     * @param message
+     */
+    @Override
+    public void report(int total, int current, String message) {
+        System.out.println( current + "/" + total + " : " + message);
     }
 }

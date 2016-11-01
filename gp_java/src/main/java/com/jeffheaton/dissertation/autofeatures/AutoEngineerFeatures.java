@@ -1,6 +1,7 @@
 package com.jeffheaton.dissertation.autofeatures;
 
 import org.encog.EncogError;
+import org.encog.StatusReportable;
 import org.encog.ml.MLMethod;
 import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLData;
@@ -39,7 +40,6 @@ public class AutoEngineerFeatures implements MultiThreadable {
 
     private MLDataSet trainingSet;
     private int populationSize = 100;
-    private int hiddenCount = 50;
     private int maxIterations = 500;
     private TrainEA genetic;
     private FeatureScore score;
@@ -47,6 +47,7 @@ public class AutoEngineerFeatures implements MultiThreadable {
     private String[] names;
     private EncogProgramContext context;
     private int threadCount;
+    private final List<StatusReportable> listeners = new ArrayList<StatusReportable>();
 
     public AutoEngineerFeatures(MLDataSet theTrainingSet)
     {
@@ -106,6 +107,7 @@ public class AutoEngineerFeatures implements MultiThreadable {
         init();
 
         for(int i=0;i<GP_EPOCS;i++) {
+            report("Running iteration: " + i);
             this.dump.dumpFeatures(i, this.genetic.getPopulation());
             score.calculateScores();
             this.genetic.iteration();
@@ -207,5 +209,19 @@ public class AutoEngineerFeatures implements MultiThreadable {
     @Override
     public void setThreadCount(int numThreads) {
         this.threadCount = numThreads;
+    }
+
+    public List<StatusReportable> getListeners() {
+        return listeners;
+    }
+
+    public void addListener(StatusReportable listener) {
+        this.listeners.add(listener);
+    }
+
+    private void report(String str) {
+        for(StatusReportable listener: this.listeners) {
+            listener.report(0,0,str);
+        }
     }
 }
