@@ -52,7 +52,7 @@ public class JeffDissertation {
     public static final int POPULATION_SIZE = 100;
     public static final Class UPDATE_RULE = AdamUpdate.class;
     public static final double MINIMUM_IMPROVE = 0.01;
-    public static final int EXP4_PATTERN_COUNT = 25;
+    public static final int EXP4_PATTERN_COUNT = 100;
 
     public static class DissertationNeuralTraining {
         private final EarlyStoppingStrategy earlyStop;
@@ -226,6 +226,8 @@ public class JeffDissertation {
             (new PerformExperiment6()).main(null);
         } else if( args[0].equalsIgnoreCase("experiment-1to5")) {
             (new PerformExperiments1To5()).main(null);
+        } else if( args[0].equalsIgnoreCase("experiment-1to6")) {
+            (new PerformExperiments1To6()).main(null);
         }
     }
 }

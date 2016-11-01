@@ -1,4 +1,4 @@
-IP="54.224.36.88"
+IP="54.167.206.153"
 gradle clean
 gradle shadowJar
 sftp -i ~/jeffheaton.pem ec2-user@$IP:. <<< $'put ./build/libs/gp_java-1.0-all.jar'
