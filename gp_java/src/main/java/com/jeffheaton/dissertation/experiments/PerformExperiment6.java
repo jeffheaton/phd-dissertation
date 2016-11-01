@@ -18,7 +18,7 @@ public class PerformExperiment6 implements AbstractExperiment {
     public void addDataSet(TaskQueueManager manager, DatasetInfo info) {
         String type = info.isRegression() ? "r":"c";
         manager.addTaskCycles(getName(),info.getName(),"autofeature-"+type+":"+info.getTarget()+"|nrmse",null,
-                JeffDissertation.REPEAT_COUNT);
+                JeffDissertation.NEURAL_REPEAT_COUNT);
     }
 
     @Override

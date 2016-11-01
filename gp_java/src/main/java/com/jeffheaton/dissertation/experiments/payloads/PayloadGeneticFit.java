@@ -90,9 +90,6 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
             throw new EncogError(PayloadGeneticFit.GP_CLASS_ERROR);
         }
 
-        Stopwatch sw = new Stopwatch();
-        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
-        sw.start();
         // split
         GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
         org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd,
@@ -101,6 +98,10 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         MLDataSet validationSet = split[1];
 
         EncogProgramContext context = JeffDissertation.factorGeneticContext(quick.getFieldNames());
+
+        Stopwatch sw = new Stopwatch();
+        ErrorCalculation.setMode(ErrorCalculationMode.RMS);
+        sw.start();
 
         this.totalIterations = 0;
         this.rawError = this.accumulatedError = 0;

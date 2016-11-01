@@ -18,6 +18,8 @@ import org.encog.util.simple.EncogUtility;
 
 public class PayloadNeuralFit extends AbstractExperimentPayload {
 
+    private BasicNetwork bestNetwork;
+
     private void statusNeural(ExperimentTask task, MLTrain train, EarlyStoppingStrategy earlyStop) {
         StringBuilder line = new StringBuilder();
 
@@ -34,17 +36,20 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
 
     @Override
     public PayloadReport run(ExperimentTask task) {
-        Stopwatch sw = new Stopwatch();
-        sw.start();
         // get the dataset
         MLDataSet dataset = ExperimentDatasets.getInstance().loadDatasetNeural(
                 task.getDatasetFilename(),
                 task.getModelType().getTarget(),
                 EngineArray.string2list(task.getPredictors())).getData();
+        return runWithDataset(task,dataset);
 
+    }
+
+    public PayloadReport runWithDataset(ExperimentTask task, MLDataSet dataset) {
         // split
-        GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
-        org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd, 0.75);
+        GenerateRandom rnd = new MersenneTwisterGenerateRandom(JeffDissertation.RANDOM_SEED);
+        org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd,
+                JeffDissertation.TRAIN_VALIDATION_SPLIT);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 
@@ -53,6 +58,9 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
                 trainingSet.getInputSize(),
                 trainingSet.getIdealSize(),
                 task.getModelType().isRegression());
+
+        Stopwatch sw = new Stopwatch();
+        sw.start();
 
         // Train neural network
         JeffDissertation.DissertationNeuralTraining d = JeffDissertation.factorNeuralTrainer(
@@ -92,11 +100,16 @@ public class PayloadNeuralFit extends AbstractExperimentPayload {
         sw.stop();
 
         task.log("Result: " + resultError);
+        this.bestNetwork = (BasicNetwork) earlyStop.getBestModel();
 
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
                 resultError, earlyStop.getValidationError(), 0, 0,
                 train.getIteration(), "");
+    }
+
+    public BasicNetwork getBestNetwork() {
+        return this.bestNetwork;
     }
 
     /**

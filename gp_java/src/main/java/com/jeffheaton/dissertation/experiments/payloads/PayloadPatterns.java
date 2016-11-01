@@ -1,5 +1,6 @@
 package com.jeffheaton.dissertation.experiments.payloads;
 
+import com.jeffheaton.dissertation.JeffDissertation;
 import com.jeffheaton.dissertation.experiments.data.DataCacheElement;
 import com.jeffheaton.dissertation.experiments.data.ExperimentDatasets;
 import com.jeffheaton.dissertation.experiments.manager.ExperimentTask;
@@ -15,7 +16,6 @@ import org.encog.util.Stopwatch;
 import java.util.List;
 
 public class PayloadPatterns extends AbstractExperimentPayload  {
-    public static int N = 100;
 
     @Override
     public PayloadReport run(ExperimentTask task) {
@@ -35,7 +35,7 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
 
         PayloadGeneticFit gp = new PayloadGeneticFit();
         gp.setVerbose(isVerbose());
-        gp.setN(N);
+        gp.setN(JeffDissertation.EXP4_PATTERN_COUNT);
         gp.run(task);
         List<EncogProgram> gpFeatures = gp.getBest();
 
@@ -47,7 +47,8 @@ public class PayloadPatterns extends AbstractExperimentPayload  {
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
                 gp.getNormalizedError(), 0,0,0,
-                N, util.reportString(5,N));
+                JeffDissertation.EXP4_PATTERN_COUNT,
+                util.reportString(5,JeffDissertation.EXP4_PATTERN_COUNT));
     }
 
     /**
