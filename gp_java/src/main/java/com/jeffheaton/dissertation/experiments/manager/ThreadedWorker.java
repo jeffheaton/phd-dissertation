@@ -25,7 +25,7 @@ public class ThreadedWorker implements Runnable {
                     try {
                         task.run();
                         this.runner.getManager().reportDone(task, runner.getMaxWait());
-                    } catch (Exception ex) {
+                    } catch (Throwable ex) {
                         ex.printStackTrace();
                         this.runner.getManager().reportError(task, ex, runner.getMaxWait());
                     }
@@ -38,7 +38,7 @@ public class ThreadedWorker implements Runnable {
                 }
 
             }
-        } catch(Exception ex) {
+        } catch(Throwable ex) {
             ex.printStackTrace();
         }
     }

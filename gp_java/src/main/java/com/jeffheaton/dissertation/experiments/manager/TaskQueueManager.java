@@ -10,6 +10,6 @@ public interface TaskQueueManager {
     void addTaskCycles(String name, String dataset, String model, String predictors, int cycles);
     void reportDone(ExperimentTask task,int maxWaitSeconds);
     void blockUntilDone(int maxWaitSeconds);
-    void reportError(ExperimentTask task, Exception ex, int maxWaitSeconds);
+    void reportError(ExperimentTask task, Throwable ex, int maxWaitSeconds);
     List<ExperimentTask> getQueue(int maxWaitSeconds);
 }

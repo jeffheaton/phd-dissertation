@@ -85,9 +85,8 @@ public class PayloadAutoFeature extends AbstractExperimentPayload {
                 }
 
             } catch (IOException e) {
-                task.log(e.getMessage());
+                task.log(e);
             }
-            task.log("Written");
 
             //Transform.zscore(augmentedSet);
             return augmentedSet;

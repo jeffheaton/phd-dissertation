@@ -196,7 +196,7 @@ public class FileBasedTaskManager implements TaskQueueManager {
     }
 
     @Override
-    public void reportError(ExperimentTask task, Exception ex, int maxWaitSeconds) {
+    public void reportError(ExperimentTask task, Throwable ex, int maxWaitSeconds) {
         try {
             obtainLock(maxWaitSeconds);
 

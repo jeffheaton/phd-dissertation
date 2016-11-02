@@ -168,7 +168,7 @@ public class ExperimentTask implements Runnable {
         return this.status.startsWith("error");
     }
 
-    public void reportError(String owner, Exception ex) {
+    public void reportError(String owner, Throwable ex) {
         this.status = "error-" + owner;
     }
 
@@ -242,7 +242,7 @@ public class ExperimentTask implements Runnable {
         this.i2 = i2;
     }
 
-    public void log(Exception ex) {
+    public void log(Throwable ex) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         ex.printStackTrace(pw);

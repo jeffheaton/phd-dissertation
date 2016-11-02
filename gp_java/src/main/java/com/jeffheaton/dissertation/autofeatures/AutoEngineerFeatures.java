@@ -2,7 +2,6 @@ package com.jeffheaton.dissertation.autofeatures;
 
 import org.encog.EncogError;
 import org.encog.StatusReportable;
-import org.encog.ml.MLMethod;
 import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
@@ -26,10 +25,6 @@ import org.encog.ml.prg.opp.SubtreeMutation;
 import org.encog.ml.prg.species.PrgSpeciation;
 import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
-import org.encog.ml.train.BasicTraining;
-import org.encog.ml.tree.TreeNode;
-import org.encog.neural.networks.training.propagation.TrainingContinuation;
-import org.encog.util.Format;
 import org.encog.util.concurrency.MultiThreadable;
 
 import java.io.*;
@@ -37,7 +32,7 @@ import java.util.*;
 
 public class AutoEngineerFeatures implements MultiThreadable {
     public static final int GP_EPOCS = 50;
-
+    private final List<StatusReportable> listeners = new ArrayList<StatusReportable>();
     private MLDataSet trainingSet;
     private int populationSize = 100;
     private int maxIterations = 500;
@@ -47,22 +42,20 @@ public class AutoEngineerFeatures implements MultiThreadable {
     private String[] names;
     private EncogProgramContext context;
     private int threadCount;
-    private final List<StatusReportable> listeners = new ArrayList<StatusReportable>();
 
-    public AutoEngineerFeatures(MLDataSet theTrainingSet)
-    {
+    public AutoEngineerFeatures(MLDataSet theTrainingSet) {
         this.trainingSet = theTrainingSet;
         this.dump = new DumpFeatures(theTrainingSet);
         this.names = new String[this.trainingSet.getInputSize()];
-        for(int i=1;i<=this.trainingSet.getInputSize();i++) {
-            this.names[i-1] = "x"+i;
+        for (int i = 1; i <= this.trainingSet.getInputSize(); i++) {
+            this.names[i - 1] = "x" + i;
         }
 
     }
 
     private void init() {
         this.context = new EncogProgramContext();
-        for(int i=0;i<this.trainingSet.getInputSize();i++) {
+        for (int i = 0; i < this.trainingSet.getInputSize(); i++) {
             context.defineVariable(names[i]);
         }
 
@@ -79,9 +72,9 @@ public class AutoEngineerFeatures implements MultiThreadable {
         factory.addExtension(StandardExtensions.EXTENSION_PDIV);
 
 
-        PrgPopulation pop = new PrgPopulation(context,this.populationSize);
+        PrgPopulation pop = new PrgPopulation(context, this.populationSize);
 
-        this.score = new FeatureScore(this, this.trainingSet,pop, this.maxIterations);
+        this.score = new FeatureScore(this, this.trainingSet, pop, this.maxIterations);
 
 
         this.genetic = new TrainEA(pop, this.score);
@@ -89,15 +82,15 @@ public class AutoEngineerFeatures implements MultiThreadable {
         //genetic.setValidationMode(true);
         this.genetic.setCODEC(new PrgCODEC());
         this.genetic.addOperation(0.5, new SubtreeCrossover());
-        this.genetic.addOperation(0.25, new ConstMutation(context,0.5,1.0));
-        this.genetic.addOperation(0.25, new SubtreeMutation(context,4));
-        this.genetic.addScoreAdjuster(new ComplexityAdjustedScore(5,10,10,500.0));
+        this.genetic.addOperation(0.25, new ConstMutation(context, 0.5, 1.0));
+        this.genetic.addOperation(0.25, new SubtreeMutation(context, 4));
+        this.genetic.addScoreAdjuster(new ComplexityAdjustedScore(5, 10, 10, 500.0));
         pop.getRules().addRewriteRule(new RewriteConstants());
         //genetic.getRules().addRewriteRule(new RewriteAlgebraic());
         this.genetic.setSpeciation(new PrgSpeciation());
         this.genetic.setEliteRate(0.5);
 
-        (new RampedHalfAndHalf(context,1, 6)).generate(new Random(), pop);
+        (new RampedHalfAndHalf(context, 1, 6)).generate(new Random(), pop);
 
         this.genetic.setShouldIgnoreExceptions(true);
 
@@ -106,7 +99,7 @@ public class AutoEngineerFeatures implements MultiThreadable {
     public void process() {
         init();
 
-        for(int i=0;i<GP_EPOCS;i++) {
+        for (int i = 0; i < GP_EPOCS; i++) {
             report("Running iteration: " + i);
             this.dump.dumpFeatures(i, this.genetic.getPopulation());
             score.calculateScores();
@@ -114,13 +107,12 @@ public class AutoEngineerFeatures implements MultiThreadable {
         }
     }
 
+    public File getLogFeatureDir() {
+        return this.dump.getLogFeatureDir();
+    }
 
     public void setLogFeatureDir(File logFeatureDir) {
         this.dump.setLogFeatureDir(logFeatureDir);
-    }
-
-    public File getLogFeatureDir() {
-        return this.dump.getLogFeatureDir();
     }
 
     public DumpFeatures getDumpFeatures() {
@@ -131,13 +123,13 @@ public class AutoEngineerFeatures implements MultiThreadable {
         HashSet<String> foundAlready = new HashSet<>();
         List<EncogProgram> result = new ArrayList<>();
         List<Genome> l = this.genetic.getPopulation().flatten();
-        l.sort(this.genetic.getBestComparator());
-        int idx = l.size()-1;
+        Collections.sort(l, this.genetic.getBestComparator());
+        int idx = l.size() - 1;
 
-        while(idx>=0 && result.size()<num) {
-            EncogProgram prg = (EncogProgram)l.get(idx);
+        while (idx >= 0 && result.size() < num) {
+            EncogProgram prg = (EncogProgram) l.get(idx);
             String str = prg.dumpAsCommonExpression();
-            if( prg.size()>1 && prg.getScore()>0 && !foundAlready.contains(str) ) {
+            if (prg.size() > 1 && prg.getScore() > 0 && !foundAlready.contains(str)) {
                 result.add(prg);
                 foundAlready.add(str);
             }
@@ -148,11 +140,11 @@ public class AutoEngineerFeatures implements MultiThreadable {
     }
 
     public void setNames(String[] names) {
-        if( names.length != this.names.length) {
+        if (names.length != this.names.length) {
             throw new EncogError("Invalid number of field names, expected " + this.names.length + ", but got " + names.length);
         }
 
-        for(int i=0;i<names.length;i++) {
+        for (int i = 0; i < names.length; i++) {
             this.names[i] = names[i];
         }
     }
@@ -162,27 +154,27 @@ public class AutoEngineerFeatures implements MultiThreadable {
         MLDataSet result = new BasicMLDataSet();
         int inputSize = engineeredFeatures.size() + dataset.getInputSize();
 
-        for(MLDataPair pair: dataset) {
+        for (MLDataPair pair : dataset) {
             MLData augmentedInput = new BasicMLData(inputSize);
             MLData augmentedIdeal = new BasicMLData(dataset.getIdealSize());
-            MLDataPair augmentedPair = new BasicMLDataPair(augmentedInput,augmentedIdeal);
+            MLDataPair augmentedPair = new BasicMLDataPair(augmentedInput, augmentedIdeal);
 
             // Copy ideal
-            for(int i=0;i<pair.getIdeal().size();i++){
+            for (int i = 0; i < pair.getIdeal().size(); i++) {
                 augmentedIdeal.setData(i, pair.getIdeal().getData(i));
             }
 
             // Create input - Copy origional features
             int idx = 0;
-            for(int i=0;i<pair.getInput().size();i++) {
-                augmentedInput.setData(idx++,pair.getInput().getData(i));
+            for (int i = 0; i < pair.getInput().size(); i++) {
+                augmentedInput.setData(idx++, pair.getInput().getData(i));
             }
 
             int i = 0;
-            while(idx<inputSize) {
+            while (idx < inputSize) {
                 double d = 0.0;
 
-                if( i< engineeredFeatures.size() ) {
+                if (i < engineeredFeatures.size()) {
                     MLRegression phen = engineeredFeatures.get(i);
                     try {
                         MLData output = phen.compute(pair.getInput());
@@ -220,8 +212,8 @@ public class AutoEngineerFeatures implements MultiThreadable {
     }
 
     private void report(String str) {
-        for(StatusReportable listener: this.listeners) {
-            listener.report(0,0,str);
+        for (StatusReportable listener : this.listeners) {
+            listener.report(0, 0, str);
         }
     }
 }
