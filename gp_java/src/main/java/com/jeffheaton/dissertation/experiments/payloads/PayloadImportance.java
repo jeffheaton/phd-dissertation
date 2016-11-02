@@ -82,38 +82,24 @@ public class PayloadImportance extends AbstractExperimentPayload {
                 EngineArray.string2list(task.getPredictors())).getData();
 
         // split
-        GenerateRandom rnd = new MersenneTwisterGenerateRandom(42);
-        org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd, 0.75);
+        GenerateRandom rnd = new MersenneTwisterGenerateRandom(JeffDissertation.RANDOM_SEED);
+        org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd,
+                JeffDissertation.TRAIN_VALIDATION_SPLIT);
         MLDataSet trainingSet = split[0];
         MLDataSet validationSet = split[1];
 
         // create a neural network, without using a factory
-        BasicNetwork network = new BasicNetwork();
-        network.addLayer(new BasicLayer(null, true, trainingSet.getInputSize()));
-        network.addLayer(new BasicLayer(new ActivationReLU(), true, 200));
-        network.addLayer(new BasicLayer(new ActivationReLU(), true, 100));
-        network.addLayer(new BasicLayer(new ActivationReLU(), true, 25));
-
-        if (task.getModelType().isRegression()) {
-            network.addLayer(new BasicLayer(new ActivationLinear(), false, trainingSet.getIdealSize()));
-        } else {
-            network.addLayer(new BasicLayer(new ActivationSoftMax(), false, trainingSet.getIdealSize()));
-        }
-        network.getStructure().finalizeStructure();
-        (new XaiverRandomizer()).randomize(network);
-        //network.reset();
+        BasicNetwork network = JeffDissertation.factorNeuralNetwork(
+                trainingSet.getInputSize(),
+                trainingSet.getIdealSize(),
+                task.getModelType().isRegression());
 
         // train the neural network
-        StochasticGradientDescent train = new StochasticGradientDescent(network, trainingSet);
-        train.setUpdateRule(new AdaGradUpdate());
-        train.setBatchSize(JeffDissertation.MINI_BATCH_SIZE);
-        train.setL1(JeffDissertation.L1);
-        train.setL2(JeffDissertation.L2);
-        train.setLearningRate(JeffDissertation.LEARNING_RATE);
-
-        EarlyStoppingStrategy earlyStop = new EarlyStoppingStrategy(validationSet, 10, JeffDissertation.STAGNANT_NEURAL);
-        earlyStop.setSaveBest(true);
-        train.addStrategy(earlyStop);
+        // Train neural network
+        JeffDissertation.DissertationNeuralTraining d = JeffDissertation.factorNeuralTrainer(
+                network,trainingSet,validationSet);
+        MLTrain train = d.getTrain();
+        EarlyStoppingStrategy earlyStop = d.getEarlyStop();
 
         long lastUpdate = System.currentTimeMillis();
 

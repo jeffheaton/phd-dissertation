@@ -28,63 +28,69 @@ import org.encog.util.simple.EncogUtility;
 
 import java.io.*;
 
-public class PayloadAutoFeature extends AbstractExperimentPayload implements StatusReportable {
-
-    private ExperimentTask currentTask;
+public class PayloadAutoFeature extends AbstractExperimentPayload {
 
     @Override
     public MLDataSet obtainCommonProcessing(ExperimentTask task) {
-        DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetNeural(task.getDatasetFilename(),task.getModelType().getTarget(),
-                EngineArray.string2list(task.getPredictors()));
-        QuickEncodeDataset quick = cache.getQuick();
-        MLDataSet dataset = cache.getData();
+            DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetNeural(task.getDatasetFilename(), task.getModelType().getTarget(),
+                    EngineArray.string2list(task.getPredictors()));
+            QuickEncodeDataset quick = cache.getQuick();
+            MLDataSet dataset = cache.getData();
 
-        // split - we will not use the validation set to engineer features
-        GenerateRandom rnd = new MersenneTwisterGenerateRandom(JeffDissertation.RANDOM_SEED);
-        org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd,
-                JeffDissertation.TRAIN_VALIDATION_SPLIT);
-        MLDataSet trainingSet = split[0];
+            // split - we will not use the validation set to engineer features
+            GenerateRandom rnd = new MersenneTwisterGenerateRandom(JeffDissertation.RANDOM_SEED);
+            org.encog.ml.data.MLDataSet[] split = EncogUtility.splitTrainValidate(dataset, rnd,
+                    JeffDissertation.TRAIN_VALIDATION_SPLIT);
+            MLDataSet trainingSet = split[0];
 
-        AutoEngineerFeatures engineer = new AutoEngineerFeatures(trainingSet);
-        engineer.addListener(this);
+            AutoEngineerFeatures engineer = new AutoEngineerFeatures(trainingSet);
+            engineer.setThreadCount(1);
+            engineer.addListener(new StatusRouter(task));
 
-        engineer.setNames(quick.getFieldNames());
-        engineer.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
-        engineer.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
-        engineer.process();
+            engineer.setNames(quick.getFieldNames());
+            //engineer.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
+            //engineer.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
+            engineer.process();
+            task.log("Processing done");
 
-        String base = new File(task.getDatasetFilename()).getName();
-        int k = base.indexOf('.');
-        if( k!=-1 ) {
-            base = base.substring(0,k);
-        }
-
-        // Capture the augmented dataset.
-        MLDataSet augmentedSet = engineer.augmentDataset(5, cache.getData());
-        File filename = new File(DissertationConfig.getInstance().getPath(task.getName()),"augmented-"+base+".csv");
-        try (CSVWriter writer = new CSVWriter(new FileWriter(filename));) {
-            int idx = 0;
-            String[] headers = generateNames(cache.getData(),augmentedSet,true);
-
-            writer.writeNext(headers);
-            for (MLDataPair pair: augmentedSet) {
-                String[] line = new String[augmentedSet.getInputSize()+augmentedSet.getIdealSize()];
-                int idx2 = 0;
-                for(int i=0;i<augmentedSet.getInputSize();i++) {
-                    line[idx2++] = CSVFormat.EG_FORMAT.format(pair.getInput().getData(i), Encog.DEFAULT_PRECISION);
-                }
-                for(int i=0;i<augmentedSet.getIdealSize();i++) {
-                    line[idx2++] = CSVFormat.EG_FORMAT.format(pair.getIdeal().getData(i), Encog.DEFAULT_PRECISION);
-                }
-                writer.writeNext(line);
+            String base = new File(task.getDatasetFilename()).getName();
+            int k = base.indexOf('.');
+            if (k != -1) {
+                base = base.substring(0, k);
             }
+            task.log("Base2: " + base);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            // Capture the augmented dataset.
+            MLDataSet d = cache.getData();
+            task.log("2:" + d.size());
+            MLDataSet augmentedSet = engineer.augmentDataset(5, d);
+            task.log("Got augmented set");
+            File filename = new File(DissertationConfig.getInstance().getPath(task.getName()), "augmented-" + base + ".csv");
+            task.log("Writing to: " + filename);
+            try (CSVWriter writer = new CSVWriter(new FileWriter(filename));) {
+                int idx = 0;
+                String[] headers = generateNames(cache.getData(), augmentedSet, true);
 
-        //Transform.zscore(augmentedSet);
-        return augmentedSet;
+                writer.writeNext(headers);
+                for (MLDataPair pair : augmentedSet) {
+                    String[] line = new String[augmentedSet.getInputSize() + augmentedSet.getIdealSize()];
+                    int idx2 = 0;
+                    for (int i = 0; i < augmentedSet.getInputSize(); i++) {
+                        line[idx2++] = CSVFormat.EG_FORMAT.format(pair.getInput().getData(i), Encog.DEFAULT_PRECISION);
+                    }
+                    for (int i = 0; i < augmentedSet.getIdealSize(); i++) {
+                        line[idx2++] = CSVFormat.EG_FORMAT.format(pair.getIdeal().getData(i), Encog.DEFAULT_PRECISION);
+                    }
+                    writer.writeNext(line);
+                }
+
+            } catch (IOException e) {
+                task.log(e.getMessage());
+            }
+            task.log("Written");
+
+            //Transform.zscore(augmentedSet);
+            return augmentedSet;
     }
 
     private String[] generateNames(MLDataSet original, MLDataSet augmented, boolean includeY) {
@@ -119,19 +125,18 @@ public class PayloadAutoFeature extends AbstractExperimentPayload implements Sta
     @Override
     public PayloadReport run(ExperimentTask task) {
 
-        this.currentTask = task;
-
         Stopwatch sw = new Stopwatch();
         sw.start();
 
         DataCacheElement cache = ExperimentDatasets.getInstance().loadDatasetNeural(task.getDatasetFilename(),task.getModelType().getTarget(),
                 EngineArray.string2list(task.getPredictors()));
         MLDataSet augmentedDataset = cache.obtainCommonProcessing(task,this);
+        task.log("Fitting neural net");
 
         PayloadNeuralFit neuralPayload = new PayloadNeuralFit();
         neuralPayload.setVerbose(isVerbose());
         PayloadReport neuralFit = neuralPayload.runWithDataset(task,augmentedDataset);
-        sw.stop();
+
 
         BasicNetwork network = (BasicNetwork) neuralPayload.getBestNetwork();
         task.log("Best score : " + neuralFit.getResult());
@@ -147,6 +152,7 @@ public class PayloadAutoFeature extends AbstractExperimentPayload implements Sta
             task.log(ranking.toString());
         }
         task.log(fi.toString());
+        sw.stop();
 
         return new PayloadReport(
                 (int) (sw.getElapsedMilliseconds() / 1000),
@@ -154,15 +160,23 @@ public class PayloadAutoFeature extends AbstractExperimentPayload implements Sta
                 neuralFit.getIteration(), "");
     }
 
-    /**
-     * Report on current status.
-     *
-     * @param total   The total amount of units to process.
-     * @param current The current unit being processed.
-     * @param message The status message.
-     */
-    @Override
-    public void report(int total, int current, String message) {
-        this.currentTask.log("AutoFeature:" + current + "/" + total + ": " + message);
+    public static class StatusRouter implements StatusReportable {
+        private ExperimentTask currentTask;
+
+        public StatusRouter(ExperimentTask theTask) {
+            this.currentTask = theTask;
+        }
+
+        /**
+         * Report on current status.
+         *
+         * @param total   The total amount of units to process.
+         * @param current The current unit being processed.
+         * @param message The status message.
+         */
+        @Override
+        public void report(int total, int current, String message) {
+            this.currentTask.log("AutoFeature:" + current + "/" + total + ": " + message);
+        }
     }
 }

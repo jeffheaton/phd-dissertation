@@ -241,4 +241,11 @@ public class ExperimentTask implements Runnable {
     public void setI2(int i2) {
         this.i2 = i2;
     }
+
+    public void log(Exception ex) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+        log(sw.toString());
+    }
 }
