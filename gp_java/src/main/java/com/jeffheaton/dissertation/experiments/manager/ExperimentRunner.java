@@ -20,7 +20,7 @@ public class ExperimentRunner {
         this.experimentList.add(experiment);
     }
 
-    public void runTasks() {
+    public void runTasks(boolean actuallyRun) {
         this.sw = new Stopwatch();
         sw.start();
 
@@ -30,17 +30,20 @@ public class ExperimentRunner {
         ErrorCalculation.setMode(ErrorCalculationMode.RMS);
 
         this.manager = new FileBasedTaskManager(DissertationConfig.getInstance().getProjectPath());
-        manager.removeAll();
 
-        for(AbstractExperiment experiment: this.experimentList) {
-            experiment.registerTasks(manager);
+        if( actuallyRun ) {
+            manager.removeAll();
+
+            for (AbstractExperiment experiment : this.experimentList) {
+                experiment.registerTasks(manager);
+            }
+
+            ThreadedRunner runner = new ThreadedRunner(manager);
+            runner.setVerbose(false);
+            runner.startup();
+            manager.blockUntilDone(600);
+            runner.shutdown();
         }
-
-        ThreadedRunner runner = new ThreadedRunner(manager);
-        runner.setVerbose(false);
-        runner.startup();
-        manager.blockUntilDone(600);
-        runner.shutdown();
     }
 
     public void runReports() {

@@ -44,7 +44,7 @@ public class PerformExperiment6 implements AbstractExperiment {
     public static void main(String[] args) {
         ExperimentRunner ex = new ExperimentRunner();
         ex.addExperiment(new PerformExperiment6());
-        ex.runTasks();
+        ex.runTasks(true);
         ex.runReports();
         Encog.getInstance().shutdown();
     }

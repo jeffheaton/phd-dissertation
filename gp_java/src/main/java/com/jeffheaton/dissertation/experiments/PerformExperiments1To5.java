@@ -11,7 +11,7 @@ public class PerformExperiments1To5 {
         ex.addExperiment(new PerformExperiment3());
         ex.addExperiment(new PerformExperiment4());
         ex.addExperiment(new PerformExperiment5());
-        ex.runTasks();
+        ex.runTasks(true);
         ex.runReports();
         Encog.getInstance().shutdown();
     }
