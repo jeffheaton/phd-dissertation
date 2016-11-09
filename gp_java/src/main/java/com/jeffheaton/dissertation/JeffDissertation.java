@@ -30,6 +30,7 @@ import org.encog.ml.train.MLTrain;
 import org.encog.ml.train.strategy.end.EarlyStoppingStrategy;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
+import org.encog.neural.networks.training.StochasticTrainingSetScore;
 import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.neural.networks.training.propagation.sgd.StochasticGradientDescent;
 import org.encog.neural.networks.training.propagation.sgd.update.AdamUpdate;
@@ -177,7 +178,7 @@ public class JeffDissertation {
         PrgPopulation pop = new PrgPopulation(context, populationSize);
 
         MultiObjectiveFitness score = new MultiObjectiveFitness();
-        score.addObjective(1.0, new TrainingSetScore(trainingSet));
+        score.addObjective(1.0, new StochasticTrainingSetScore(trainingSet,JeffDissertation.MINI_BATCH_SIZE));
 
         TrainEA genetic = new TrainEA(pop, score);
         genetic.setCODEC(new PrgCODEC());

@@ -20,6 +20,7 @@ import org.encog.ml.data.MLDataSet;
 import org.encog.ml.importance.FeatureImportance;
 import org.encog.ml.importance.FeatureRank;
 import org.encog.ml.importance.PerturbationFeatureImportanceCalc;
+import org.encog.ml.prg.EncogProgram;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.util.EngineArray;
 import org.encog.util.Stopwatch;
@@ -27,6 +28,7 @@ import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
 
 import java.io.*;
+import java.util.List;
 
 public class PayloadAutoFeature extends AbstractExperimentPayload {
 
@@ -53,18 +55,21 @@ public class PayloadAutoFeature extends AbstractExperimentPayload {
             engineer.process();
             task.log("Processing done");
 
+            task.log("Engineered features:");
+            List<EncogProgram> engineeredFeatures = engineer.getFeatures(5);
+            for(EncogProgram prg: engineeredFeatures) {
+                task.log(prg.getScore() + ":" + prg.dumpAsCommonExpression());
+            }
+
             String base = new File(task.getDatasetFilename()).getName();
             int k = base.indexOf('.');
             if (k != -1) {
                 base = base.substring(0, k);
             }
-            task.log("Base2: " + base);
 
             // Capture the augmented dataset.
             MLDataSet d = cache.getData();
-            task.log("2:" + d.size());
             MLDataSet augmentedSet = engineer.augmentDataset(5, d);
-            task.log("Got augmented set");
             File filename = new File(DissertationConfig.getInstance().getPath(task.getName()), "augmented-" + base + ".csv");
             task.log("Writing to: " + filename);
             try (CSVWriter writer = new CSVWriter(new FileWriter(filename));) {
@@ -150,6 +155,9 @@ public class PayloadAutoFeature extends AbstractExperimentPayload {
         for (FeatureRank ranking : fi.getFeaturesSorted()) {
             task.log(ranking.toString());
         }
+        task.log();
+
+
         task.log(fi.toString());
         sw.stop();
 

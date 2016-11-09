@@ -248,4 +248,8 @@ public class ExperimentTask implements Runnable {
         ex.printStackTrace(pw);
         log(sw.toString());
     }
+
+    public void log() {
+        log("");
+    }
 }

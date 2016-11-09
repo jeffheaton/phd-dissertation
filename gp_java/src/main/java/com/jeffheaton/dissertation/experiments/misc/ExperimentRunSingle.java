@@ -48,10 +48,11 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "crx.csv",
-                "autofeature-r:a16|nrmse",
+                "auto-mpg.csv",
+                "importance-r:mpg|nrmse",
                 null,
                 0);
+
         task.clearLog();
         task.run();
 

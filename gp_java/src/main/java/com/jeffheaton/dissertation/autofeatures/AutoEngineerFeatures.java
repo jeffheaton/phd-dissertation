@@ -68,7 +68,7 @@ public class AutoEngineerFeatures implements MultiThreadable {
         factory.addExtension(StandardExtensions.EXTENSION_ADD);
         factory.addExtension(StandardExtensions.EXTENSION_SUB);
         factory.addExtension(StandardExtensions.EXTENSION_MUL);
-        //factory.addExtension(StandardExtensions.EXTENSION_POWER);
+        factory.addExtension(StandardExtensions.EXTENSION_POWER);
         factory.addExtension(StandardExtensions.EXTENSION_PDIV);
 
 
