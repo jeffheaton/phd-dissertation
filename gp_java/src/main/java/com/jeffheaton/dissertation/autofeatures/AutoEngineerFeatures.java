@@ -2,6 +2,8 @@ package com.jeffheaton.dissertation.autofeatures;
 
 import org.encog.EncogError;
 import org.encog.StatusReportable;
+import org.encog.mathutil.randomize.generate.GenerateRandom;
+import org.encog.mathutil.randomize.generate.MersenneTwisterGenerateRandom;
 import org.encog.ml.MLRegression;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
@@ -25,6 +27,7 @@ import org.encog.ml.prg.opp.SubtreeMutation;
 import org.encog.ml.prg.species.PrgSpeciation;
 import org.encog.ml.prg.train.PrgPopulation;
 import org.encog.ml.prg.train.rewrite.RewriteConstants;
+import org.encog.neural.networks.training.propagation.sgd.BatchDataSet;
 import org.encog.util.concurrency.MultiThreadable;
 
 import java.io.*;
@@ -42,6 +45,10 @@ public class AutoEngineerFeatures implements MultiThreadable {
     private String[] names;
     private EncogProgramContext context;
     private int threadCount;
+    private int maxRankingSet = 10000;
+    private MLDataSet rankingSet;
+    private GenerateRandom rnd = new MersenneTwisterGenerateRandom();
+
 
     public AutoEngineerFeatures(MLDataSet theTrainingSet) {
         this.trainingSet = theTrainingSet;
@@ -51,6 +58,27 @@ public class AutoEngineerFeatures implements MultiThreadable {
             this.names[i - 1] = "x" + i;
         }
 
+    }
+
+    private void sampleRankingSet() {
+        Set<Integer> already = new HashSet<Integer>();
+        int rankingSize = Math.min(this.maxRankingSet,this.trainingSet.size());
+
+        if( rankingSize<= this.trainingSet.size()) {
+            this.rankingSet = this.trainingSet;
+        }
+
+        this.rankingSet = new BasicMLDataSet();
+
+
+        while(this.rankingSet.size()<rankingSize) {
+            int idx = this.rnd.nextInt(this.trainingSet.size());
+            if( !already.contains(idx) ) {
+                already.add(idx);
+                MLDataPair pair = this.trainingSet.get(idx);
+                this.rankingSet.add(pair);
+            }
+        }
     }
 
     private void init() {
@@ -94,6 +122,9 @@ public class AutoEngineerFeatures implements MultiThreadable {
 
         this.genetic.setShouldIgnoreExceptions(true);
 
+        if( this.rankingSet == null ) {
+            sampleRankingSet();
+        }
     }
 
     public void process() {
@@ -215,5 +246,17 @@ public class AutoEngineerFeatures implements MultiThreadable {
         for (StatusReportable listener : this.listeners) {
             listener.report(0, 0, str);
         }
+    }
+
+    public int getMaxRankingSet() {
+        return maxRankingSet;
+    }
+
+    public void setMaxRankingSet(int maxRankingSet) {
+        this.maxRankingSet = maxRankingSet;
+    }
+
+    public MLDataSet getRankingSet() {
+        return rankingSet;
     }
 }

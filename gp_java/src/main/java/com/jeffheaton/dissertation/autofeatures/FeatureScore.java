@@ -60,11 +60,11 @@ public class FeatureScore implements CalculateScore {
         }
     }
 
-    private MLDataSet encodeDataset(List<Genome> genomes, MLDataSet dataset) {
+    private MLDataSet encodeDataset(List<Genome> genomes) {
         int inputSize = this.network.getInputCount();
         MLDataSet engineeredDataset = new BasicMLDataSet();
 
-        for(MLDataPair pair: dataset) {
+        for(MLDataPair pair: this.owner.getRankingSet()) {
             MLData engineeredInput = new BasicMLData(inputSize);
             MLData engineeredIdeal = new BasicMLData(this.network.getOutputCount());
             MLDataPair engineeredPair = new BasicMLDataPair(engineeredInput,engineeredIdeal);
@@ -110,7 +110,7 @@ public class FeatureScore implements CalculateScore {
         List<Genome> genomes = this.population.flatten();
 
         // Create a new training set, with the new engineered autofeatures
-        MLDataSet engineeredTrainingSet = encodeDataset(genomes, this.trainingData);
+        MLDataSet engineeredTrainingSet = encodeDataset(genomes);
 
         boolean done = false;
 

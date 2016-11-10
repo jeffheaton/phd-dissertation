@@ -200,7 +200,7 @@ public class FindPatternsGP {
         return result.toString();
     }
 
-    public static void main(String[] args) {
+    public static void eval(String exp) {
         EncogProgramContext context = new EncogProgramContext();
         context.defineVariable("x");
         context.defineVariable("y");
@@ -219,16 +219,19 @@ public class FindPatternsGP {
         PrgPopulation pop = new PrgPopulation(context, 100);
         EncogProgram f = (EncogProgram)pop.getGenomeFactory().factor();
         f.setPopulation(pop);
-        f.compileExpression("((y/1)+x*2)/1");
+        //f.compileExpression("((y/1)+x*2)/1");
+
+        System.out.println("Expression: " + exp);
+        f.compileExpression(exp);
 
         MLData x = new BasicMLData(3);
         x.setData(0,10);
         x.setData(1,11);
         x.setData(2,12);
-        System.out.println(f.compute(x));
+        //System.out.println(f.compute(x));
 
-        ProgramNode root = f.getRootNode();
-        System.out.println(f.dumpAsCommonExpression());
+        //ProgramNode root = f.getRootNode();
+        //System.out.println(f.dumpAsCommonExpression());
 
 
         FindPatternsGP util = new FindPatternsGP();
@@ -237,5 +240,12 @@ public class FindPatternsGP {
         for(FoundPattern fp: util.getPatterns()) {
             System.out.println(fp);
         }
+        System.out.println();
+    }
+
+    public static void main(String[] args) {
+        eval("(x*y)");
+        eval("(x*y)*z");
+        eval("((y/1)+(x*2))/1");
     }
 }
