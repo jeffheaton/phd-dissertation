@@ -48,8 +48,8 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "auto-mpg.csv",
-                "importance-r:mpg|nrmse",
+                "covtype.csv",
+                "autofeature-c:cover_type|nrmse",
                 null,
                 0);
 

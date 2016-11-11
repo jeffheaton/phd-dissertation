@@ -29,7 +29,6 @@ public class FeatureScore implements CalculateScore {
     private final Population population;
     private final BasicNetwork network;
     private MLDataSet trainingData;
-    private MLDataSet validationData;
     private boolean init;
     private int maxIterations;
     private boolean shouldNeuralReport = false;
@@ -64,6 +63,7 @@ public class FeatureScore implements CalculateScore {
         int inputSize = this.network.getInputCount();
         MLDataSet engineeredDataset = new BasicMLDataSet();
 
+        System.out.println(this.owner.getRankingSet().size());
         for(MLDataPair pair: this.owner.getRankingSet()) {
             MLData engineeredInput = new BasicMLData(inputSize);
             MLData engineeredIdeal = new BasicMLData(this.network.getOutputCount());

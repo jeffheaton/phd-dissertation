@@ -24,7 +24,7 @@ public class ThreadedRunner {
     }
 
     public void startup() {
-        int threads = DissertationConfig.getInstance().getThreads();
+        int threads = DissertationConfig.getInstance().getThreads()*2;
         System.out.println("Using " + threads + " threads.");
 
         this.threadPool = Executors.newFixedThreadPool(threads);
