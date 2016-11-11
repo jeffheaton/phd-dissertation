@@ -214,6 +214,7 @@ public class AutoEngineerFeatures implements MultiThreadable {
                         d = 0.0;
                     }
                 }
+                i++;
                 augmentedInput.setData(idx++, d);
             }
 
