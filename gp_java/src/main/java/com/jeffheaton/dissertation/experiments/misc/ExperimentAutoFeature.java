@@ -58,6 +58,7 @@ public class ExperimentAutoFeature implements StatusReportable {
         engineer.setNames(quick.getFieldNames());
         //engineer.getDumpFeatures().setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
         engineer.setLogFeatureDir(DissertationConfig.getInstance().getProjectPath());
+        //engineer.setShouldReportNeural(true);
         engineer.process();
 
         System.out.println("Engineered features:");

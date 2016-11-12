@@ -48,6 +48,7 @@ public class AutoEngineerFeatures implements MultiThreadable {
     private int maxRankingSet = 10000;
     private MLDataSet rankingSet;
     private GenerateRandom rnd = new MersenneTwisterGenerateRandom();
+    private boolean shouldReportNeural = false;
 
 
     public AutoEngineerFeatures(MLDataSet theTrainingSet) {
@@ -243,7 +244,7 @@ public class AutoEngineerFeatures implements MultiThreadable {
         this.listeners.add(listener);
     }
 
-    private void report(String str) {
+    public void report(String str) {
         for (StatusReportable listener : this.listeners) {
             listener.report(0, 0, str);
         }
@@ -259,5 +260,13 @@ public class AutoEngineerFeatures implements MultiThreadable {
 
     public MLDataSet getRankingSet() {
         return rankingSet;
+    }
+
+    public boolean isShouldReportNeural() {
+        return shouldReportNeural;
+    }
+
+    public void setShouldReportNeural(boolean shouldReportNeural) {
+        this.shouldReportNeural = shouldReportNeural;
     }
 }
