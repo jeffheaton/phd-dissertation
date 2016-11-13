@@ -173,7 +173,7 @@ public class PayloadGeneticFit extends AbstractExperimentPayload {
         if( !Double.isNaN(resultError) && !Double.isInfinite(resultError)) {
             this.accumulatedError += resultError;
             this.accumulatedRuns += 1;
-            this.rawError += genetic.getError();
+            this.rawError += earlyStop.getValidationError();
         }
         EncogProgram prg = (EncogProgram) genetic.getBestGenome();
         //prg.setPopulation(null);

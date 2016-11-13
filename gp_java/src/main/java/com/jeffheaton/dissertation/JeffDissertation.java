@@ -178,7 +178,8 @@ public class JeffDissertation {
         PrgPopulation pop = new PrgPopulation(context, populationSize);
 
         MultiObjectiveFitness score = new MultiObjectiveFitness();
-        score.addObjective(1.0, new StochasticTrainingSetScore(trainingSet,JeffDissertation.MINI_BATCH_SIZE));
+        //score.addObjective(1.0, new StochasticTrainingSetScore(trainingSet,JeffDissertation.MINI_BATCH_SIZE));
+        score.addObjective(1.0, new TrainingSetScore(trainingSet));
 
         TrainEA genetic = new TrainEA(pop, score);
         genetic.setCODEC(new PrgCODEC());
