@@ -27,6 +27,8 @@ import org.encog.util.Format;
 import java.util.List;
 
 public class FeatureScore implements CalculateScore {
+
+    public static int MAX_RETRY_STABLE = 5;
     private final Population population;
     private final BasicNetwork network;
     private MLDataSet trainingData;
@@ -113,7 +115,7 @@ public class FeatureScore implements CalculateScore {
         }
     }
 
-    public void calculateScores() {
+    public boolean calculateScores() {
 
         if( this.engineeredDataset == null) {
             initEngineeredDataset();
@@ -155,6 +157,10 @@ public class FeatureScore implements CalculateScore {
                 reportNeuralTrain(train);
             } else {
                 this.owner.report("Network became unstable, try: " + unstableTry);
+
+                if( unstableTry>= FeatureScore.MAX_RETRY_STABLE ) {
+                    return false;
+                }
                 unstableTry++;
             }
         }
@@ -172,6 +178,7 @@ public class FeatureScore implements CalculateScore {
         }
 
         this.init = true;
+        return true;
     }
 
     @Override

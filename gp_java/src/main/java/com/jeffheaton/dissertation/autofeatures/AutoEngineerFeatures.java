@@ -130,12 +130,24 @@ public class AutoEngineerFeatures implements MultiThreadable {
 
     public void process() {
         init();
+        int regenCount = 0;
 
         for (int i = 0; i < GP_EPOCS; i++) {
             report("Running iteration: " + i);
             this.dump.dumpFeatures(i, this.genetic.getPopulation());
-            score.calculateScores();
-            this.genetic.iteration();
+            if( !score.calculateScores() ) {
+                regenCount++;
+
+                if( regenCount> FeatureScore.MAX_RETRY_STABLE ) {
+                    throw new EncogError("Auto generated failed, could not create stable GP population after " + FeatureScore.MAX_RETRY_STABLE + " tries.");
+                }
+
+                report("Population cannot generate a FV stable enough for neural training, resetting entire population.");
+                this.genetic.getPopulation().clear();
+                (new RampedHalfAndHalf(context, 1, 6)).generate(new Random(), genetic.getPopulation());
+            } else {
+                this.genetic.iteration();
+            }
         }
     }
 
