@@ -93,7 +93,7 @@ public class PayloadAutoFeature extends AbstractExperimentPayload {
                 task.log(e);
             }
 
-            //Transform.zscore(augmentedSet);
+            Transform.zscore(augmentedSet);
             return augmentedSet;
     }
 

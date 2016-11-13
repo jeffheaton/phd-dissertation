@@ -65,7 +65,6 @@ public class FeatureScore implements CalculateScore {
     private void encodeDataset(List<Genome> genomes) {
         int inputSize = this.network.getInputCount();
 
-        System.out.println(this.owner.getRankingSet().size());
         for(int i=0;i<this.owner.getRankingSet().size();i++) {
             MLDataPair pair = this.owner.getRankingSet().get(i);
             MLDataPair engineeredPair = this.engineeredDataset.get(i);
