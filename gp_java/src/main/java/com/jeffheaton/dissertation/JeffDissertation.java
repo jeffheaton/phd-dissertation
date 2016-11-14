@@ -40,8 +40,8 @@ import java.util.Random;
 
 public class JeffDissertation {
 
-    public static final int NEURAL_REPEAT_COUNT = 5;
-    public static final int GENETIC_REPEAT_COUNT = 5;
+    public static final int NEURAL_REPEAT_COUNT = 25;
+    public static final int GENETIC_REPEAT_COUNT = 25;
     public static final long RANDOM_SEED = 42;
     public static final double LEARNING_RATE = 1e-2;
     public static final int STAGNANT_NEURAL = 100;
@@ -53,7 +53,7 @@ public class JeffDissertation {
     public static final int POPULATION_SIZE = 100;
     public static final Class UPDATE_RULE = AdamUpdate.class;
     public static final double MINIMUM_IMPROVE = 0.01;
-    public static final int EXP4_PATTERN_COUNT = 100;
+    public static final int EXP4_PATTERN_COUNT = 10;/** **/
 
     public static class DissertationNeuralTraining {
         private final EarlyStoppingStrategy earlyStop;
