@@ -40,8 +40,8 @@ import java.util.Random;
 
 public class JeffDissertation {
 
-    public static final int NEURAL_REPEAT_COUNT = 25;
-    public static final int GENETIC_REPEAT_COUNT = 25;
+    public static final int NEURAL_REPEAT_COUNT = 5;
+    public static final int GENETIC_REPEAT_COUNT = 5;
     public static final long RANDOM_SEED = 42;
     public static final double LEARNING_RATE = 1e-2;
     public static final int STAGNANT_NEURAL = 100;
@@ -109,23 +109,37 @@ public class JeffDissertation {
     }
 
     public static BasicNetwork factorNeuralNetwork(int inputCount, int outputCount, boolean regression) {
+        // Create the neural network and input layer
         BasicNetwork network = new BasicNetwork();
         network.addLayer(new BasicLayer(null, true, inputCount));
+
+        // First hidden layer is twice the number of inputs
         int hiddenCount = inputCount * 2;
 
-        network.addLayer(new BasicLayer(new ActivationReLU(), true, hiddenCount));
-        hiddenCount = Math.max(2, hiddenCount/2);
-        network.addLayer(new BasicLayer(new ActivationReLU(), true, hiddenCount));
-        hiddenCount = Math.max(2, hiddenCount/2);
-        network.addLayer(new BasicLayer(new ActivationReLU(), true, hiddenCount));
+        // Create the first hidden layer
+        network.addLayer(new BasicLayer(
+                new ActivationReLU(), true, hiddenCount));
+
+        // Create the second hidden layer
         hiddenCount = Math.max(2, hiddenCount/2);
         network.addLayer(new BasicLayer(new ActivationReLU(), true, hiddenCount));
 
+        // Create the third hidden layer
+        hiddenCount = Math.max(2, hiddenCount/2);
+        network.addLayer(new BasicLayer(new ActivationReLU(), true, hiddenCount));
+
+        // Create the fourth hidden layer
+        hiddenCount = Math.max(2, hiddenCount/2);
+        network.addLayer(new BasicLayer(new ActivationReLU(), true, hiddenCount));
+
+        // Create tht output layer
         if (regression) {
             network.addLayer(new BasicLayer(new ActivationLinear(), false, outputCount));
         } else {
             network.addLayer(new BasicLayer(new ActivationSoftMax(), false, outputCount));
         }
+
+        // Finalize the network and randomize the weights
         network.getStructure().finalizeStructure();
         (new XaiverRandomizer()).randomize(network);
         return network;

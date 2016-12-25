@@ -22,10 +22,10 @@ public class PerformExperiment2 implements AbstractExperiment {
 
     public void addDataSet(TaskQueueManager manager, DatasetInfo info) {
         String type = info.isRegression() ? "r":"c";
-        manager.addTaskCycles(getName(),info.getName(),"neural-"+type+":"+info.getTarget()+"|nrmse",null,
+        manager.addTaskCycles(getName(),info.getName(),"neural-"+type+":"+info.getTarget()+"|rmse",null,
                 JeffDissertation.NEURAL_REPEAT_COUNT);
         if( info.isRegression() || info.getTargetElements()<3 ) {
-            manager.addTaskCycles(getName(), info.getName(), "gp-r:" + info.getTarget()+"|nrmse", null,
+            manager.addTaskCycles(getName(), info.getName(), "gp-r:" + info.getTarget()+"|rmse", null,
                     JeffDissertation.GENETIC_REPEAT_COUNT);
         }
     }

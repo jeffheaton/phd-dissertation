@@ -48,10 +48,11 @@ public class ExperimentRunSingle {
 
         ExperimentTask task = new ExperimentTask(
                 "test",
-                "covtype.csv",
-                "autofeature-c:cover_type|nrmse",
+                "wine.csv",
+                "autofeature-c:class|nrmse",
                 null,
                 0);
+
 
         task.clearLog();
         task.run();
